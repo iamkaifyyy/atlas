@@ -46,10 +46,8 @@ const defaultConfig: AgentConfig = {
   vaultAddress: process.env.VAULT_ADDRESS || ''
 };
 
-// 1. Initialize TypeScript Order Book Matching Engine
+// Core engine instances
 const matchingEngine = new MatchingEngine('ETH/USDC', 3045.0);
-
-// 2. Initialize Core Services
 const priceFeed = new PriceFeedService(matchingEngine);
 const contractClient = new ContractClient(defaultConfig.vaultAddress);
 const ruleEngine = new RuleEngine(defaultConfig, contractClient, matchingEngine);
@@ -57,7 +55,7 @@ const eventListener = new EventListenerService(contractClient);
 
 eventListener.attachWebSocketServer(wss);
 
-// 3. Connect matching engine events to WebSocket broadcast
+// Stream matching engine events over WebSocket
 matchingEngine.on('depth', (depth) => {
   eventListener.broadcast('ORDERBOOK_UPDATE', depth);
 });
@@ -75,9 +73,7 @@ priceFeed.on('price', async (tick: PriceTick) => {
   }
 });
 
-// --- REST API Endpoints ---
-
-// Status & Health
+// REST routes
 app.get('/api/status', async (_req, res) => {
   const vaultState = await contractClient.getVaultState();
   res.json({
@@ -153,7 +149,8 @@ app.get('/api/backpack/klines', async (req, res) => {
     const symbol = (req.query.symbol as string) || 'ETH_USDC';
     const interval = (req.query.interval as string) || '1h';
     const startTime = req.query.startTime ? Number(req.query.startTime) : undefined;
-    const klines = await backpackClient.getKlines(symbol, interval, startTime);
+    const endTime = req.query.endTime ? Number(req.query.endTime) : undefined;
+    const klines = await backpackClient.getKlines(symbol, interval, startTime, endTime);
     res.json(klines);
   } catch (err) {
     res.status(500).json({ error: (err as Error).message });
@@ -218,6 +215,13 @@ app.post('/api/orderbook/cancel', (req, res) => {
   }
   const cancelled = matchingEngine.cancelOrder(orderId);
   res.json({ success: cancelled });
+});
+
+// Get Active Open Orders
+app.get('/api/orderbook/orders', (req, res) => {
+  const userId = req.query.userId as string | undefined;
+  const orders = matchingEngine.getOpenOrders(userId);
+  res.json({ orders });
 });
 
 // On-Chain Trade Approval (Human in the Loop)

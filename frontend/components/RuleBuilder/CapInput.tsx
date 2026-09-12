@@ -21,23 +21,23 @@ export const CapInput: React.FC<CapInputProps> = ({ value, onChange }) => {
   };
 
   return (
-    <div className="bg-surface rounded-xl p-5 border border-border/80 shadow-sm space-y-4">
+    <div className="cohere-card-console p-5 space-y-4 font-sans">
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <span className="flex h-6 w-6 items-center justify-center rounded-md bg-emerald-500/10 text-emerald-400 font-bold text-xs border border-emerald-500/20">
+        <div className="flex items-center space-x-2.5">
+          <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-console-elevated text-emerald-400 font-bold text-xs border border-console-border font-mono">
             2
           </span>
           <h3 className="font-medium text-white text-sm">Spending Limits</h3>
         </div>
-        <div className="flex items-center gap-1 text-[11px] text-emerald-400">
-          <Shield className="w-3 h-3" />
+        <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-medium font-mono">
+          <Shield className="w-3.5 h-3.5" />
           On-chain enforced
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 font-mono">
         <div>
-          <label className="block text-xs text-slate-400 mb-1">
+          <label className="block text-xs text-muted mb-1.5 uppercase tracking-[0.28px]">
             Max Total Budget
           </label>
           <div className="relative rounded-lg">
@@ -47,17 +47,17 @@ export const CapInput: React.FC<CapInputProps> = ({ value, onChange }) => {
               value={value.maxTotalSpend || ''}
               onChange={handleMaxTotalChange}
               placeholder="5.0"
-              className="block w-full pl-3 pr-12 py-2 bg-surface-elevated border border-border rounded-lg text-white font-mono text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="block w-full pl-3.5 pr-12 py-2.5 bg-console-elevated border border-console-border rounded-lg text-white font-mono text-sm focus:outline-none focus:border-coral transition"
             />
-            <span className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400 text-xs font-mono">
+            <span className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-muted text-xs font-mono">
               ETH
             </span>
           </div>
-          <p className="mt-1 text-[11px] text-slate-500">Cumulative ceiling for the agent</p>
+          <p className="mt-1.5 text-[11px] text-muted font-sans">Cumulative ceiling for the agent</p>
         </div>
 
         <div>
-          <label className="block text-xs text-slate-400 mb-1">
+          <label className="block text-xs text-muted mb-1.5 uppercase tracking-[0.28px]">
             Max Per-Trade Size
           </label>
           <div className="relative rounded-lg">
@@ -67,13 +67,13 @@ export const CapInput: React.FC<CapInputProps> = ({ value, onChange }) => {
               value={value.maxPerTradeSpend || ''}
               onChange={handleMaxPerTradeChange}
               placeholder="1.5"
-              className="block w-full pl-3 pr-12 py-2 bg-surface-elevated border border-border rounded-lg text-white font-mono text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="block w-full pl-3.5 pr-12 py-2.5 bg-console-elevated border border-console-border rounded-lg text-white font-mono text-sm focus:outline-none focus:border-coral transition"
             />
-            <span className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400 text-xs font-mono">
+            <span className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-muted text-xs font-mono">
               ETH
             </span>
           </div>
-          <p className="mt-1 text-[11px] text-slate-500">Hard limit on single transactions</p>
+          <p className="mt-1.5 text-[11px] text-muted font-sans">Hard limit on single transactions</p>
         </div>
       </div>
     </div>

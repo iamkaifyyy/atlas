@@ -56,23 +56,23 @@ export const RuleBuilder: React.FC<RuleBuilderProps> = ({ initialConfig, current
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(config)
       });
-      router.push('/dashboard');
+      router.push('/terminal');
     } catch {
-      router.push('/dashboard');
+      router.push('/terminal');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-5xl mx-auto">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-5xl mx-auto font-sans">
       <div className="lg:col-span-7 space-y-4">
         <div>
-          <h2 className="text-xl font-bold text-white tracking-tight">
+          <h2 className="text-xl font-normal text-white tracking-[-0.03em]">
             Configure Agent Rule
           </h2>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Define execution condition, caps, and safety limits.
+          <p className="text-xs text-muted mt-0.5">
+            Define execution condition, caps, and safety limits for on-chain compilation.
           </p>
         </div>
 
@@ -98,7 +98,7 @@ export const RuleBuilder: React.FC<RuleBuilderProps> = ({ initialConfig, current
           type="button"
           onClick={handleDeploy}
           disabled={isSubmitting}
-          className="w-full flex items-center justify-center gap-2 py-3 px-5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm transition disabled:opacity-50"
+          className="w-full cohere-btn-primary !py-3 !px-6 text-sm font-semibold flex items-center justify-center gap-2 transition disabled:opacity-50"
         >
           {isSubmitting ? 'Saving Configuration...' : 'Apply Rule to Vault'}
           <ArrowRight className="w-4 h-4" />
@@ -106,22 +106,22 @@ export const RuleBuilder: React.FC<RuleBuilderProps> = ({ initialConfig, current
       </div>
 
       <div className="lg:col-span-5 space-y-3">
-        <div className="bg-surface rounded-xl p-4 border border-border/80 shadow-sm flex flex-col h-full">
-          <div className="flex items-center justify-between pb-2.5 border-b border-border/60">
-            <div className="flex items-center gap-2 text-xs font-semibold text-slate-300">
-              <Code2 className="w-4 h-4 text-blue-400" />
+        <div className="cohere-card-console p-5 flex flex-col h-full font-mono">
+          <div className="flex items-center justify-between pb-3 border-b border-console-border">
+            <div className="flex items-center gap-2 text-xs font-semibold text-white tracking-[0.28px] uppercase">
+              <Code2 className="w-4 h-4 text-coral" />
               <span>Rule Payload (JSON)</span>
             </div>
             <button
               onClick={handleCopyJson}
-              className="flex items-center gap-1 text-[11px] text-slate-400 hover:text-white px-2 py-1 rounded bg-surface-elevated border border-border/50 transition"
+              className="flex items-center gap-1.5 text-xs text-muted hover:text-white px-2.5 py-1 rounded bg-console-elevated border border-console-border transition"
             >
-              {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+              {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
               {copied ? 'Copied' : 'Copy'}
             </button>
           </div>
 
-          <div className="mt-3 flex-1 overflow-auto rounded-lg bg-black/40 p-3 border border-slate-800">
+          <div className="mt-3 flex-1 overflow-auto rounded-lg bg-[#0a0a0d] p-3.5 border border-console-border">
             <pre className="text-xs font-mono text-emerald-400 whitespace-pre-wrap leading-relaxed">
               {JSON.stringify(config, null, 2)}
             </pre>

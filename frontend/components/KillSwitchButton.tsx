@@ -21,9 +21,9 @@ export const KillSwitchButton: React.FC<KillSwitchButtonProps> = ({ onTrigger, i
 
   if (isKilled) {
     return (
-      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-950/60 border border-red-500/50 text-red-300 text-xs font-mono">
-        <span className="w-2 h-2 rounded-full bg-red-500"></span>
-        <span>Vault Terminated</span>
+      <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-rose-950/60 border border-rose-500/50 text-rose-300 text-xs font-mono">
+        <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>
+        <span className="tracking-wide">TERMINATED</span>
       </div>
     );
   }
@@ -33,44 +33,44 @@ export const KillSwitchButton: React.FC<KillSwitchButtonProps> = ({ onTrigger, i
       <button
         type="button"
         onClick={() => setShowConfirm(true)}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-600/10 hover:bg-red-600/20 text-red-400 text-xs font-medium border border-red-500/20 transition"
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 text-xs font-mono font-medium border border-rose-800/50 transition tracking-wide"
       >
-        <Power className="w-3.5 h-3.5" />
-        <span>Kill Switch</span>
+        <Power className="w-3.5 h-3.5 text-rose-400" />
+        <span>KILL SWITCH</span>
       </button>
 
       {showConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="bg-surface border border-red-500/60 rounded-xl p-5 max-w-sm w-full shadow-2xl space-y-4">
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-lg bg-red-500/10 text-red-400 border border-red-500/20">
+          <div className="cohere-card-console border border-rose-900/60 p-6 max-w-sm w-full shadow-2xl space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-rose-950/60 text-rose-400 border border-rose-800/60">
                 <AlertTriangle className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-white">Emergency Stop</h3>
-                <p className="text-xs text-red-400">Irreversible on-chain call</p>
+                <h3 className="text-sm font-semibold text-white tracking-tight">EMERGENCY HALT</h3>
+                <p className="text-[11px] text-rose-400 font-mono uppercase tracking-wider">Irreversible On-chain Call</p>
               </div>
             </div>
 
-            <p className="text-xs text-slate-300 leading-relaxed">
-              Halts all agent executions and refunds the remaining escrow balance directly to your account.
+            <p className="text-xs text-text-muted leading-relaxed font-sans">
+              Immediately terminates active agent execution authority, revokes policy loops, and refunds unspent vault collateral back to the governance owner address.
             </p>
 
-            <div className="grid grid-cols-2 gap-2 pt-1">
+            <div className="grid grid-cols-2 gap-2 pt-2">
               <button
                 type="button"
                 onClick={() => setShowConfirm(false)}
-                className="py-2 px-3 rounded-lg bg-surface-elevated hover:bg-slate-800 text-slate-300 text-xs border border-border transition"
+                className="py-2.5 px-4 rounded-full bg-console-elevated hover:bg-surface-elevated text-text-secondary hover:text-white text-xs border border-console-border transition font-mono tracking-wide"
               >
-                Cancel
+                DISMISS
               </button>
               <button
                 type="button"
                 onClick={handleConfirmKill}
                 disabled={isHalting}
-                className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-red-600 hover:bg-red-500 text-white text-xs font-medium transition disabled:opacity-50"
+                className="flex items-center justify-center gap-1.5 py-2.5 px-4 rounded-full bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold font-mono tracking-wide transition disabled:opacity-50"
               >
-                {isHalting ? 'Halting...' : 'Confirm Stop'}
+                {isHalting ? 'HALTING...' : 'CONFIRM STOP'}
               </button>
             </div>
           </div>

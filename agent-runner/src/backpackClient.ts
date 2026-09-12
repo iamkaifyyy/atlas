@@ -68,14 +68,24 @@ export class BackpackClient {
   async getKlines(
     symbol: string = 'ETH_USDC',
     interval: string = '1h',
-    startTimeSeconds?: number
+    startTimeSeconds?: number,
+    endTimeSeconds?: number
   ): Promise<BackpackKline[]> {
-    const startTime = startTimeSeconds || Math.floor(Date.now() / 1000) - 86400 * 3;
+    const now = Math.floor(Date.now() / 1000);
+    const endTime = endTimeSeconds || now;
+    let span = 86400 * 3;
+    if (interval === '1m') span = 3600 * 12; // 12 hours (720 candles)
+    else if (interval === '15m') span = 86400 * 3; // 3 days (288 candles)
+    else if (interval === '1h') span = 86400 * 7; // 7 days (168 candles)
+    else if (interval === '1d') span = 86400 * 60; // 60 days (60 candles)
+
+    const startTime = startTimeSeconds || (endTime - span);
     const res = await fetch(
-      `${BACKPACK_API_BASE}/klines?symbol=${symbol}&interval=${interval}&startTime=${startTime}`
+      `${BACKPACK_API_BASE}/klines?symbol=${symbol}&interval=${interval}&startTime=${startTime}&endTime=${endTime}`
     );
     if (!res.ok) {
-      throw new Error(`Backpack klines fetch failed: ${res.statusText}`);
+      const errText = await res.text().catch(() => '');
+      throw new Error(`Backpack klines fetch failed (${res.status}): ${errText}`);
     }
     return res.json();
   }

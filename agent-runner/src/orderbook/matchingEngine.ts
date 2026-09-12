@@ -195,6 +195,18 @@ export class MatchingEngine extends EventEmitter {
     return true;
   }
 
+  public getOpenOrders(userId?: string): Order[] {
+    const list: Order[] = [];
+    for (const order of this.orders.values()) {
+      if (order.status === 'OPEN' || order.status === 'PARTIALLY_FILLED') {
+        if (!userId || order.userId === userId) {
+          list.push({ ...order });
+        }
+      }
+    }
+    return list.sort((a, b) => b.timestamp - a.timestamp);
+  }
+
   public getDepth(limit = 10): MarketDepth {
     // Sort bids descending (highest buy offer first)
     const sortedBidPrices = Array.from(this.bids.keys()).sort((a, b) => b - a);

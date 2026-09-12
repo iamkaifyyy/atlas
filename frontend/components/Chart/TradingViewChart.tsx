@@ -48,7 +48,7 @@ export const TradingViewChart: React.FC<TradingViewChartProps> = ({
           theme: 'dark',
           style: '1',
           locale: 'en',
-          toolbar_bg: '#080c14',
+          toolbar_bg: '#09090b',
           enable_publishing: false,
           allow_symbol_change: true,
           hide_top_toolbar: false,
@@ -59,11 +59,11 @@ export const TradingViewChart: React.FC<TradingViewChartProps> = ({
           withdateranges: true,
           hide_side_toolbar: false,
           overrides: {
-            'paneProperties.background': '#080c14',
+            'paneProperties.background': '#09090b',
             'paneProperties.backgroundType': 'solid',
-            'paneProperties.vertGridProperties.color': 'rgba(51, 65, 85, 0.2)',
-            'paneProperties.horzGridProperties.color': 'rgba(51, 65, 85, 0.2)',
-            'scalesProperties.textColor': '#94a3b8'
+            'paneProperties.vertGridProperties.color': 'rgba(39, 39, 42, 0.35)',
+            'paneProperties.horzGridProperties.color': 'rgba(39, 39, 42, 0.35)',
+            'scalesProperties.textColor': '#a1a1aa'
           }
         }));
 
@@ -139,7 +139,7 @@ export const TradingViewChart: React.FC<TradingViewChartProps> = ({
   return (
     <div
       ref={containerRef}
-      className={`relative w-full rounded-xl overflow-hidden bg-[#080c14] border border-border/70 flex flex-col ${
+      className={`relative w-full rounded-xl overflow-hidden bg-[#09090b] border border-border/70 flex flex-col ${
         isFullscreen ? 'fixed inset-0 z-50 rounded-none' : ''
       }`}
       style={{ height: isFullscreen ? '100vh' : height }}
@@ -147,9 +147,9 @@ export const TradingViewChart: React.FC<TradingViewChartProps> = ({
       {/* Top Header Bar */}
       <div className="flex items-center justify-between px-3 py-2 bg-surface/90 border-b border-border/60 text-xs font-mono">
         <div className="flex items-center gap-2">
-          <BarChart2 className="w-3.5 h-3.5 text-blue-400" />
+          <BarChart2 className="w-3.5 h-3.5 text-zinc-300" />
           <span className="font-semibold text-white tracking-wider">TradingView Pro Live Feed</span>
-          <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">
+          <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700">
             {symbol}
           </span>
         </div>
@@ -158,7 +158,7 @@ export const TradingViewChart: React.FC<TradingViewChartProps> = ({
           <button
             type="button"
             onClick={toggleFullscreen}
-            className="p-1 rounded text-slate-400 hover:text-white hover:bg-surface-elevated transition"
+            className="p-1 rounded text-zinc-400 hover:text-white hover:bg-surface-elevated transition"
             title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
           >
             {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
@@ -169,8 +169,8 @@ export const TradingViewChart: React.FC<TradingViewChartProps> = ({
       {/* Chart Canvas Container */}
       <div className="relative flex-1 w-full h-full min-h-[380px]">
         {isLoading && (
-          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-[#080c14] text-xs font-mono text-slate-400">
-            <RefreshCw className="w-5 h-5 text-blue-400 animate-spin" />
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-[#09090b] text-xs font-mono text-zinc-400">
+            <RefreshCw className="w-5 h-5 text-emerald-400 animate-spin" />
             <span>Connecting to TradingView Market Feed...</span>
           </div>
         )}

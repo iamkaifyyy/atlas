@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import {
@@ -9,7 +9,6 @@ import {
   Shield,
   ShieldAlert,
   Zap,
-  Layers,
   SlidersHorizontal,
   Activity,
   ArrowUpRight,
@@ -19,62 +18,101 @@ import {
   Wallet,
   Copy,
   Check,
-  Radio,
-  Sliders
+  Radio
 } from 'lucide-react';
 import { useContractEvents } from '../hooks/useContractEvents';
 import { useOrderBook } from '../hooks/useOrderBook';
 import { useWallet } from '../hooks/useWallet';
+import { useBackpackTicker } from '../hooks/useBackpackTicker';
 import { OrderBookTable } from './OrderBook/OrderBookTable';
 import { ApprovalModal } from './ApprovalModal';
 import { KillSwitchButton } from './KillSwitchButton';
+import type { TradeEventPayload } from '../../shared/types/agentConfig';
+
+// Dynamic chart loaders with custom fallbacks
+const createChartLoader = (label: string, minHeight = 480) => {
+  return function ChartLoadingFallback() {
+    return (
+      <div
+        style={{ minHeight }}
+        className="bg-console-surface rounded-xl border border-console-border flex flex-col items-center justify-center gap-2.5 text-xs text-muted font-mono"
+      >
+        <Activity className="w-5 h-5 text-coral animate-spin" />
+        <span>{label}</span>
+      </div>
+    );
+  };
+};
 
 const PriceChart = dynamic(
   () => import('./Chart/PriceChart').then((mod) => mod.PriceChart),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="bg-surface rounded-xl border border-border/80 h-[370px] flex flex-col items-center justify-center gap-2 text-xs text-slate-500 font-mono">
-        <Activity className="w-5 h-5 text-blue-500 animate-spin" />
-        <span>Initializing High-Frequency Price Feed...</span>
-      </div>
-    )
-  }
+  { ssr: false, loading: createChartLoader('Connecting price feed...', 370) }
 );
 
 const TradingViewChart = dynamic(
   () => import('./Chart/TradingViewChart').then((mod) => mod.TradingViewChart),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="bg-surface rounded-xl border border-border/80 h-[460px] flex flex-col items-center justify-center gap-2 text-xs text-slate-500 font-mono">
-        <Activity className="w-5 h-5 text-blue-500 animate-spin" />
-        <span>Loading TradingView Pro Chart...</span>
-      </div>
-    )
-  }
+  { ssr: false, loading: createChartLoader('Loading TradingView feed...', 480) }
 );
 
 const BackpackChart = dynamic(
   () => import('./Chart/BackpackChart').then((mod) => mod.BackpackChart),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="bg-surface rounded-xl border border-border/80 h-[480px] flex flex-col items-center justify-center gap-2 text-xs text-slate-500 font-mono">
-        <Activity className="w-5 h-5 text-blue-500 animate-spin" />
-        <span>Loading Backpack Exchange Candlestick Feed...</span>
-      </div>
-    )
-  }
+  { ssr: false, loading: createChartLoader('Streaming Backpack order flow...', 480) }
 );
+
+const TradingViewStyleUI = dynamic(
+  () => import('./Chart/TradingViewStyleUI'),
+  { ssr: false, loading: createChartLoader('Initializing candlestick studio...', 520) }
+);
+
+type ChartTab = 'STUDIO' | 'BACKPACK' | 'TRADINGVIEW' | 'AGENT_VAULT';
+type EventFilter = 'ALL' | 'EXECUTED' | 'APPROVAL' | 'REJECTED';
+
+const CHART_TABS: { id: ChartTab; label: string }[] = [
+  { id: 'STUDIO', label: 'Studio Pro (Backpack)' },
+  { id: 'BACKPACK', label: 'Backpack Feed' },
+  { id: 'TRADINGVIEW', label: 'TradingView' },
+  { id: 'AGENT_VAULT', label: 'Agent Vault Flow' }
+];
+
+const FILTER_TABS: { id: EventFilter; label: string; activeColor: string }[] = [
+  { id: 'ALL', label: 'All', activeColor: 'bg-white text-console-surface font-semibold' },
+  { id: 'EXECUTED', label: 'Executed', activeColor: 'bg-emerald-600 text-white font-medium' },
+  { id: 'APPROVAL', label: 'Pending Approval', activeColor: 'bg-amber-600 text-white font-medium' },
+  { id: 'REJECTED', label: 'Blocked', activeColor: 'bg-rose-600 text-white font-medium' }
+];
+
+const TV_SYMBOLS = [
+  { value: 'COINBASE:ETHUSD', label: 'ETH / USD (Coinbase)' },
+  { value: 'BINANCE:ETHUSDT', label: 'ETH / USDT (Binance)' },
+  { value: 'BINANCE:BTCUSDT', label: 'BTC / USDT (Binance)' },
+  { value: 'AAPL', label: 'AAPL (Demo Feed)' }
+];
+
+const truncateAddress = (addr: string) =>
+  addr.length > 10 ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : addr;
+
+const formatUsd = (val: number) =>
+  `$${val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+const getStatusBadgeClass = (status: TradeEventPayload['status']) => {
+  switch (status) {
+    case 'EXECUTED':
+    case 'APPROVED':
+      return 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30';
+    case 'PENDING_APPROVAL':
+      return 'bg-amber-500/15 text-amber-400 border-amber-500/30';
+    case 'REJECTED':
+    case 'KILLED':
+    default:
+      return 'bg-rose-500/15 text-rose-400 border-rose-500/30';
+  }
+};
 
 export const TradingTerminal: React.FC = () => {
   const {
     events,
     pendingTrades,
     currentPrice,
-    priceSource,
-    isConnected: isWsConnected,
     agentConfig,
     approveTrade,
     rejectTrade,
@@ -85,13 +123,42 @@ export const TradingTerminal: React.FC = () => {
 
   const orderBook = useOrderBook();
   const wallet = useWallet();
-  const [isKilled, setIsKilled] = useState(false);
-  const [activeFilter, setActiveFilter] = useState<'ALL' | 'EXECUTED' | 'APPROVAL' | 'REJECTED'>('ALL');
-  const [copiedVault, setCopiedVault] = useState(false);
-  const [chartType, setChartType] = useState<'BACKPACK' | 'TRADINGVIEW' | 'AGENT_VAULT'>('BACKPACK');
-  const [tvSymbol, setTvSymbol] = useState<string>('COINBASE:ETHUSD');
+  const backpack = useBackpackTicker('ETH_USDC');
 
+  const [isKilled, setIsKilled] = useState(false);
+  const [activeFilter, setActiveFilter] = useState<EventFilter>('ALL');
+  const [copiedVault, setCopiedVault] = useState(false);
+  const [chartType, setChartType] = useState<ChartTab>('STUDIO');
+  const [tvSymbol, setTvSymbol] = useState('COINBASE:ETHUSD');
+
+  // Price & stats calculations
+  const displayPrice = backpack.isLoading ? currentPrice : backpack.lastPrice;
+  const isPricePositive = backpack.priceChangePercent >= 0;
+  const TrendIcon = isPricePositive ? TrendingUp : TrendingDown;
   const vaultAddress = agentConfig?.vaultAddress || '0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9';
+
+  // Spending cap metrics
+  const executedTrades = useMemo(
+    () => events.filter((e) => e.status === 'EXECUTED' || e.status === 'APPROVED'),
+    [events]
+  );
+  const totalVolumeEth = useMemo(
+    () => executedTrades.reduce((acc, curr) => acc + curr.amount, 0),
+    [executedTrades]
+  );
+  const maxTotalCap = agentConfig?.spendingCap?.maxTotalSpend ?? 5.0;
+  const currentTotalSpend = Math.min(totalVolumeEth, maxTotalCap);
+  const capPercentage = Math.min(100, Math.round((currentTotalSpend / maxTotalCap) * 100));
+
+  // Filtered trade events
+  const filteredEvents = useMemo(() => {
+    return events.filter((e) => {
+      if (activeFilter === 'EXECUTED') return e.status === 'EXECUTED' || e.status === 'APPROVED';
+      if (activeFilter === 'APPROVAL') return e.status === 'PENDING_APPROVAL';
+      if (activeFilter === 'REJECTED') return e.status === 'REJECTED' || e.status === 'KILLED';
+      return true;
+    });
+  }, [events, activeFilter]);
 
   const handleKill = async () => {
     const ok = await triggerKillSwitch();
@@ -99,92 +166,85 @@ export const TradingTerminal: React.FC = () => {
     return ok;
   };
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
+  const handleCopyVault = () => {
+    navigator.clipboard.writeText(vaultAddress);
     setCopiedVault(true);
     setTimeout(() => setCopiedVault(false), 1500);
   };
 
-  const executedTrades = events.filter((e) => e.status === 'EXECUTED' || e.status === 'APPROVED');
-  const totalVolumeEth = executedTrades.reduce((acc, curr) => acc + curr.amount, 0);
-  const totalVolumeUsdc = executedTrades.reduce((acc, curr) => acc + curr.amount * curr.price, 0);
-
-  const maxTotalCap = agentConfig?.spendingCap?.maxTotalSpend || 5.0;
-  const currentTotalSpend = Math.min(totalVolumeEth, maxTotalCap);
-  const capPercentage = Math.min(100, Math.round((currentTotalSpend / maxTotalCap) * 100));
-
-  const filteredEvents = events.filter((e) => {
-    if (activeFilter === 'EXECUTED') return e.status === 'EXECUTED' || e.status === 'APPROVED';
-    if (activeFilter === 'APPROVAL') return e.status === 'PENDING_APPROVAL';
-    if (activeFilter === 'REJECTED') return e.status === 'REJECTED' || e.status === 'KILLED';
-    return true;
-  });
-
   return (
-    <div className="space-y-4 max-w-[1600px] mx-auto">
-      {/* Top Pro Market Ticker Bar */}
-      <div className="glass-panel rounded-xl p-3 sm:p-4 flex flex-wrap items-center justify-between gap-3 border border-border/70">
+    <div className="space-y-4 max-w-[1600px] mx-auto font-sans">
+      {/* 1. Header Ticker Bar */}
+      <header className="cohere-card-console p-3 sm:p-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-4 flex-wrap">
-          {/* Pair Badge */}
-          <div className="flex items-center gap-2.5 pr-4 border-r border-border/60">
-            <div className="w-8 h-8 rounded-lg bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400 font-bold text-xs">
+          {/* Pair Identity */}
+          <div className="flex items-center gap-2.5 pr-4 border-r border-console-border">
+            <div className="w-8 h-8 rounded-lg bg-console-elevated border border-console-border flex items-center justify-center text-white font-bold text-xs font-mono">
               ETH
             </div>
             <div>
-              <div className="flex items-center gap-1.5">
-                <span className="font-bold text-white text-sm tracking-tight">ETH / USDC</span>
-                <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 font-mono border border-blue-500/20">
-                  SPOT
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-white text-sm tracking-tight">ETH / USDC</span>
+                <span className="cohere-chip-coral !py-0.5 !px-2 !text-[10px]">
+                  BACKPACK LIVE
                 </span>
               </div>
-              <div className="text-[11px] text-slate-400 font-mono flex items-center gap-1.5">
-                <span className={`w-1.5 h-1.5 rounded-full ${isWsConnected ? 'bg-emerald-400' : 'bg-amber-400 animate-ping'}`} />
-                <span>{isWsConnected ? 'Live Matching Engine' : 'Reconnecting...'}</span>
+              <div className="text-[11px] text-muted font-mono flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span>api.backpack.exchange</span>
               </div>
             </div>
           </div>
 
-          {/* Mark Price */}
-          <div className="pr-4 border-r border-border/60">
-            <div className="text-[10px] text-slate-400 font-mono">MARK PRICE</div>
+          {/* Mark Price & Trend */}
+          <div className="pr-4 border-r border-console-border">
+            <div className="text-[10px] text-muted font-mono uppercase tracking-[0.28px]">Mark Price (USDC)</div>
             <div className="flex items-baseline gap-2">
               <span className="text-xl font-mono font-bold text-white tracking-tight">
-                ${currentPrice.toFixed(2)}
+                {formatUsd(displayPrice)}
               </span>
-              <span className="inline-flex items-center text-xs font-mono font-medium text-emerald-400">
-                <TrendingUp className="w-3 h-3 mr-0.5" />
-                +2.34%
+              <span
+                className={`inline-flex items-center text-xs font-mono font-semibold ${
+                  isPricePositive ? 'text-emerald-400' : 'text-rose-400'
+                }`}
+              >
+                <TrendIcon className="w-3 h-3 mr-0.5" />
+                {isPricePositive ? '+' : ''}{backpack.priceChangePercent.toFixed(2)}%
               </span>
             </div>
           </div>
 
           {/* 24h Stats */}
-          <div className="hidden md:flex items-center gap-6 pr-4 border-r border-border/60 text-xs font-mono">
+          <div className="hidden md:flex items-center gap-6 pr-4 border-r border-console-border text-xs font-mono">
             <div>
-              <div className="text-[10px] text-slate-400">24H HIGH</div>
-              <div className="text-slate-200">${(currentPrice * 1.025).toFixed(2)}</div>
+              <div className="text-[10px] text-muted uppercase tracking-[0.28px]">24H High</div>
+              <div className="text-white font-medium">{formatUsd(backpack.high24h)}</div>
             </div>
             <div>
-              <div className="text-[10px] text-slate-400">24H LOW</div>
-              <div className="text-slate-200">${(currentPrice * 0.985).toFixed(2)}</div>
+              <div className="text-[10px] text-muted uppercase tracking-[0.28px]">24H Low</div>
+              <div className="text-white font-medium">{formatUsd(backpack.low24h)}</div>
             </div>
             <div>
-              <div className="text-[10px] text-slate-400">24H VOLUME</div>
-              <div className="text-slate-200">{totalVolumeEth.toFixed(2)} ETH (${totalVolumeUsdc.toFixed(0)})</div>
+              <div className="text-[10px] text-muted uppercase tracking-[0.28px]">24H Volume</div>
+              <div className="text-white font-medium">
+                {backpack.volume24h.toFixed(1)} ETH (${(backpack.quoteVolume24h / 1e6).toFixed(2)}M)
+              </div>
+            </div>
+            <div>
+              <div className="text-[10px] text-muted uppercase tracking-[0.28px]">24H Trades</div>
+              <div className="text-white font-medium">{backpack.trades.toLocaleString()}</div>
             </div>
           </div>
 
           {/* Vault Contract Address */}
-          <div className="hidden xl:flex items-center gap-2 bg-surface-elevated/80 px-2.5 py-1.5 rounded-lg border border-border/50 text-xs font-mono">
-            <Shield className="w-3.5 h-3.5 text-blue-400" />
-            <span className="text-slate-400 text-[11px]">Vault:</span>
-            <span className="text-slate-200 text-[11px]">
-              {vaultAddress.slice(0, 6)}...{vaultAddress.slice(-4)}
-            </span>
+          <div className="hidden xl:flex items-center gap-2 bg-console-elevated px-3 py-1.5 rounded-lg border border-console-border text-xs font-mono">
+            <Shield className="w-3.5 h-3.5 text-muted" />
+            <span className="text-muted text-[11px]">Vault:</span>
+            <span className="text-white text-[11px]">{truncateAddress(vaultAddress)}</span>
             <button
               type="button"
-              onClick={() => copyToClipboard(vaultAddress)}
-              className="text-slate-400 hover:text-white transition ml-1"
+              onClick={handleCopyVault}
+              className="text-muted hover:text-white transition ml-1"
               title="Copy Vault Address"
             >
               {copiedVault ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
@@ -192,95 +252,95 @@ export const TradingTerminal: React.FC = () => {
           </div>
         </div>
 
-        {/* Right Action Controls */}
+        {/* Global Strategy Actions */}
         <div className="flex items-center gap-2.5">
           <Link
-            href="/builder"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-elevated hover:bg-slate-800 text-slate-300 text-xs font-medium border border-border/70 transition"
+            href="/automation"
+            className="cohere-btn-outline !py-1.5 !px-3 text-xs"
           >
-            <SlidersHorizontal className="w-3.5 h-3.5 text-blue-400" />
+            <SlidersHorizontal className="w-3.5 h-3.5 text-muted" />
             <span>Configure Strategy</span>
           </Link>
           <KillSwitchButton onTrigger={handleKill} isKilled={isKilled} />
         </div>
-      </div>
+      </header>
 
-      {/* Autonomous Agent Policy & Escrow Caps Banner */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-        {/* Card 1: Agent Rule */}
-        <div className="glass-panel rounded-xl p-3.5 space-y-1.5 border border-border/60">
-          <div className="flex items-center justify-between text-xs text-slate-400">
-            <span className="flex items-center gap-1.5 text-blue-400 font-medium">
-              <Radio className="w-3.5 h-3.5" />
+      {/* 2. Key Guardrail Metrics */}
+      <section className="grid grid-cols-1 md:grid-cols-4 gap-3">
+        {/* Active Strategy */}
+        <div className="cohere-card-console p-4 space-y-2">
+          <div className="flex items-center justify-between text-xs text-muted">
+            <span className="flex items-center gap-1.5 text-white font-medium">
+              <Radio className="w-3.5 h-3.5 text-emerald-400" />
               Active Strategy
             </span>
-            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <span className="cohere-chip-coral !py-0.5 !px-2 !text-[9px]">
               GUARDED
             </span>
           </div>
           <div className="font-semibold text-white text-sm">
             {agentConfig?.name || 'ETH Momentum Guard'}
           </div>
-          <div className="text-xs text-slate-400 font-mono">
-            Trigger: {agentConfig?.trigger?.type === 'PRICE_BELOW' ? '<' : '>'} ${agentConfig?.trigger?.targetPrice || 3050} USDC
+          <div className="text-xs text-muted font-mono">
+            Trigger: {agentConfig?.trigger?.type === 'PRICE_BELOW' ? '<' : '>'} ${agentConfig?.trigger?.targetPrice ?? 3050} USDC
           </div>
         </div>
 
-        {/* Card 2: Cumulative Spend Cap */}
-        <div className="glass-panel rounded-xl p-3.5 space-y-2 border border-border/60">
-          <div className="flex items-center justify-between text-xs text-slate-400">
-            <span className="text-slate-300 font-medium">Escrow Total Cap</span>
+        {/* Escrow Cap */}
+        <div className="cohere-card-console p-4 space-y-2">
+          <div className="flex items-center justify-between text-xs text-muted">
+            <span className="text-white font-medium">Escrow Total Cap</span>
             <span className="font-mono text-emerald-400 text-xs font-semibold">
               {currentTotalSpend.toFixed(2)} / {maxTotalCap.toFixed(1)} ETH
             </span>
           </div>
-          <div className="w-full bg-surface-elevated rounded-full h-2 overflow-hidden border border-border/40">
+          <div className="w-full bg-console-elevated rounded-full h-2 overflow-hidden border border-console-border">
             <div
               className={`h-full transition-all duration-500 rounded-full ${
-                capPercentage > 90 ? 'bg-rose-500 glow-rose' : capPercentage > 75 ? 'bg-amber-500' : 'bg-blue-500'
+                capPercentage > 90 ? 'bg-rose-500' : capPercentage > 75 ? 'bg-amber-500' : 'bg-white'
               }`}
               style={{ width: `${capPercentage}%` }}
             />
           </div>
-          <div className="flex justify-between text-[10px] text-slate-500 font-mono">
+          <div className="flex justify-between text-[10px] text-muted font-mono">
             <span>Utilization: {capPercentage}%</span>
             <span>Hard Cap On-Chain</span>
           </div>
         </div>
 
-        {/* Card 3: Single Trade & Approval Limit */}
-        <div className="glass-panel rounded-xl p-3.5 space-y-1.5 border border-border/60">
-          <div className="flex items-center justify-between text-xs text-slate-400">
-            <span className="text-slate-300 font-medium">Human Approval Threshold</span>
-            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+        {/* Approval Threshold */}
+        <div className="cohere-card-console p-4 space-y-2">
+          <div className="flex items-center justify-between text-xs text-muted">
+            <span className="text-white font-medium">Approval Threshold</span>
+            <span className="font-mono text-[9px] px-2 py-0.5 rounded border border-amber-500/30 bg-amber-500/10 text-amber-400">
               GATED
             </span>
           </div>
           <div className="font-mono text-sm font-semibold text-white">
-            &gt; {agentConfig?.approvalThreshold?.thresholdAmount || 0.5} ETH
+            &gt; {agentConfig?.approvalThreshold?.thresholdAmount ?? 0.5} ETH
           </div>
-          <div className="text-xs text-slate-400 font-mono">
-            Single Trade Max: {agentConfig?.spendingCap?.maxPerTradeSpend || 1.5} ETH
+          <div className="text-xs text-muted font-mono">
+            Single Trade Max: {agentConfig?.spendingCap?.maxPerTradeSpend ?? 1.5} ETH
           </div>
         </div>
 
-        {/* Card 4: Wallet Account & Balance */}
-        <div className="glass-panel rounded-xl p-3.5 space-y-1.5 border border-border/60">
-          <div className="flex items-center justify-between text-xs text-slate-400">
-            <span className="flex items-center gap-1.5 text-slate-300 font-medium">
-              <Wallet className="w-3.5 h-3.5 text-blue-400" />
+        {/* Connected Wallet */}
+        <div className="cohere-card-console p-4 space-y-2">
+          <div className="flex items-center justify-between text-xs text-muted">
+            <span className="flex items-center gap-1.5 text-white font-medium">
+              <Wallet className="w-3.5 h-3.5 text-muted" />
               Connected Wallet
             </span>
             {wallet.isConnected && (
               <span className="text-[10px] font-mono text-emerald-400 flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                 Active
               </span>
             )}
           </div>
           {wallet.isConnected ? (
             <div>
-              <div className="font-mono text-xs text-slate-200 truncate">
+              <div className="font-mono text-xs text-white truncate" title={wallet.address ?? undefined}>
                 {wallet.address}
               </div>
               <div className="text-xs text-emerald-400 font-mono font-medium pt-0.5">
@@ -288,116 +348,101 @@ export const TradingTerminal: React.FC = () => {
               </div>
             </div>
           ) : (
-            <div className="flex items-center gap-2 pt-0.5">
-              <button
-                type="button"
-                onClick={wallet.connectDemoWallet}
-                className="w-full py-1.5 px-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-medium transition"
-              >
-                Connect Demo Account
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={wallet.connectDemoWallet}
+              className="w-full cohere-btn-primary !py-1.5 text-xs font-bold mt-1"
+            >
+              Connect Demo Account
+            </button>
           )}
         </div>
-      </div>
+      </section>
 
-      {/* Main Grid: Chart (8 Cols) & Order Book (4 Cols) */}
+      {/* 3. Main Workspace: Charts & Order Book */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        {/* Left Column: Interactive Trading Chart & Safety Pipeline */}
+        {/* Left: Charts & Simulation */}
         <div className="lg:col-span-8 space-y-4">
-          <div className="glass-panel rounded-xl p-4 border border-border/70 space-y-3">
+          <div className="cohere-card-console p-4 space-y-3">
             {/* Chart Engine Switcher */}
-            <div className="flex flex-wrap items-center justify-between pb-2 border-b border-border/60 gap-2">
-              <div className="flex items-center gap-1.5 bg-surface-elevated/70 p-0.5 rounded-lg border border-border/50 text-xs font-mono">
-                <button
-                  type="button"
-                  onClick={() => setChartType('BACKPACK')}
-                  className={`px-3 py-1 rounded-md transition ${
-                    chartType === 'BACKPACK'
-                      ? 'bg-blue-600 text-white font-medium shadow-sm'
-                      : 'text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  Backpack Live
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setChartType('TRADINGVIEW')}
-                  className={`px-3 py-1 rounded-md transition ${
-                    chartType === 'TRADINGVIEW'
-                      ? 'bg-blue-600 text-white font-medium shadow-sm'
-                      : 'text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  TradingView Pro
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setChartType('AGENT_VAULT')}
-                  className={`px-3 py-1 rounded-md transition ${
-                    chartType === 'AGENT_VAULT'
-                      ? 'bg-blue-600 text-white font-medium shadow-sm'
-                      : 'text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  Agent Vault Flow
-                </button>
+            <div className="flex flex-wrap items-center justify-between pb-3 border-b border-console-border gap-2">
+              <div className="flex items-center gap-1 bg-console-elevated p-1 rounded-lg border border-console-border text-xs font-mono">
+                {CHART_TABS.map((tab) => {
+                  const isActive = chartType === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => setChartType(tab.id)}
+                      className={`px-3 py-1 rounded-md transition ${
+                        isActive
+                          ? 'bg-white text-console-surface font-bold shadow-sm'
+                          : 'text-muted hover:text-white'
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  );
+                })}
               </div>
 
               {chartType === 'TRADINGVIEW' && (
                 <div className="flex items-center gap-2 text-xs font-mono">
-                  <span className="text-slate-400 text-[11px]">Symbol:</span>
+                  <span className="text-muted text-[11px]">Symbol:</span>
                   <select
                     value={tvSymbol}
                     onChange={(e) => setTvSymbol(e.target.value)}
-                    className="bg-surface-elevated border border-border/60 rounded px-2.5 py-1 text-slate-200 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="bg-console-elevated border border-console-border rounded-lg px-2.5 py-1 text-white text-xs focus:outline-none focus:ring-1 focus:ring-coral"
                   >
-                    <option value="AAPL">AAPL (Demo Feed)</option>
-                    <option value="BINANCE:ETHUSDT">ETH / USDT (Binance)</option>
-                    <option value="COINBASE:ETHUSD">ETH / USD (Coinbase)</option>
-                    <option value="BINANCE:BTCUSDT">BTC / USDT (Binance)</option>
+                    {TV_SYMBOLS.map((s) => (
+                      <option key={s.value} value={s.value}>
+                        {s.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
               )}
             </div>
 
-            {chartType === 'BACKPACK' ? (
-              <BackpackChart initialSymbol="ETH_USDC" height={480} />
-            ) : chartType === 'TRADINGVIEW' ? (
+            {/* Selected Chart Component */}
+            {chartType === 'STUDIO' && <TradingViewStyleUI initialSymbol="ETH_USDC" />}
+            {chartType === 'BACKPACK' && <BackpackChart initialSymbol="ETH_USDC" height={480} />}
+            {chartType === 'TRADINGVIEW' && (
               <TradingViewChart symbol={tvSymbol} interval="1D" height={480} />
-            ) : (
+            )}
+            {chartType === 'AGENT_VAULT' && (
               <PriceChart currentPrice={currentPrice} events={events} />
             )}
           </div>
 
-          {/* Interactive Simulation & Test Dock */}
-          <div className="glass-panel rounded-xl p-4 border border-border/70 space-y-3">
+          {/* Interactive Simulation Dock */}
+          <div className="cohere-card-console p-4 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Zap className="w-4 h-4 text-amber-400" />
-                <h3 className="text-xs font-semibold text-white uppercase tracking-wider">
+                <Zap className="w-4 h-4 text-coral" />
+                <h3 className="text-xs font-semibold text-white uppercase tracking-[0.28px]">
                   Interactive Simulation Dock
                 </h3>
               </div>
-              <span className="text-[11px] text-slate-400 font-mono">
-                Click any action to verify real-time trigger & on-chain enforcement
+              <span className="text-[11px] text-muted font-mono">
+                Simulate market triggers & on-chain cap enforcement
               </span>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 font-mono">
               <button
                 type="button"
                 onClick={() => nudgePrice(-25)}
-                className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-surface-elevated hover:bg-slate-800 text-xs font-medium text-emerald-400 border border-border/70 transition hover:border-emerald-500/50"
+                className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-console-elevated hover:bg-zinc-800 text-xs font-medium text-emerald-400 border border-console-border transition"
               >
                 <TrendingDown className="w-3.5 h-3.5" />
-                <span>Drop -$25 (Fire)</span>
+                <span>Drop -$25</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => nudgePrice(+25)}
-                className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-surface-elevated hover:bg-slate-800 text-xs font-medium text-rose-400 border border-border/70 transition hover:border-rose-500/50"
+                className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-console-elevated hover:bg-zinc-800 text-xs font-medium text-rose-400 border border-console-border transition"
               >
                 <TrendingUp className="w-3.5 h-3.5" />
                 <span>Raise +$25</span>
@@ -412,10 +457,10 @@ export const TradingTerminal: React.FC = () => {
                     status: 'EXECUTED'
                   })
                 }
-                className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-blue-600/10 hover:bg-blue-600/20 text-xs font-medium text-blue-300 border border-blue-500/30 transition"
+                className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-xs font-medium text-emerald-300 border border-emerald-500/30 transition"
               >
-                <CheckCircle2 className="w-3.5 h-3.5 text-blue-400" />
-                <span>0.4 ETH Safe Buy</span>
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                <span>0.4 ETH Safe</span>
               </button>
 
               <button
@@ -430,7 +475,7 @@ export const TradingTerminal: React.FC = () => {
                 className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-amber-600/10 hover:bg-amber-600/20 text-xs font-medium text-amber-300 border border-amber-500/30 transition"
               >
                 <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
-                <span>0.8 ETH Gated Trade</span>
+                <span>0.8 ETH Gated</span>
               </button>
 
               <button
@@ -452,9 +497,9 @@ export const TradingTerminal: React.FC = () => {
           </div>
         </div>
 
-        {/* Right Column: Order Book & Placement */}
+        {/* Right: Live Order Book Depth */}
         <div className="lg:col-span-4 flex flex-col">
-          <div className="glass-panel rounded-xl p-3 sm:p-4 border border-border/70 flex-1 flex flex-col min-h-[460px]">
+          <div className="cohere-card-console p-3 sm:p-4 flex-1 flex flex-col min-h-[460px]">
             <OrderBookTable
               bids={orderBook.bids}
               asks={orderBook.asks}
@@ -467,107 +512,90 @@ export const TradingTerminal: React.FC = () => {
         </div>
       </div>
 
-      {/* Bottom Pro Audit Trail & Trade History */}
-      <div className="glass-panel rounded-xl p-4 border border-border/70 space-y-3">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-border/60">
+      {/* 4. On-Chain Execution Ledger */}
+      <section className="cohere-card-console p-5 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-console-border">
           <div className="flex items-center gap-3">
-            <h3 className="text-xs font-semibold text-white uppercase tracking-wider flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 text-blue-400" />
+            <h3 className="text-xs font-semibold text-white uppercase tracking-[0.28px] flex items-center gap-2">
+              <Clock className="w-3.5 h-3.5 text-coral" />
               On-Chain Execution Ledger & Safety Trail
             </h3>
-            <span className="text-[11px] font-mono text-slate-400">
+            <span className="text-[11px] font-mono text-muted">
               ({filteredEvents.length} events logged)
             </span>
           </div>
 
-          {/* Filter Pills */}
-          <div className="flex items-center gap-1 bg-surface-elevated/70 p-0.5 rounded-lg border border-border/50 text-[11px] font-mono">
-            <button
-              type="button"
-              onClick={() => setActiveFilter('ALL')}
-              className={`px-2.5 py-1 rounded transition ${activeFilter === 'ALL' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}
-            >
-              All
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveFilter('EXECUTED')}
-              className={`px-2.5 py-1 rounded transition ${activeFilter === 'EXECUTED' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}
-            >
-              Executed
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveFilter('APPROVAL')}
-              className={`px-2.5 py-1 rounded transition ${activeFilter === 'APPROVAL' ? 'bg-amber-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}
-            >
-              Pending Approval
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveFilter('REJECTED')}
-              className={`px-2.5 py-1 rounded transition ${activeFilter === 'REJECTED' ? 'bg-rose-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}
-            >
-              Blocked
-            </button>
+          {/* Filter Tabs */}
+          <div className="flex items-center gap-1 bg-console-elevated p-1 rounded-lg border border-console-border text-[11px] font-mono">
+            {FILTER_TABS.map((tab) => {
+              const isActive = activeFilter === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveFilter(tab.id)}
+                  className={`px-3 py-1 rounded transition ${
+                    isActive ? tab.activeColor : 'text-muted hover:text-white'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
           </div>
         </div>
 
         {filteredEvents.length === 0 ? (
-          <div className="text-center py-8 text-xs text-slate-500 font-mono">
+          <div className="text-center py-8 text-xs text-muted font-mono">
             No events match current filter.
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs font-mono">
-              <thead className="text-slate-400 border-b border-border/60 text-[11px]">
+              <thead className="text-muted border-b border-console-border text-[11px] uppercase tracking-[0.28px]">
                 <tr>
-                  <th className="pb-2 font-normal">Timestamp</th>
-                  <th className="pb-2 font-normal">ID</th>
-                  <th className="pb-2 font-normal">Side</th>
-                  <th className="pb-2 font-normal">Amount</th>
-                  <th className="pb-2 font-normal">Price (USDC)</th>
-                  <th className="pb-2 font-normal">Status</th>
-                  <th className="pb-2 font-normal">Verification / On-Chain Audit</th>
+                  <th className="pb-3 font-normal">Timestamp</th>
+                  <th className="pb-3 font-normal">ID</th>
+                  <th className="pb-3 font-normal">Side</th>
+                  <th className="pb-3 font-normal">Amount</th>
+                  <th className="pb-3 font-normal">Price (USDC)</th>
+                  <th className="pb-3 font-normal">Status</th>
+                  <th className="pb-3 font-normal">Verification / On-Chain Audit</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border/40">
+              <tbody className="divide-y divide-console-border">
                 {filteredEvents.map((e, idx) => (
-                  <tr key={`${e.tradeId}-${idx}`} className="hover:bg-surface-elevated/40 transition">
-                    <td className="py-2.5 text-slate-400">
+                  <tr key={`${e.tradeId}-${idx}`} className="hover:bg-console-elevated/70 transition">
+                    <td className="py-3 text-muted">
                       {new Date(e.timestamp).toLocaleTimeString()}
                     </td>
-                    <td className="py-2.5 text-slate-300 font-semibold">#{e.tradeId}</td>
-                    <td className="py-2.5">
-                      <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold text-[10px]">
+                    <td className="py-3 text-white font-semibold">#{e.tradeId}</td>
+                    <td className="py-3">
+                      <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold text-[10px]">
                         {e.action}
                       </span>
                     </td>
-                    <td className="py-2.5 text-white font-medium">{e.amount} ETH</td>
-                    <td className="py-2.5 text-slate-300">${e.price.toFixed(2)}</td>
-                    <td className="py-2.5">
+                    <td className="py-3 text-white font-medium">{e.amount} ETH</td>
+                    <td className="py-3 text-muted">{formatUsd(e.price)}</td>
+                    <td className="py-3">
                       <span
-                        className={`px-2 py-0.5 rounded text-[10px] font-semibold tracking-wide ${
-                          e.status === 'EXECUTED' || e.status === 'APPROVED'
-                            ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
-                            : e.status === 'PENDING_APPROVAL'
-                            ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
-                            : 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
-                        }`}
+                        className={`px-2 py-0.5 rounded border text-[10px] font-semibold tracking-wide ${getStatusBadgeClass(
+                          e.status
+                        )}`}
                       >
                         {e.status}
                       </span>
                     </td>
-                    <td className="py-2.5 text-slate-400 text-[11px] truncate max-w-sm">
+                    <td className="py-3 text-muted text-[11px] truncate max-w-sm">
                       {e.reason ? (
                         <span className="text-rose-300">{e.reason}</span>
                       ) : e.txHash ? (
-                        <span className="text-blue-400 flex items-center gap-1">
-                          <span>{e.txHash.slice(0, 10)}...{e.txHash.slice(-6)}</span>
-                          <ArrowUpRight className="w-3 h-3" />
+                        <span className="text-white hover:underline flex items-center gap-1">
+                          <span>{truncateAddress(e.txHash)}</span>
+                          <ArrowUpRight className="w-3 h-3 text-muted" />
                         </span>
                       ) : (
-                        <span className="text-emerald-400/80">On-Chain Vault Verified</span>
+                        <span className="text-emerald-400/90">On-Chain Vault Verified</span>
                       )}
                     </td>
                   </tr>
@@ -576,7 +604,7 @@ export const TradingTerminal: React.FC = () => {
             </table>
           </div>
         )}
-      </div>
+      </section>
 
       {/* Human Approval Modal */}
       <ApprovalModal
@@ -587,3 +615,6 @@ export const TradingTerminal: React.FC = () => {
     </div>
   );
 };
+
+
+
