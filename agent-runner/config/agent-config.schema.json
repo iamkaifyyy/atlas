@@ -1,0 +1,84 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AgentConfig",
+  "description": "Configuration schema for autonomous no-code trading agent",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string",
+      "default": "ETH Momentum Guard"
+    },
+    "assetPair": {
+      "type": "string",
+      "enum": ["ETH/USDC"],
+      "default": "ETH/USDC"
+    },
+    "trigger": {
+      "type": "object",
+      "properties": {
+        "asset": {
+          "type": "string",
+          "default": "ETH/USDC"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["PRICE_BELOW", "PRICE_ABOVE"]
+        },
+        "targetPrice": {
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "required": ["asset", "type", "targetPrice"]
+    },
+    "spendingCap": {
+      "type": "object",
+      "properties": {
+        "maxTotalSpend": {
+          "type": "number",
+          "minimum": 0
+        },
+        "maxPerTradeSpend": {
+          "type": "number",
+          "minimum": 0
+        },
+        "currentTotalSpend": {
+          "type": "number",
+          "minimum": 0,
+          "default": 0
+        }
+      },
+      "required": ["maxTotalSpend", "maxPerTradeSpend"]
+    },
+    "approvalThreshold": {
+      "type": "object",
+      "properties": {
+        "thresholdAmount": {
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "required": ["thresholdAmount"]
+    },
+    "action": {
+      "type": "string",
+      "enum": ["BUY", "SELL"],
+      "default": "BUY"
+    },
+    "tradeAmount": {
+      "type": "number",
+      "minimum": 0
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    },
+    "vaultAddress": {
+      "type": "string"
+    }
+  },
+  "required": ["name", "assetPair", "trigger", "spendingCap", "approvalThreshold", "action", "tradeAmount"]
+}

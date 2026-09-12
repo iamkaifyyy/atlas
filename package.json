@@ -1,0 +1,19 @@
+{
+  "name": "agent-finance-nocode",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Autonomous AI trading agent with on-chain hard caps, kill switch, and live order book",
+  "workspaces": [
+    "frontend",
+    "agent-runner"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace=agent-runner\" \"npm run dev --workspace=frontend\"",
+    "build": "npm run build --workspace=agent-runner && npm run build --workspace=frontend",
+    "test:contracts": "cd contracts && forge test -vvv",
+    "deploy:local": "cd contracts && forge script script/Deploy.s.sol:DeployScript --rpc-url http://127.0.0.1:8545 --broadcast"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
