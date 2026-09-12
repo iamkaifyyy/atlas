@@ -4,7 +4,7 @@ autonomous trading agent platform where users configure trading rules through a 
 
 ---
 
-## 🏛️ System Architecture
+## System Architecture
 
 ```text
 ┌────────────────────────────────────────────────────────┐
@@ -78,50 +78,3 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
----
-
-## 🎬 5-Step Hackathon Live Demo Script
-
-Follow this sequence to showcase the system to judges in under 2 minutes:
-
-### Step 1: Build the Rule in < 30 Seconds
-1. Navigate to `/builder` (or click **Rule Builder** in the navbar).
-2. Note the three simple primitives:
-   - **Trigger**: "Price Drops Below" `$3,050`
-   - **Cap**: Max total spend `5.0 ETH`, max per-trade `1.5 ETH`
-   - **Approval Threshold**: Require manual approval above `0.5 ETH`
-3. Inspect the live-updating **Structured Rule JSON** on the right side.
-4. Click **Deploy Agent & Escrow Funds** to transition to the live dashboard.
-
-### Step 2: Live Price Trigger & Execution
-1. On the `/dashboard`, point out the live **ETH/USDC TradingView Price Chart** and **Live Order Book Depth Ladder**.
-2. In the **Live Demo Trigger Controller** toolbar, click **"Nudge Price -$25"** (or **"Trigger Normal Trade"**).
-3. Watch the trigger fire:
-   - An on-chart **Agent Bought Marker** appears dynamically on the chart.
-   - The trade immediately registers in the **Live On-Chain Execution Stream** with volume and price.
-
-### Step 3: Approval Threshold Gating (Human-in-the-Loop)
-1. In the demo toolbar, click **"Trigger Gated Trade (>0.5 ETH)"** (e.g. 0.8 ETH trade).
-2. Notice the trade is halted before execution:
-   - A glowing **Manual Approval Required** modal immediately appears.
-   - On-chain status shows `PENDING_APPROVAL`.
-3. Click **"Approve Trade"** in the modal.
-4. Watch the trade complete execution and the marker turn emerald green.
-
-### Step 4: Cap Violation Enforcement
-1. In the demo toolbar, click **"Trigger Cap Violation"** (attempts a 3.5 ETH trade exceeding the 1.5 ETH per-trade cap).
-2. Point out that the smart contract rejects the transaction with `REJECTED: Exceeds max per-trade spend cap`. Escrow funds remain 100% protected.
-
-### Step 5: Emergency Kill Switch
-1. In the top-right header, click the red **"Emergency Kill Switch"** button.
-2. Confirm the action in the prompt.
-3. The dashboard switches to **KILL SWITCH TRIGGERED: VAULT HALTED**.
-4. 100% of escrow balance is returned to the owner, and all future trade calls are blocked at the EVM level.
-
----
-
-## 🔒 Scope & Hackathon Guardrails
-- **Asset Pair**: ETH/USDC exclusively.
-- **Trigger Type**: Price threshold (`PRICE_BELOW` or `PRICE_ABOVE`).
-- **Live Depth**: Direct Binance ETH/USDC public order book with automated offline mock depth fallback.
-- **Contract Security**: Strict checks-effects-interactions, reentrancy guards, and authorization checks.
