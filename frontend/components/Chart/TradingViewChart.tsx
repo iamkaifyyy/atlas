@@ -73,6 +73,7 @@ interface TradingViewChartProps {
   range?: string;
   theme?: 'Dark' | 'Light';
   height?: number | string;
+  embedded?: boolean;
   onSymbolChange?: (symbol: string) => void;
 }
 
@@ -90,7 +91,8 @@ export const TradingViewChart: React.FC<TradingViewChartProps> = ({
   symbol: initialSymbol = 'NASDAQ:AAPL',
   range: initialRange = '12m',
   theme = 'Dark',
-  height = 520,
+  height = '100%',
+  embedded = false,
   onSymbolChange
 }) => {
   const [activeSymbol, setActiveSymbol] = useState(initialSymbol);
@@ -253,90 +255,101 @@ export const TradingViewChart: React.FC<TradingViewChartProps> = ({
   return (
     <div
       ref={containerRef}
-      className={`relative w-full rounded-xl overflow-hidden bg-[#09090b] border border-zinc-800/80 shadow-2xl flex flex-col ${
+      className={`relative w-full h-full bg-[#09090b] flex flex-col ${
         isFullscreen ? 'fixed inset-0 z-50 rounded-none' : ''
-      }`}
+      } ${!embedded ? 'rounded-xl overflow-hidden border border-zinc-800/80 shadow-2xl' : ''}`}
       style={{ height: isFullscreen ? '100vh' : height }}
     >
-      {/* 1. Real-Time Backpack Exchange Telemetry Header */}
-      <div className="flex flex-wrap items-center justify-between px-3.5 py-2.5 bg-zinc-950/95 border-b border-zinc-800/70 text-xs font-mono gap-3">
-        {/* Left: Backpack Live Status & Mark Price */}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[11px] font-semibold">
-            <Radio className="w-3 h-3 animate-pulse text-emerald-400" />
-            <span>BACKPACK API V1</span>
-            {latencyMs !== null && <span className="text-[10px] text-zinc-400">({latencyMs}ms)</span>}
-          </div>
-
-          {/* Real-time Mark Price with Flash Animation */}
+      {/* 1. Header Toolbar */}
+      <div className="flex flex-wrap items-center justify-between px-3 py-2 bg-zinc-950/95 border-b border-zinc-800/70 text-xs font-mono gap-2">
+        {embedded ? (
           <div className="flex items-center gap-2">
-            <span className="text-zinc-400 text-[11px] uppercase tracking-wider">{bpSymbol}:</span>
-            <span
-              className={`text-sm font-bold tracking-tight transition-colors duration-300 ${
-                priceFlash === 'up'
-                  ? 'text-emerald-400 bg-emerald-500/20 px-1 rounded'
-                  : priceFlash === 'down'
-                  ? 'text-rose-400 bg-rose-500/20 px-1 rounded'
-                  : 'text-white'
-              }`}
-            >
-              ${bpTicker.lastPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </span>
-            <span
-              className={`text-[11px] px-1.5 py-0.5 rounded flex items-center gap-0.5 ${
-                bpTicker.priceChangePercent >= 0
-                  ? 'text-emerald-400 bg-emerald-500/10'
-                  : 'text-rose-400 bg-rose-500/10'
-              }`}
-            >
-              {bpTicker.priceChangePercent >= 0 ? (
-                <TrendingUp className="w-3 h-3" />
-              ) : (
-                <TrendingDown className="w-3 h-3" />
-              )}
-              {bpTicker.priceChangePercent >= 0 ? '+' : ''}
-              {bpTicker.priceChangePercent.toFixed(2)}%
+            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[11px] font-medium">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>TV Stock Widget</span>
+            </div>
+            <span className="text-[11px] text-zinc-300 font-semibold px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800">
+              {activeSymbol}
             </span>
           </div>
+        ) : (
+          /* Standalone Full Telemetry */
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex items-center gap-2 px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[11px] font-semibold">
+              <Radio className="w-3 h-3 animate-pulse text-emerald-400" />
+              <span>BACKPACK API V1</span>
+              {latencyMs !== null && <span className="text-[10px] text-zinc-400">({latencyMs}ms)</span>}
+            </div>
 
-          {/* 24h High / Low / Volume */}
-          <div className="hidden lg:flex items-center gap-3 pl-2 border-l border-zinc-800 text-[11px] text-zinc-400">
-            <div>
-              <span className="text-zinc-500 mr-1">24h H:</span>
-              <span className="text-zinc-200">${bpTicker.high24h.toLocaleString()}</span>
+            <div className="flex items-center gap-2">
+              <span className="text-zinc-400 text-[11px] uppercase tracking-wider">{bpSymbol}:</span>
+              <span
+                className={`text-sm font-bold tracking-tight transition-colors duration-300 ${
+                  priceFlash === 'up'
+                    ? 'text-emerald-400 bg-emerald-500/20 px-1 rounded'
+                    : priceFlash === 'down'
+                    ? 'text-rose-400 bg-rose-500/20 px-1 rounded'
+                    : 'text-white'
+                }`}
+              >
+                ${bpTicker.lastPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
+              <span
+                className={`text-[11px] px-1.5 py-0.5 rounded flex items-center gap-0.5 ${
+                  bpTicker.priceChangePercent >= 0
+                    ? 'text-emerald-400 bg-emerald-500/10'
+                    : 'text-rose-400 bg-rose-500/10'
+                }`}
+              >
+                {bpTicker.priceChangePercent >= 0 ? (
+                  <TrendingUp className="w-3 h-3" />
+                ) : (
+                  <TrendingDown className="w-3 h-3" />
+                )}
+                {bpTicker.priceChangePercent >= 0 ? '+' : ''}
+                {bpTicker.priceChangePercent.toFixed(2)}%
+              </span>
             </div>
-            <div>
-              <span className="text-zinc-500 mr-1">24h L:</span>
-              <span className="text-zinc-200">${bpTicker.low24h.toLocaleString()}</span>
-            </div>
-            <div>
-              <span className="text-zinc-500 mr-1">24h Vol:</span>
-              <span className="text-zinc-200">{bpTicker.volume24h.toFixed(1)}</span>
-            </div>
-            <div>
-              <span className="text-zinc-500 mr-1">Trades:</span>
-              <span className="text-zinc-200">{bpTicker.trades.toLocaleString()}</span>
+
+            <div className="hidden lg:flex items-center gap-3 pl-2 border-l border-zinc-800 text-[11px] text-zinc-400">
+              <div>
+                <span className="text-zinc-500 mr-1">24h H:</span>
+                <span className="text-zinc-200">${bpTicker.high24h.toLocaleString()}</span>
+              </div>
+              <div>
+                <span className="text-zinc-500 mr-1">24h L:</span>
+                <span className="text-zinc-200">${bpTicker.low24h.toLocaleString()}</span>
+              </div>
+              <div>
+                <span className="text-zinc-500 mr-1">24h Vol:</span>
+                <span className="text-zinc-200">{bpTicker.volume24h.toFixed(1)}</span>
+              </div>
+              <div>
+                <span className="text-zinc-500 mr-1">Trades:</span>
+                <span className="text-zinc-200">{bpTicker.trades.toLocaleString()}</span>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Right: Controls & Presets */}
-        <div className="flex items-center gap-2">
-          {/* Symbol Selector */}
-          <select
-            value={activeSymbol}
-            onChange={(e) => handleSymbolSelect(e.target.value)}
-            className="bg-zinc-900 border border-zinc-700 hover:border-zinc-600 rounded px-2.5 py-1 text-white text-[11px] font-mono focus:outline-none focus:ring-1 focus:ring-emerald-400"
-          >
-            {SYMBOL_PRESETS.map((p) => (
-              <option key={p.value} value={p.value}>
-                {p.label}
-              </option>
-            ))}
-          </select>
+        <div className="flex items-center gap-2 ml-auto">
+          {!embedded && (
+            <select
+              value={activeSymbol}
+              onChange={(e) => handleSymbolSelect(e.target.value)}
+              className="bg-zinc-900 border border-zinc-700 hover:border-zinc-600 rounded px-2.5 py-1 text-white text-[11px] font-mono focus:outline-none focus:ring-1 focus:ring-emerald-400"
+            >
+              {SYMBOL_PRESETS.map((p) => (
+                <option key={p.value} value={p.value}>
+                  {p.label}
+                </option>
+              ))}
+            </select>
+          )}
 
           {/* Range Selector */}
-          <div className="hidden sm:flex items-center bg-zinc-900 rounded border border-zinc-800 p-0.5">
+          <div className="flex items-center bg-zinc-900 rounded border border-zinc-800 p-0.5">
             {RANGE_PRESETS.map((r) => (
               <button
                 key={r}

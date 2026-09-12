@@ -18,7 +18,9 @@ import {
   Wallet,
   Copy,
   Check,
-  Radio
+  Radio,
+  Layers,
+  BarChart2
 } from 'lucide-react';
 import { useContractEvents } from '../hooks/useContractEvents';
 import { useOrderBook } from '../hooks/useOrderBook';
@@ -35,7 +37,7 @@ const createChartLoader = (label: string, minHeight = 480) => {
     return (
       <div
         style={{ minHeight }}
-        className="bg-console-surface rounded-xl border border-console-border flex flex-col items-center justify-center gap-2.5 text-xs text-muted font-mono"
+        className="w-full h-full bg-[#09090b] flex flex-col items-center justify-center gap-2.5 text-xs text-muted font-mono"
       >
         <Activity className="w-5 h-5 text-coral animate-spin" />
         <span>{label}</span>
@@ -46,12 +48,12 @@ const createChartLoader = (label: string, minHeight = 480) => {
 
 const PriceChart = dynamic(
   () => import('./Chart/PriceChart').then((mod) => mod.PriceChart),
-  { ssr: false, loading: createChartLoader('Connecting price feed...', 370) }
+  { ssr: false, loading: createChartLoader('Connecting price feed...', 480) }
 );
 
 const TradingViewChart = dynamic(
   () => import('./Chart/TradingViewChart').then((mod) => mod.TradingViewChart),
-  { ssr: false, loading: createChartLoader('Loading TradingView feed...', 480) }
+  { ssr: false, loading: createChartLoader('Loading TradingView widget...', 480) }
 );
 
 const BackpackChart = dynamic(
@@ -61,10 +63,11 @@ const BackpackChart = dynamic(
 
 const TradingViewStyleUI = dynamic(
   () => import('./Chart/TradingViewStyleUI'),
-  { ssr: false, loading: createChartLoader('Initializing candlestick studio...', 520) }
+  { ssr: false, loading: createChartLoader('Initializing candlestick studio...', 480) }
 );
 
-type ChartTab = 'STUDIO' | 'BACKPACK' | 'TRADINGVIEW' | 'AGENT_VAULT';
+type ChartTab = 'TRADINGVIEW' | 'STUDIO' | 'BACKPACK' | 'AGENT_VAULT';
+type BottomConsoleTab = 'LEDGER' | 'SIMULATION' | 'GUARDRAILS';
 type EventFilter = 'ALL' | 'EXECUTED' | 'APPROVAL' | 'REJECTED';
 
 const CHART_TABS: { id: ChartTab; label: string }[] = [
@@ -124,8 +127,10 @@ export const TradingTerminal: React.FC = () => {
 
   const orderBook = useOrderBook();
   const wallet = useWallet();
+
   const [isKilled, setIsKilled] = useState(false);
   const [activeFilter, setActiveFilter] = useState<EventFilter>('ALL');
+  const [bottomTab, setBottomTab] = useState<BottomConsoleTab>('LEDGER');
   const [copiedVault, setCopiedVault] = useState(false);
   const [chartType, setChartType] = useState<ChartTab>('TRADINGVIEW');
   const [tvSymbol, setTvSymbol] = useState('NASDAQ:AAPL');
@@ -181,32 +186,46 @@ export const TradingTerminal: React.FC = () => {
   };
 
   return (
-    <div className="space-y-4 max-w-[1600px] mx-auto font-sans">
-      {/* 1. Header Ticker Bar */}
-      <header className="cohere-card-console p-3 sm:p-4 flex flex-wrap items-center justify-between gap-3">
+    <div className="space-y-3 max-w-[1720px] mx-auto font-sans">
+      {/* 1. Unified Pro Terminal Header */}
+      <header className="cohere-card-console px-4 py-3 flex flex-wrap items-center justify-between gap-3 border border-console-border">
+        {/* Left: Asset Identity, Symbol Picker, Backpack Live Ticker */}
         <div className="flex items-center gap-4 flex-wrap">
-          {/* Pair Identity */}
+          {/* Pair & Symbol Dropdown */}
           <div className="flex items-center gap-2.5 pr-4 border-r border-console-border">
             <div className="w-8 h-8 rounded-lg bg-console-elevated border border-console-border flex items-center justify-center text-white font-bold text-xs font-mono">
-              {selectedBpSymbol.split('_')[0]}
+              {tvSymbol.includes('AAPL') ? 'AAPL' : selectedBpSymbol.split('_')[0]}
             </div>
+
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-semibold text-white text-sm tracking-tight">{selectedBpSymbol.replace('_', ' / ')}</span>
-                <span className="cohere-chip-coral !py-0.5 !px-2 !text-[10px]">
-                  BACKPACK LIVE
+                <select
+                  value={tvSymbol}
+                  onChange={(e) => setTvSymbol(e.target.value)}
+                  className="bg-transparent text-white font-bold text-sm tracking-tight cursor-pointer focus:outline-none hover:text-emerald-400 transition"
+                >
+                  {TV_SYMBOLS.map((s) => (
+                    <option key={s.value} value={s.value} className="bg-zinc-950 text-white">
+                      {s.label}
+                    </option>
+                  ))}
+                </select>
+                <span className="cohere-chip-coral !py-0.5 !px-2 !text-[9px] flex items-center gap-1 font-semibold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  BACKPACK L2 LIVE
                 </span>
               </div>
-              <div className="text-[11px] text-muted font-mono flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span>api.backpack.exchange ({selectedBpSymbol})</span>
+              <div className="text-[10px] text-muted font-mono flex items-center gap-1.5">
+                <span>api.backpack.exchange</span>
+                <span className="text-zinc-600">•</span>
+                <span className="text-emerald-400 font-medium">{selectedBpSymbol}</span>
               </div>
             </div>
           </div>
 
-          {/* Mark Price & Trend */}
+          {/* Real-Time Mark Price & 24h Delta */}
           <div className="pr-4 border-r border-console-border">
-            <div className="text-[10px] text-muted font-mono uppercase tracking-[0.28px]">Mark Price (USDC)</div>
+            <div className="text-[9px] text-muted font-mono uppercase tracking-[0.28px]">Backpack Mark Price</div>
             <div className="flex items-baseline gap-2">
               <span className="text-xl font-mono font-bold text-white tracking-tight">
                 {formatUsd(displayPrice)}
@@ -222,159 +241,80 @@ export const TradingTerminal: React.FC = () => {
             </div>
           </div>
 
-          {/* 24h Stats */}
-          <div className="hidden md:flex items-center gap-6 pr-4 border-r border-console-border text-xs font-mono">
+          {/* Compact 24h Stats */}
+          <div className="hidden lg:flex items-center gap-5 pr-4 border-r border-console-border text-xs font-mono">
             <div>
-              <div className="text-[10px] text-muted uppercase tracking-[0.28px]">24H High</div>
+              <div className="text-[9px] text-muted uppercase tracking-[0.28px]">24H High</div>
               <div className="text-white font-medium">{formatUsd(backpack.high24h)}</div>
             </div>
             <div>
-              <div className="text-[10px] text-muted uppercase tracking-[0.28px]">24H Low</div>
+              <div className="text-[9px] text-muted uppercase tracking-[0.28px]">24H Low</div>
               <div className="text-white font-medium">{formatUsd(backpack.low24h)}</div>
             </div>
             <div>
-              <div className="text-[10px] text-muted uppercase tracking-[0.28px]">24H Volume</div>
+              <div className="text-[9px] text-muted uppercase tracking-[0.28px]">24H Volume</div>
               <div className="text-white font-medium">
                 {backpack.volume24h.toFixed(1)} {selectedBpSymbol.split('_')[0]} (${(backpack.quoteVolume24h / 1e6).toFixed(2)}M)
               </div>
             </div>
             <div>
-              <div className="text-[10px] text-muted uppercase tracking-[0.28px]">24H Trades</div>
+              <div className="text-[9px] text-muted uppercase tracking-[0.28px]">24H Trades</div>
               <div className="text-white font-medium">{backpack.trades.toLocaleString()}</div>
             </div>
           </div>
 
-          {/* Vault Contract Address */}
-          <div className="hidden xl:flex items-center gap-2 bg-console-elevated px-3 py-1.5 rounded-lg border border-console-border text-xs font-mono">
-            <Shield className="w-3.5 h-3.5 text-muted" />
-            <span className="text-muted text-[11px]">Vault:</span>
-            <span className="text-white text-[11px]">{truncateAddress(vaultAddress)}</span>
-            <button
-              type="button"
-              onClick={handleCopyVault}
-              className="text-muted hover:text-white transition ml-1"
-              title="Copy Vault Address"
-            >
-              {copiedVault ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-            </button>
+          {/* Quick Guardrail Badges */}
+          <div className="hidden 2xl:flex items-center gap-2 text-xs font-mono">
+            <div className="flex items-center gap-1.5 bg-console-elevated px-2.5 py-1 rounded-lg border border-console-border">
+              <Shield className="w-3 h-3 text-emerald-400" />
+              <span className="text-muted text-[10px]">Escrow:</span>
+              <span className="text-white text-[11px] font-medium">
+                {currentTotalSpend.toFixed(2)} / {maxTotalCap.toFixed(1)} ETH ({capPercentage}%)
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 bg-console-elevated px-2.5 py-1 rounded-lg border border-console-border">
+              <span className="text-amber-400 text-[10px] font-bold">GATED:</span>
+              <span className="text-white text-[11px] font-medium">
+                &gt; {agentConfig?.approvalThreshold?.thresholdAmount ?? 0.5} ETH
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* Global Strategy Actions */}
-        <div className="flex items-center gap-2.5">
+        {/* Right: Wallet, Rules, Kill Switch */}
+        <div className="flex items-center gap-2.5 ml-auto">
+          {/* Wallet */}
+          <div className="hidden sm:flex items-center gap-2 bg-console-elevated px-2.5 py-1 rounded-lg border border-console-border text-xs font-mono">
+            <Wallet className="w-3.5 h-3.5 text-muted" />
+            <span className="text-white text-[11px] truncate max-w-[100px]">
+              {wallet.isConnected ? truncateAddress(wallet.address || '') : '0xf39F...2266'}
+            </span>
+            <span className="text-emerald-400 text-[10px] font-medium pl-1 border-l border-console-border">
+              {wallet.isConnected ? wallet.balance : '1,000'} ETH
+            </span>
+          </div>
+
           <Link
             href="/automation"
-            className="cohere-btn-outline !py-1.5 !px-3 text-xs"
+            className="cohere-btn-outline !py-1 !px-2.5 text-xs flex items-center gap-1.5"
+            title="Configure Strategy & Hard Caps"
           >
             <SlidersHorizontal className="w-3.5 h-3.5 text-muted" />
-            <span>Configure Strategy</span>
+            <span className="hidden md:inline">Rules</span>
           </Link>
+
           <KillSwitchButton onTrigger={handleKill} isKilled={isKilled} />
         </div>
       </header>
 
-      {/* 2. Key Guardrail Metrics */}
-      <section className="grid grid-cols-1 md:grid-cols-4 gap-3">
-        {/* Active Strategy */}
-        <div className="cohere-card-console p-4 space-y-2">
-          <div className="flex items-center justify-between text-xs text-muted">
-            <span className="flex items-center gap-1.5 text-white font-medium">
-              <Radio className="w-3.5 h-3.5 text-emerald-400" />
-              Active Strategy
-            </span>
-            <span className="cohere-chip-coral !py-0.5 !px-2 !text-[9px]">
-              GUARDED
-            </span>
-          </div>
-          <div className="font-semibold text-white text-sm">
-            {agentConfig?.name || 'ETH Momentum Guard'}
-          </div>
-          <div className="text-xs text-muted font-mono">
-            Trigger: {agentConfig?.trigger?.type === 'PRICE_BELOW' ? '<' : '>'} ${agentConfig?.trigger?.targetPrice ?? 3050} USDC
-          </div>
-        </div>
-
-        {/* Escrow Cap */}
-        <div className="cohere-card-console p-4 space-y-2">
-          <div className="flex items-center justify-between text-xs text-muted">
-            <span className="text-white font-medium">Escrow Total Cap</span>
-            <span className="font-mono text-emerald-400 text-xs font-semibold">
-              {currentTotalSpend.toFixed(2)} / {maxTotalCap.toFixed(1)} ETH
-            </span>
-          </div>
-          <div className="w-full bg-console-elevated rounded-full h-2 overflow-hidden border border-console-border">
-            <div
-              className={`h-full transition-all duration-500 rounded-full ${
-                capPercentage > 90 ? 'bg-rose-500' : capPercentage > 75 ? 'bg-amber-500' : 'bg-white'
-              }`}
-              style={{ width: `${capPercentage}%` }}
-            />
-          </div>
-          <div className="flex justify-between text-[10px] text-muted font-mono">
-            <span>Utilization: {capPercentage}%</span>
-            <span>Hard Cap On-Chain</span>
-          </div>
-        </div>
-
-        {/* Approval Threshold */}
-        <div className="cohere-card-console p-4 space-y-2">
-          <div className="flex items-center justify-between text-xs text-muted">
-            <span className="text-white font-medium">Approval Threshold</span>
-            <span className="font-mono text-[9px] px-2 py-0.5 rounded border border-amber-500/30 bg-amber-500/10 text-amber-400">
-              GATED
-            </span>
-          </div>
-          <div className="font-mono text-sm font-semibold text-white">
-            &gt; {agentConfig?.approvalThreshold?.thresholdAmount ?? 0.5} ETH
-          </div>
-          <div className="text-xs text-muted font-mono">
-            Single Trade Max: {agentConfig?.spendingCap?.maxPerTradeSpend ?? 1.5} ETH
-          </div>
-        </div>
-
-        {/* Connected Wallet */}
-        <div className="cohere-card-console p-4 space-y-2">
-          <div className="flex items-center justify-between text-xs text-muted">
-            <span className="flex items-center gap-1.5 text-white font-medium">
-              <Wallet className="w-3.5 h-3.5 text-muted" />
-              Connected Wallet
-            </span>
-            {wallet.isConnected && (
-              <span className="text-[10px] font-mono text-emerald-400 flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                Active
-              </span>
-            )}
-          </div>
-          {wallet.isConnected ? (
-            <div>
-              <div className="font-mono text-xs text-white truncate" title={wallet.address ?? undefined}>
-                {wallet.address}
-              </div>
-              <div className="text-xs text-emerald-400 font-mono font-medium pt-0.5">
-                Balance: {wallet.balance} ETH
-              </div>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={wallet.connectDemoWallet}
-              className="w-full cohere-btn-primary !py-1.5 text-xs font-bold mt-1"
-            >
-              Connect Demo Account
-            </button>
-          )}
-        </div>
-      </section>
-
-      {/* 3. Main Workspace: Charts & Order Book */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        {/* Left: Charts & Simulation */}
-        <div className="lg:col-span-8 space-y-4">
-          <div className="cohere-card-console p-4 space-y-3">
-            {/* Chart Engine Switcher */}
-            <div className="flex flex-wrap items-center justify-between pb-3 border-b border-console-border gap-2">
-              <div className="flex items-center gap-1 bg-console-elevated p-1 rounded-lg border border-console-border text-xs font-mono">
+      {/* 2. Main Workspace: Side-by-Side Seamless Grid */}
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-3 items-stretch">
+        {/* Left: Interactive Pro Chart Panel */}
+        <div className="xl:col-span-8 flex flex-col">
+          <div className="cohere-card-console !p-0 overflow-hidden flex flex-col flex-1 border border-console-border rounded-xl">
+            {/* Chart Engine Switcher Toolbar */}
+            <div className="flex flex-wrap items-center justify-between px-3.5 py-2 bg-zinc-950/90 border-b border-console-border text-xs font-mono gap-2">
+              <div className="flex items-center gap-1 bg-console-elevated p-0.5 rounded-lg border border-console-border">
                 {CHART_TABS.map((tab) => {
                   const isActive = chartType === tab.id;
                   return (
@@ -382,7 +322,7 @@ export const TradingTerminal: React.FC = () => {
                       key={tab.id}
                       type="button"
                       onClick={() => setChartType(tab.id)}
-                      className={`px-3 py-1 rounded-md transition ${
+                      className={`px-2.5 py-1 rounded text-xs transition ${
                         isActive
                           ? 'bg-white text-console-surface font-bold shadow-sm'
                           : 'text-muted hover:text-white'
@@ -394,61 +334,202 @@ export const TradingTerminal: React.FC = () => {
                 })}
               </div>
 
+              {/* Active Symbol Display */}
+              <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-zinc-400">
+                <span>Active:</span>
+                <span className="text-white font-medium px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800">
+                  {tvSymbol}
+                </span>
+              </div>
+            </div>
+
+            {/* Chart Viewport */}
+            <div className="relative flex-1 w-full min-h-[560px] h-[560px] bg-[#09090b]">
               {chartType === 'TRADINGVIEW' && (
-                <div className="flex items-center gap-2 text-xs font-mono">
-                  <span className="text-muted text-[11px]">Symbol:</span>
-                  <select
-                    value={tvSymbol}
-                    onChange={(e) => setTvSymbol(e.target.value)}
-                    className="bg-console-elevated border border-console-border rounded-lg px-2.5 py-1 text-white text-xs focus:outline-none focus:ring-1 focus:ring-coral"
-                  >
-                    {TV_SYMBOLS.map((s) => (
-                      <option key={s.value} value={s.value}>
-                        {s.label}
-                      </option>
-                    ))}
-                  </select>
+                <TradingViewChart
+                  symbol={tvSymbol}
+                  interval="1D"
+                  range="12m"
+                  theme="Dark"
+                  height="100%"
+                  embedded={true}
+                  onSymbolChange={(s) => setTvSymbol(s)}
+                />
+              )}
+              {chartType === 'STUDIO' && <TradingViewStyleUI initialSymbol="ETH_USDC" />}
+              {chartType === 'BACKPACK' && <BackpackChart initialSymbol="ETH_USDC" height={560} />}
+              {chartType === 'AGENT_VAULT' && (
+                <div className="p-4 h-full">
+                  <PriceChart currentPrice={currentPrice} events={events} />
                 </div>
               )}
             </div>
+          </div>
+        </div>
 
-            {/* Selected Chart Component */}
-            {chartType === 'STUDIO' && <TradingViewStyleUI initialSymbol="ETH_USDC" />}
-            {chartType === 'BACKPACK' && <BackpackChart initialSymbol="ETH_USDC" height={480} />}
-            {chartType === 'TRADINGVIEW' && (
-              <TradingViewChart
-                symbol={tvSymbol}
-                interval="1D"
-                range="12m"
-                theme="Dark"
-                height={520}
-                onSymbolChange={(s) => setTvSymbol(s)}
-              />
-            )}
-            {chartType === 'AGENT_VAULT' && (
-              <PriceChart currentPrice={currentPrice} events={events} />
-            )}
+        {/* Right: Order Book & Execution Tape */}
+        <div className="xl:col-span-4 flex flex-col">
+          <div className="cohere-card-console !p-3 overflow-hidden flex flex-col flex-1 border border-console-border rounded-xl min-h-[560px]">
+            <OrderBookTable
+              bids={orderBook.bids}
+              asks={orderBook.asks}
+              lastPrice={currentPrice}
+              isLoading={orderBook.isLoading}
+              onPlaceOrder={orderBook.placeOrder}
+              isSubmitting={orderBook.isSubmitting}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* 3. Bottom Pro Console: Multi-Tab Tray (Ledger, Simulation, Risk Guardrails) */}
+      <section className="cohere-card-console p-4 border border-console-border rounded-xl space-y-3">
+        {/* Navigation Tabs for Bottom Console */}
+        <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-console-border">
+          <div className="flex items-center gap-1 bg-console-elevated p-1 rounded-lg border border-console-border text-xs font-mono">
+            <button
+              type="button"
+              onClick={() => setBottomTab('LEDGER')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md transition ${
+                bottomTab === 'LEDGER'
+                  ? 'bg-white text-console-surface font-bold shadow-sm'
+                  : 'text-muted hover:text-white'
+              }`}
+            >
+              <Clock className="w-3.5 h-3.5" />
+              <span>Execution Ledger ({filteredEvents.length})</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setBottomTab('SIMULATION')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md transition ${
+                bottomTab === 'SIMULATION'
+                  ? 'bg-white text-console-surface font-bold shadow-sm'
+                  : 'text-muted hover:text-white'
+              }`}
+            >
+              <Zap className="w-3.5 h-3.5 text-coral" />
+              <span>Simulation Dock</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setBottomTab('GUARDRAILS')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md transition ${
+                bottomTab === 'GUARDRAILS'
+                  ? 'bg-white text-console-surface font-bold shadow-sm'
+                  : 'text-muted hover:text-white'
+              }`}
+            >
+              <Shield className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Vault Guardrails & Hard Caps</span>
+            </button>
           </div>
 
-          {/* Interactive Simulation Dock */}
-          <div className="cohere-card-console p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Zap className="w-4 h-4 text-coral" />
-                <h3 className="text-xs font-semibold text-white uppercase tracking-[0.28px]">
-                  Interactive Simulation Dock
-                </h3>
+          {/* Ledger-specific Filter Chips */}
+          {bottomTab === 'LEDGER' && (
+            <div className="flex items-center gap-1 bg-console-elevated p-1 rounded-lg border border-console-border text-[11px] font-mono">
+              {FILTER_TABS.map((tab) => {
+                const isActive = activeFilter === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setActiveFilter(tab.id)}
+                    className={`px-2.5 py-1 rounded transition ${
+                      isActive ? tab.activeColor : 'text-muted hover:text-white'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* TAB CONTENT 1: On-Chain Execution Ledger */}
+        {bottomTab === 'LEDGER' && (
+          <div>
+            {filteredEvents.length === 0 ? (
+              <div className="text-center py-8 text-xs text-muted font-mono">
+                No execution events logged yet. Trigger an order or run a simulation.
               </div>
-              <span className="text-[11px] text-muted font-mono">
-                Simulate market triggers & on-chain cap enforcement
-              </span>
+            ) : (
+              <div className="overflow-x-auto max-h-[300px]">
+                <table className="w-full text-left text-xs font-mono">
+                  <thead className="text-muted border-b border-console-border text-[10px] uppercase tracking-[0.28px] sticky top-0 bg-console-surface">
+                    <tr>
+                      <th className="pb-2.5 font-normal">Timestamp</th>
+                      <th className="pb-2.5 font-normal">ID</th>
+                      <th className="pb-2.5 font-normal">Side</th>
+                      <th className="pb-2.5 font-normal">Amount</th>
+                      <th className="pb-2.5 font-normal">Price (USDC)</th>
+                      <th className="pb-2.5 font-normal">Status</th>
+                      <th className="pb-2.5 font-normal">On-Chain Audit / Tx</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-console-border/70">
+                    {filteredEvents.map((e, idx) => (
+                      <tr key={`${e.tradeId}-${idx}`} className="hover:bg-console-elevated/70 transition">
+                        <td className="py-2.5 text-muted">
+                          {new Date(e.timestamp).toLocaleTimeString()}
+                        </td>
+                        <td className="py-2.5 text-white font-semibold">#{e.tradeId}</td>
+                        <td className="py-2.5">
+                          <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold text-[10px]">
+                            {e.action}
+                          </span>
+                        </td>
+                        <td className="py-2.5 text-white font-medium">{e.amount} ETH</td>
+                        <td className="py-2.5 text-muted">{formatUsd(e.price)}</td>
+                        <td className="py-2.5">
+                          <span
+                            className={`px-2 py-0.5 rounded border text-[10px] font-semibold tracking-wide ${getStatusBadgeClass(
+                              e.status
+                            )}`}
+                          >
+                            {e.status}
+                          </span>
+                        </td>
+                        <td className="py-2.5 text-muted text-[11px] truncate max-w-sm">
+                          {e.reason ? (
+                            <span className="text-rose-300">{e.reason}</span>
+                          ) : e.txHash ? (
+                            <span className="text-white hover:underline flex items-center gap-1">
+                              <span>{truncateAddress(e.txHash)}</span>
+                              <ArrowUpRight className="w-3 h-3 text-muted" />
+                            </span>
+                          ) : (
+                            <span className="text-emerald-400/90 flex items-center gap-1">
+                              <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                              Vault Verified
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB CONTENT 2: Interactive Simulation Dock */}
+        {bottomTab === 'SIMULATION' && (
+          <div className="space-y-3 py-1">
+            <div className="flex items-center justify-between text-xs font-mono text-muted">
+              <span>Simulate instant market price nudges and verify on-chain spending guardrails:</span>
+              <span className="text-emerald-400">Current Reference Price: {formatUsd(currentPrice)}</span>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 font-mono">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 font-mono">
               <button
                 type="button"
                 onClick={() => nudgePrice(-25)}
-                className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-console-elevated hover:bg-zinc-800 text-xs font-medium text-emerald-400 border border-console-border transition"
+                className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg bg-console-elevated hover:bg-zinc-800 text-xs font-medium text-emerald-400 border border-console-border transition shadow-sm"
               >
                 <TrendingDown className="w-3.5 h-3.5" />
                 <span>Drop -$25</span>
@@ -457,7 +538,7 @@ export const TradingTerminal: React.FC = () => {
               <button
                 type="button"
                 onClick={() => nudgePrice(+25)}
-                className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-console-elevated hover:bg-zinc-800 text-xs font-medium text-rose-400 border border-console-border transition"
+                className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg bg-console-elevated hover:bg-zinc-800 text-xs font-medium text-rose-400 border border-console-border transition shadow-sm"
               >
                 <TrendingUp className="w-3.5 h-3.5" />
                 <span>Raise +$25</span>
@@ -472,7 +553,7 @@ export const TradingTerminal: React.FC = () => {
                     status: 'EXECUTED'
                   })
                 }
-                className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-xs font-medium text-emerald-300 border border-emerald-500/30 transition"
+                className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-xs font-medium text-emerald-300 border border-emerald-500/30 transition shadow-sm"
               >
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                 <span>0.4 ETH Safe</span>
@@ -487,7 +568,7 @@ export const TradingTerminal: React.FC = () => {
                     status: 'PENDING_APPROVAL'
                   })
                 }
-                className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-amber-600/10 hover:bg-amber-600/20 text-xs font-medium text-amber-300 border border-amber-500/30 transition"
+                className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg bg-amber-600/10 hover:bg-amber-600/20 text-xs font-medium text-amber-300 border border-amber-500/30 transition shadow-sm"
               >
                 <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
                 <span>0.8 ETH Gated</span>
@@ -503,120 +584,75 @@ export const TradingTerminal: React.FC = () => {
                     reason: 'Exceeds single trade cap (1.5 ETH)'
                   })
                 }
-                className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-rose-600/10 hover:bg-rose-600/20 text-xs font-medium text-rose-300 border border-rose-500/30 transition"
+                className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg bg-rose-600/10 hover:bg-rose-600/20 text-xs font-medium text-rose-300 border border-rose-500/30 transition shadow-sm"
               >
                 <ShieldAlert className="w-3.5 h-3.5 text-rose-400" />
                 <span>3.5 ETH Over-Cap</span>
               </button>
             </div>
           </div>
-        </div>
+        )}
 
-        {/* Right: Live Order Book Depth */}
-        <div className="lg:col-span-4 flex flex-col">
-          <div className="cohere-card-console p-3 sm:p-4 flex-1 flex flex-col min-h-[460px]">
-            <OrderBookTable
-              bids={orderBook.bids}
-              asks={orderBook.asks}
-              lastPrice={currentPrice}
-              isLoading={orderBook.isLoading}
-              onPlaceOrder={orderBook.placeOrder}
-              isSubmitting={orderBook.isSubmitting}
-            />
-          </div>
-        </div>
-      </div>
+        {/* TAB CONTENT 3: Vault Risk & Guardrail Details */}
+        {bottomTab === 'GUARDRAILS' && (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3 py-1 font-mono text-xs">
+            {/* Strategy */}
+            <div className="bg-console-elevated p-3.5 rounded-lg border border-console-border space-y-1.5">
+              <div className="flex items-center justify-between text-muted">
+                <span className="text-white font-medium">Strategy Policy</span>
+                <span className="cohere-chip-coral !py-0.5 !px-1.5 !text-[9px]">ACTIVE</span>
+              </div>
+              <div className="font-bold text-white text-sm">{agentConfig?.name || 'ETH Momentum Guard'}</div>
+              <div className="text-muted text-[11px]">
+                Target: {agentConfig?.trigger?.type === 'PRICE_BELOW' ? '<' : '>'} ${agentConfig?.trigger?.targetPrice ?? 3050} USDC
+              </div>
+            </div>
 
-      {/* 4. On-Chain Execution Ledger */}
-      <section className="cohere-card-console p-5 space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-console-border">
-          <div className="flex items-center gap-3">
-            <h3 className="text-xs font-semibold text-white uppercase tracking-[0.28px] flex items-center gap-2">
-              <Clock className="w-3.5 h-3.5 text-coral" />
-              On-Chain Execution Ledger & Safety Trail
-            </h3>
-            <span className="text-[11px] font-mono text-muted">
-              ({filteredEvents.length} events logged)
-            </span>
-          </div>
-
-          {/* Filter Tabs */}
-          <div className="flex items-center gap-1 bg-console-elevated p-1 rounded-lg border border-console-border text-[11px] font-mono">
-            {FILTER_TABS.map((tab) => {
-              const isActive = activeFilter === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActiveFilter(tab.id)}
-                  className={`px-3 py-1 rounded transition ${
-                    isActive ? tab.activeColor : 'text-muted hover:text-white'
+            {/* Escrow Cap */}
+            <div className="bg-console-elevated p-3.5 rounded-lg border border-console-border space-y-1.5">
+              <div className="flex items-center justify-between text-muted">
+                <span className="text-white font-medium">Total Escrow Cap</span>
+                <span className="text-emerald-400 font-bold">{currentTotalSpend.toFixed(2)} / {maxTotalCap.toFixed(1)} ETH</span>
+              </div>
+              <div className="w-full bg-zinc-900 rounded-full h-1.5 overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-300 ${
+                    capPercentage > 90 ? 'bg-rose-500' : capPercentage > 75 ? 'bg-amber-500' : 'bg-emerald-400'
                   }`}
-                >
-                  {tab.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+                  style={{ width: `${capPercentage}%` }}
+                />
+              </div>
+              <div className="text-muted text-[10px]">Utilization: {capPercentage}% (Enforced on Anvil/EVM)</div>
+            </div>
 
-        {filteredEvents.length === 0 ? (
-          <div className="text-center py-8 text-xs text-muted font-mono">
-            No events match current filter.
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs font-mono">
-              <thead className="text-muted border-b border-console-border text-[11px] uppercase tracking-[0.28px]">
-                <tr>
-                  <th className="pb-3 font-normal">Timestamp</th>
-                  <th className="pb-3 font-normal">ID</th>
-                  <th className="pb-3 font-normal">Side</th>
-                  <th className="pb-3 font-normal">Amount</th>
-                  <th className="pb-3 font-normal">Price (USDC)</th>
-                  <th className="pb-3 font-normal">Status</th>
-                  <th className="pb-3 font-normal">Verification / On-Chain Audit</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-console-border">
-                {filteredEvents.map((e, idx) => (
-                  <tr key={`${e.tradeId}-${idx}`} className="hover:bg-console-elevated/70 transition">
-                    <td className="py-3 text-muted">
-                      {new Date(e.timestamp).toLocaleTimeString()}
-                    </td>
-                    <td className="py-3 text-white font-semibold">#{e.tradeId}</td>
-                    <td className="py-3">
-                      <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold text-[10px]">
-                        {e.action}
-                      </span>
-                    </td>
-                    <td className="py-3 text-white font-medium">{e.amount} ETH</td>
-                    <td className="py-3 text-muted">{formatUsd(e.price)}</td>
-                    <td className="py-3">
-                      <span
-                        className={`px-2 py-0.5 rounded border text-[10px] font-semibold tracking-wide ${getStatusBadgeClass(
-                          e.status
-                        )}`}
-                      >
-                        {e.status}
-                      </span>
-                    </td>
-                    <td className="py-3 text-muted text-[11px] truncate max-w-sm">
-                      {e.reason ? (
-                        <span className="text-rose-300">{e.reason}</span>
-                      ) : e.txHash ? (
-                        <span className="text-white hover:underline flex items-center gap-1">
-                          <span>{truncateAddress(e.txHash)}</span>
-                          <ArrowUpRight className="w-3 h-3 text-muted" />
-                        </span>
-                      ) : (
-                        <span className="text-emerald-400/90">On-Chain Vault Verified</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            {/* Human Gate */}
+            <div className="bg-console-elevated p-3.5 rounded-lg border border-console-border space-y-1.5">
+              <div className="flex items-center justify-between text-muted">
+                <span className="text-white font-medium">Human-in-the-Loop</span>
+                <span className="text-amber-400 text-[10px] font-bold">GATED</span>
+              </div>
+              <div className="font-bold text-white text-sm">&gt; {agentConfig?.approvalThreshold?.thresholdAmount ?? 0.5} ETH</div>
+              <div className="text-muted text-[11px]">Trades exceeding threshold require signature</div>
+            </div>
+
+            {/* Smart Contract Vault */}
+            <div className="bg-console-elevated p-3.5 rounded-lg border border-console-border space-y-1.5">
+              <div className="flex items-center justify-between text-muted">
+                <span className="text-white font-medium">Non-Custodial Escrow</span>
+                <button
+                  type="button"
+                  onClick={handleCopyVault}
+                  className="text-muted hover:text-white transition"
+                  title="Copy Vault Address"
+                >
+                  {copiedVault ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                </button>
+              </div>
+              <div className="text-white font-medium truncate" title={vaultAddress}>
+                {truncateAddress(vaultAddress)}
+              </div>
+              <div className="text-emerald-400 text-[10px]">Hard Capped Smart Contract Settlement</div>
+            </div>
           </div>
         )}
       </section>
@@ -630,6 +666,3 @@ export const TradingTerminal: React.FC = () => {
     </div>
   );
 };
-
-
-
