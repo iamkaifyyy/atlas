@@ -30,6 +30,7 @@ import { OrderBookTable } from './OrderBook/OrderBookTable';
 import { ApprovalModal } from './ApprovalModal';
 import { KillSwitchButton } from './KillSwitchButton';
 import type { TradeEventPayload } from '../../shared/types/agentConfig';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // Dynamic chart loaders with custom fallbacks
 const createChartLoader = (label: string, minHeight = 480) => {
@@ -110,6 +111,12 @@ export const TradingTerminal: React.FC = () => {
   const [bottomTab, setBottomTab] = useState<BottomConsoleTab>('LEDGER');
   const [copiedVault, setCopiedVault] = useState(false);
   const [tvSymbol, setTvSymbol] = useState('NASDAQ:AAPL');
+  const [toastMessage, setToastMessage] = useState<{ text: string; type: 'success' | 'warn' | 'error' | 'info' } | null>(null);
+
+  const showToast = (text: string, type: 'success' | 'warn' | 'error' | 'info' = 'info') => {
+    setToastMessage({ text, type });
+    setTimeout(() => setToastMessage(null), 3500);
+  };
 
   // Dynamically map selected chart symbol to Backpack/market pair
   const selectedBpSymbol = useMemo(() => {
@@ -159,13 +166,17 @@ export const TradingTerminal: React.FC = () => {
 
   const handleKill = async () => {
     const ok = await triggerKillSwitch();
-    if (ok) setIsKilled(true);
+    if (ok) {
+      setIsKilled(true);
+      showToast('EMERGENCY KILL-SWITCH TRIGGERED: 100% Escrow refunded to owner', 'error');
+    }
     return ok;
   };
 
   const handleCopyVault = () => {
     navigator.clipboard.writeText(vaultAddress);
     setCopiedVault(true);
+    showToast('Vault address copied to clipboard', 'info');
     setTimeout(() => setCopiedVault(false), 1500);
   };
 
@@ -304,6 +315,83 @@ export const TradingTerminal: React.FC = () => {
         </div>
       </header>
 
+      {/* Floating Animated Toast Feedback */}
+      <AnimatePresence>
+        {toastMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            className={`fixed top-16 right-6 z-50 px-4 py-3 rounded-xl shadow-2xl border font-mono text-xs flex items-center gap-2.5 backdrop-blur-md ${
+              toastMessage.type === 'error'
+                ? 'bg-rose-950/90 text-rose-200 border-rose-500/40'
+                : toastMessage.type === 'warn'
+                ? 'bg-amber-950/90 text-amber-200 border-amber-500/40'
+                : toastMessage.type === 'success'
+                ? 'bg-emerald-950/90 text-emerald-200 border-emerald-500/40'
+                : 'bg-zinc-900/90 text-white border-zinc-700'
+            }`}
+          >
+            <Zap className="w-4 h-4 text-coral shrink-0 animate-pulse" />
+            <span>{toastMessage.text}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Live On-Chain Gated Pending Approvals Banner */}
+      <AnimatePresence>
+        {pendingTrades.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="bg-amber-500/10 border border-amber-500/40 rounded-xl p-3.5 flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
+              <div className="flex items-center gap-2.5">
+                <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 animate-bounce" />
+                <div>
+                  <span className="text-amber-300 font-bold">ACTION REQUIRED:</span>
+                  <span className="text-white ml-1.5">
+                    {pendingTrades.length} trade order(s) exceed the 0.5 ETH approval threshold and require cryptographic sign-off.
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {pendingTrades.slice(0, 1).map((t) => (
+                  <div key={t.tradeId} className="flex items-center gap-2">
+                    <span className="text-amber-200 font-semibold">#{t.tradeId} ({t.amount} ETH @ ${t.price.toFixed(2)})</span>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={async () => {
+                        const ok = await approveTrade(t.tradeId);
+                        if (ok) showToast(`Approved trade #${t.tradeId} on-chain!`, 'success');
+                      }}
+                      className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-3 py-1 rounded text-xs transition shadow"
+                    >
+                      Approve & Execute
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={async () => {
+                        const ok = await rejectTrade(t.tradeId);
+                        if (ok) showToast(`Rejected trade #${t.tradeId}`, 'warn');
+                      }}
+                      className="bg-rose-600/80 hover:bg-rose-600 text-white font-semibold px-3 py-1 rounded text-xs transition"
+                    >
+                      Reject
+                    </motion.button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* 2. Main Workspace: Side-by-Side Seamless Grid */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-3 items-stretch">
         {/* Left: Live Terminal Chart Panel */}
@@ -425,45 +513,54 @@ export const TradingTerminal: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-console-border/70">
-                    {filteredEvents.map((e, idx) => (
-                      <tr key={`${e.tradeId}-${idx}`} className="hover:bg-console-elevated/70 transition">
-                        <td className="py-2.5 text-muted">
-                          {new Date(e.timestamp).toLocaleTimeString()}
-                        </td>
-                        <td className="py-2.5 text-white font-semibold">#{e.tradeId}</td>
-                        <td className="py-2.5">
-                          <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold text-[10px]">
-                            {e.action}
-                          </span>
-                        </td>
-                        <td className="py-2.5 text-white font-medium">{e.amount} ETH</td>
-                        <td className="py-2.5 text-muted">{formatUsd(e.price)}</td>
-                        <td className="py-2.5">
-                          <span
-                            className={`px-2 py-0.5 rounded border text-[10px] font-semibold tracking-wide ${getStatusBadgeClass(
-                              e.status
-                            )}`}
-                          >
-                            {e.status}
-                          </span>
-                        </td>
-                        <td className="py-2.5 text-muted text-[11px] truncate max-w-sm">
-                          {e.reason ? (
-                            <span className="text-rose-300">{e.reason}</span>
-                          ) : e.txHash ? (
-                            <span className="text-white hover:underline flex items-center gap-1">
-                              <span>{truncateAddress(e.txHash)}</span>
-                              <ArrowUpRight className="w-3 h-3 text-muted" />
+                    <AnimatePresence initial={false}>
+                      {filteredEvents.map((e, idx) => (
+                        <motion.tr
+                          key={`${e.tradeId}-${idx}`}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: 10 }}
+                          transition={{ duration: 0.2 }}
+                          className="hover:bg-console-elevated/70 transition"
+                        >
+                          <td className="py-2.5 text-muted">
+                            {new Date(e.timestamp).toLocaleTimeString()}
+                          </td>
+                          <td className="py-2.5 text-white font-semibold">#{e.tradeId}</td>
+                          <td className="py-2.5">
+                            <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold text-[10px]">
+                              {e.action}
                             </span>
-                          ) : (
-                            <span className="text-emerald-400/90 flex items-center gap-1">
-                              <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-                              Vault Verified
+                          </td>
+                          <td className="py-2.5 text-white font-medium">{e.amount} ETH</td>
+                          <td className="py-2.5 text-muted">{formatUsd(e.price)}</td>
+                          <td className="py-2.5">
+                            <span
+                              className={`px-2 py-0.5 rounded border text-[10px] font-semibold tracking-wide ${getStatusBadgeClass(
+                                e.status
+                              )}`}
+                            >
+                              {e.status}
                             </span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
+                          </td>
+                          <td className="py-2.5 text-muted text-[11px] truncate max-w-sm">
+                            {e.reason ? (
+                              <span className="text-rose-300">{e.reason}</span>
+                            ) : e.txHash ? (
+                              <span className="text-white hover:underline flex items-center gap-1">
+                                <span>{truncateAddress(e.txHash)}</span>
+                                <ArrowUpRight className="w-3 h-3 text-muted" />
+                              </span>
+                            ) : (
+                              <span className="text-emerald-400/90 flex items-center gap-1">
+                                <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                                Vault Verified
+                              </span>
+                            )}
+                          </td>
+                        </motion.tr>
+                      ))}
+                    </AnimatePresence>
                   </tbody>
                 </table>
               </div>
@@ -480,69 +577,88 @@ export const TradingTerminal: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 font-mono">
-              <button
+              <motion.button
+                whileHover={{ scale: 1.04, y: -2 }}
+                whileTap={{ scale: 0.96 }}
                 type="button"
-                onClick={() => nudgePrice(-25)}
+                onClick={async () => {
+                  await nudgePrice(-25);
+                  showToast('Price nudged -$25.00 in feed engine', 'info');
+                }}
                 className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg bg-console-elevated hover:bg-zinc-800 text-xs font-medium text-emerald-400 border border-console-border transition shadow-sm"
               >
                 <TrendingDown className="w-3.5 h-3.5" />
                 <span>Drop -$25</span>
-              </button>
+              </motion.button>
 
-              <button
+              <motion.button
+                whileHover={{ scale: 1.04, y: -2 }}
+                whileTap={{ scale: 0.96 }}
                 type="button"
-                onClick={() => nudgePrice(+25)}
+                onClick={async () => {
+                  await nudgePrice(+25);
+                  showToast('Price nudged +$25.00 in feed engine', 'info');
+                }}
                 className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg bg-console-elevated hover:bg-zinc-800 text-xs font-medium text-rose-400 border border-console-border transition shadow-sm"
               >
                 <TrendingUp className="w-3.5 h-3.5" />
                 <span>Raise +$25</span>
-              </button>
+              </motion.button>
 
-              <button
+              <motion.button
+                whileHover={{ scale: 1.04, y: -2 }}
+                whileTap={{ scale: 0.96 }}
                 type="button"
-                onClick={() =>
-                  simulateTrade({
+                onClick={async () => {
+                  await simulateTrade({
                     amount: 0.4,
                     price: currentPrice,
                     status: 'EXECUTED'
-                  })
-                }
+                  });
+                  showToast('0.4 ETH Safe Trade executed & audited on-chain', 'success');
+                }}
                 className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-xs font-medium text-emerald-300 border border-emerald-500/30 transition shadow-sm"
               >
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                 <span>0.4 ETH Safe</span>
-              </button>
+              </motion.button>
 
-              <button
+              <motion.button
+                whileHover={{ scale: 1.04, y: -2 }}
+                whileTap={{ scale: 0.96 }}
                 type="button"
-                onClick={() =>
-                  simulateTrade({
+                onClick={async () => {
+                  await simulateTrade({
                     amount: 0.8,
                     price: currentPrice,
                     status: 'PENDING_APPROVAL'
-                  })
-                }
+                  });
+                  showToast('0.8 ETH Trade exceeds 0.5 ETH cap — queued for approval', 'warn');
+                }}
                 className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg bg-amber-600/10 hover:bg-amber-600/20 text-xs font-medium text-amber-300 border border-amber-500/30 transition shadow-sm"
               >
                 <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
                 <span>0.8 ETH Gated</span>
-              </button>
+              </motion.button>
 
-              <button
+              <motion.button
+                whileHover={{ scale: 1.04, y: -2 }}
+                whileTap={{ scale: 0.96 }}
                 type="button"
-                onClick={() =>
-                  simulateTrade({
+                onClick={async () => {
+                  await simulateTrade({
                     amount: 3.5,
                     price: currentPrice,
                     status: 'REJECTED',
                     reason: 'Exceeds single trade cap (1.5 ETH)'
-                  })
-                }
+                  });
+                  showToast('3.5 ETH Order blocked by EVM: exceeds 1.5 ETH trade ceiling', 'error');
+                }}
                 className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg bg-rose-600/10 hover:bg-rose-600/20 text-xs font-medium text-rose-300 border border-rose-500/30 transition shadow-sm"
               >
                 <ShieldAlert className="w-3.5 h-3.5 text-rose-400" />
                 <span>3.5 ETH Over-Cap</span>
-              </button>
+              </motion.button>
             </div>
           </div>
         )}

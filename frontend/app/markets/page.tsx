@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { Search, TrendingUp, TrendingDown, ArrowUpRight, Filter, Sparkles, Activity } from 'lucide-react';
+import { Search, TrendingUp, TrendingDown, ArrowUpRight, Filter, Sparkles, Activity, RefreshCw } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useBackpackTicker } from '../../hooks/useBackpackTicker';
 
 interface CryptoMarket {
   ticker: string;
@@ -108,7 +110,51 @@ export default function MarketsPage() {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
 
-  const filteredMarkets = MARKETS_DATA.filter((m) => {
+  // Fetch real-time live tickers for prime pairs
+  const ethTicker = useBackpackTicker('ETH_USDC');
+  const btcTicker = useBackpackTicker('BTC_USDC');
+  const solTicker = useBackpackTicker('SOL_USDC');
+
+  const dynamicMarkets = useMemo(() => {
+    return MARKETS_DATA.map((m) => {
+      if (m.ticker === 'ETH' && ethTicker.lastPrice > 0) {
+        return {
+          ...m,
+          price: ethTicker.lastPrice,
+          change24h: ethTicker.priceChangePercent,
+          high24h: ethTicker.high24h,
+          low24h: ethTicker.low24h,
+          volume24h: ethTicker.volume24h,
+          trades24h: ethTicker.trades
+        };
+      }
+      if (m.ticker === 'BTC' && btcTicker.lastPrice > 0) {
+        return {
+          ...m,
+          price: btcTicker.lastPrice,
+          change24h: btcTicker.priceChangePercent,
+          high24h: btcTicker.high24h,
+          low24h: btcTicker.low24h,
+          volume24h: btcTicker.volume24h,
+          trades24h: btcTicker.trades
+        };
+      }
+      if (m.ticker === 'SOL' && solTicker.lastPrice > 0) {
+        return {
+          ...m,
+          price: solTicker.lastPrice,
+          change24h: solTicker.priceChangePercent,
+          high24h: solTicker.high24h,
+          low24h: solTicker.low24h,
+          volume24h: solTicker.volume24h,
+          trades24h: solTicker.trades
+        };
+      }
+      return m;
+    });
+  }, [ethTicker, btcTicker, solTicker]);
+
+  const filteredMarkets = dynamicMarkets.filter((m) => {
     const matchesSearch =
       m.name.toLowerCase().includes(search.toLowerCase()) ||
       m.ticker.toLowerCase().includes(search.toLowerCase());
@@ -117,16 +163,22 @@ export default function MarketsPage() {
   });
 
   return (
-    <div className="py-4 space-y-8 max-w-6xl mx-auto">
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="py-4 space-y-8 max-w-6xl mx-auto"
+    >
       {/* Header Banner */}
-      <div className="cohere-card-console p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="cohere-card-console p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-2xl">
         <div className="space-y-2">
           <div className="inline-flex items-center gap-2">
             <span className="cohere-chip-coral">
               BACKPACK LIQUIDITY DIRECTORY
             </span>
-            <span className="font-mono text-[11px] text-muted hidden sm:inline">
-              // LEVEL 2 DEPTH
+            <span className="font-mono text-[11px] text-muted hidden sm:inline flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              // REAL-TIME LEVEL 2 STREAMS
             </span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-normal tracking-[-0.03em] text-white">
@@ -138,33 +190,37 @@ export default function MarketsPage() {
         </div>
 
         <div className="flex items-center gap-3">
-          <Link
-            href="/terminal"
-            className="cohere-btn-primary text-xs"
-          >
-            <span>Open High-Frequency Desk</span>
-            <ArrowUpRight className="w-3.5 h-3.5" />
-          </Link>
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Link
+              href="/terminal"
+              className="cohere-btn-primary text-xs shadow-lg"
+            >
+              <span>Open High-Frequency Desk</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </Link>
+          </motion.div>
         </div>
       </div>
 
       {/* Cohere Taxonomy Filter Chips & Search Bar */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-xs">
-        {/* Coral Taxonomy Chips (DESIGN.md line 176 & 376) */}
+        {/* Coral Taxonomy Chips */}
         <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
           {['ALL', 'L1', 'DeFi', 'AI', 'Solana'].map((cat) => (
-            <button
+            <motion.button
               key={cat}
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
               type="button"
               onClick={() => setSelectedCategory(cat)}
               className={`px-3.5 py-1.5 rounded-lg transition text-xs font-mono tracking-[0.28px] uppercase ${
                 selectedCategory === cat
-                  ? 'cohere-chip-coral-active'
+                  ? 'cohere-chip-coral-active shadow-md shadow-coral/20'
                   : 'cohere-chip-coral'
               }`}
             >
               {cat === 'ALL' ? 'All Assets' : cat}
-            </button>
+            </motion.button>
           ))}
         </div>
 
@@ -181,8 +237,8 @@ export default function MarketsPage() {
         </div>
       </div>
 
-      {/* Cohere Research Table (DESIGN.md line 182 & 380) */}
-      <div className="cohere-card-console overflow-hidden shadow-2xl">
+      {/* Cohere Research Table with Animated Rows */}
+      <div className="cohere-card-console overflow-hidden shadow-2xl border border-console-border">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs font-mono">
             <thead className="bg-console-elevated border-b border-console-border text-muted text-[11px] uppercase tracking-[0.28px]">
@@ -197,86 +253,98 @@ export default function MarketsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-console-border">
-              {filteredMarkets.map((m) => {
-                const isPositive = m.change24h >= 0;
-                return (
-                  <tr key={m.ticker} className="hover:bg-console-elevated/70 transition group">
-                    {/* Asset & Ticker */}
-                    <td className="py-4 px-5">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-console-elevated border border-console-border flex items-center justify-center font-bold text-white text-xs">
-                          {m.ticker.slice(0, 3)}
-                        </div>
-                        <div>
-                          <div className="font-semibold text-white tracking-tight flex items-center gap-1.5">
-                            <span>{m.name}</span>
-                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-console-elevated text-muted border border-console-border">
-                              {m.ticker}
-                            </span>
+              <AnimatePresence>
+                {filteredMarkets.map((m, idx) => {
+                  const isPositive = m.change24h >= 0;
+                  return (
+                    <motion.tr
+                      key={m.ticker}
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ delay: idx * 0.03, duration: 0.3 }}
+                      whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.03)' }}
+                      className="transition group cursor-pointer"
+                    >
+                      {/* Asset & Ticker */}
+                      <td className="py-4 px-5">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-console-elevated border border-console-border flex items-center justify-center font-bold text-white text-xs">
+                            {m.ticker.slice(0, 3)}
                           </div>
-                          <div className="text-[10px] text-muted">{m.category}</div>
+                          <div>
+                            <div className="font-semibold text-white tracking-tight flex items-center gap-1.5">
+                              <span>{m.name}</span>
+                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-console-elevated text-muted border border-console-border">
+                                {m.ticker}
+                              </span>
+                            </div>
+                            <div className="text-[10px] text-muted">{m.category}</div>
+                          </div>
                         </div>
-                      </div>
-                    </td>
+                      </td>
 
-                    {/* Price */}
-                    <td className="py-4 px-5 font-semibold text-white text-sm">
-                      ${m.price < 1 ? m.price.toFixed(4) : m.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </td>
+                      {/* Price */}
+                      <td className="py-4 px-5 font-semibold text-white text-sm">
+                        ${m.price < 1 ? m.price.toFixed(4) : m.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </td>
 
-                    {/* 24h Change */}
-                    <td className="py-4 px-5">
-                      <span className={`inline-flex items-center gap-0.5 font-medium text-xs ${isPositive ? 'text-emerald-400' : 'text-rose-400'}`}>
-                        {isPositive ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
-                        {isPositive ? '+' : ''}{m.change24h.toFixed(2)}%
-                      </span>
-                    </td>
+                      {/* 24h Change */}
+                      <td className="py-4 px-5">
+                        <span className={`inline-flex items-center gap-0.5 font-medium text-xs ${isPositive ? 'text-emerald-400' : 'text-rose-400'}`}>
+                          {isPositive ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
+                          {isPositive ? '+' : ''}{m.change24h.toFixed(2)}%
+                        </span>
+                      </td>
 
-                    {/* 24h Range Bar */}
-                    <td className="py-4 px-5 hidden md:table-cell">
-                      <div className="space-y-1.5 w-44">
-                        <div className="flex justify-between text-[10px] text-muted">
-                          <span>${m.low24h.toFixed(1)}</span>
-                          <span>${m.high24h.toFixed(1)}</span>
+                      {/* 24h Range Bar */}
+                      <td className="py-4 px-5 hidden md:table-cell">
+                        <div className="space-y-1.5 w-44">
+                          <div className="flex justify-between text-[10px] text-muted">
+                            <span>${m.low24h.toFixed(1)}</span>
+                            <span>${m.high24h.toFixed(1)}</span>
+                          </div>
+                          <div className="w-full bg-console-elevated h-1.5 rounded-full overflow-hidden border border-console-border">
+                            <div
+                              className="h-full bg-white rounded-full transition-all duration-500"
+                              style={{
+                                width: `${Math.min(100, Math.max(10, ((m.price - m.low24h) / Math.max(0.01, m.high24h - m.low24h)) * 100))}%`
+                              }}
+                            />
+                          </div>
                         </div>
-                        <div className="w-full bg-console-elevated h-1.5 rounded-full overflow-hidden border border-console-border">
-                          <div
-                            className="h-full bg-white rounded-full"
-                            style={{
-                              width: `${Math.min(100, Math.max(10, ((m.price - m.low24h) / (m.high24h - m.low24h)) * 100))}%`
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </td>
+                      </td>
 
-                    {/* Volume */}
-                    <td className="py-4 px-5 hidden sm:table-cell text-white font-medium">
-                      ${m.volume24h.toFixed(1)}M
-                    </td>
+                      {/* Volume */}
+                      <td className="py-4 px-5 hidden sm:table-cell text-white font-medium">
+                        ${m.volume24h > 1000 ? `${(m.volume24h / 1000).toFixed(1)}k` : m.volume24h.toFixed(1)}M
+                      </td>
 
-                    {/* Trades */}
-                    <td className="py-4 px-5 hidden lg:table-cell text-muted">
-                      {m.trades24h.toLocaleString()}
-                    </td>
+                      {/* Trades */}
+                      <td className="py-4 px-5 hidden lg:table-cell text-muted">
+                        {m.trades24h.toLocaleString()}
+                      </td>
 
-                    {/* Action */}
-                    <td className="py-4 px-5 text-right">
-                      <Link
-                        href={`/terminal`}
-                        className="cohere-btn-outline !py-1.5 !px-3 text-xs"
-                      >
-                        <span>Trade</span>
-                        <ArrowUpRight className="w-3 h-3" />
-                      </Link>
-                    </td>
-                  </tr>
-                );
-              })}
+                      {/* Action */}
+                      <td className="py-4 px-5 text-right">
+                        <motion.div whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.94 }} className="inline-block">
+                          <Link
+                            href="/terminal"
+                            className="cohere-btn-outline !py-1.5 !px-3 text-xs"
+                          >
+                            <span>Trade</span>
+                            <ArrowUpRight className="w-3 h-3" />
+                          </Link>
+                        </motion.div>
+                      </td>
+                    </motion.tr>
+                  );
+                })}
+              </AnimatePresence>
             </tbody>
           </table>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
