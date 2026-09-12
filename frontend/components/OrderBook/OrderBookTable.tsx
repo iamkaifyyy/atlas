@@ -132,8 +132,8 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
   };
 
   return (
-    <div className="cohere-card-console p-4 flex flex-col h-full font-mono">
-      {/* Header & Source Toggles */}
+    <div className="flex flex-col h-full font-mono">
+      {/* Header and source controls */}
       <div className="flex flex-wrap items-center justify-between pb-3 border-b border-console-border gap-2">
         <div className="flex items-center gap-2">
           <Layers className="w-3.5 h-3.5 text-coral" />

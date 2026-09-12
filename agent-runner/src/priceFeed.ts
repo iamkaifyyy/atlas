@@ -104,7 +104,7 @@ export class PriceFeedService extends EventEmitter {
     this.isRunning = false;
   }
 
-  private emitPrice(source: 'orderbook' | 'manual'): void {
+  private emitPrice(source: 'orderbook' | 'manual' | 'backpack'): void {
     const tick: PriceTick = {
       asset: this.matchingEngine.symbol,
       price: this.currentPrice,

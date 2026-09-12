@@ -29,8 +29,8 @@ export default function HomePage() {
 
   return (
     <div className="py-8 space-y-20 max-w-6xl mx-auto">
-      {/* 1. MONUMENTAL HERO DISPLAY (Cohere Editorial Style) */}
-      <div className="text-center space-y-6 pt-10 pb-6">
+      {/* Hero section */}
+      <section className="text-center space-y-6 pt-10 pb-6">
         <div className="inline-flex items-center gap-2">
           <span className="cohere-chip-coral">
             QUANTITATIVE AI PROTOCOL 2026
@@ -49,7 +49,7 @@ export default function HomePage() {
           Direct Level 2 orderbook feeds from Backpack Exchange, sub-millisecond execution, and non-custodial EVM escrow limits that no algorithm can bypass.
         </p>
 
-        {/* Action CTAs: Cohere Primary Pill + Secondary Underline Link */}
+        {/* Primary and secondary actions */}
         <div className="flex flex-wrap items-center justify-center gap-5 pt-4">
           <Link
             href="/terminal"
@@ -76,9 +76,9 @@ export default function HomePage() {
             <ArrowUpRight className="w-3.5 h-3.5" />
           </Link>
         </div>
-      </div>
+      </section>
 
-      {/* 2. TRUST-LOGO STRIP (Cohere Monochrome Trust Strip) */}
+      {/* Protocol infrastructure strip */}
       <div className="text-center space-y-4 py-4 border-y border-console-border">
         <div className="font-mono text-xs uppercase tracking-[0.28px] text-muted">
           INTEGRATED PROTOCOL STANDARDS & INFRASTRUCTURE
@@ -95,7 +95,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* 3. LIVE MARKET METRICS STRIP (Cohere Dark Console Cards) */}
+      {/* Live market metrics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 font-mono">
         <div className="cohere-card-console p-5 space-y-1.5">
           <div className="text-[11px] text-muted flex items-center justify-between">
@@ -145,9 +145,9 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* 4. DUAL ENTERPRISE FEATURE BANDS (Cohere Deep Green #003c33 & Dark Navy #071829) */}
+      {/* Feature focus bands */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Band 1: Deep Enterprise Green (#003c33) */}
+        {/* Liquidity feed band */}
         <div className="cohere-band-green p-8 sm:p-10 flex flex-col justify-between space-y-8">
           <div className="space-y-4">
             <div className="inline-flex items-center gap-2">
@@ -175,7 +175,7 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Band 2: Dark Navy (#071829) */}
+        {/* Security vault band */}
         <div className="cohere-band-navy p-8 sm:p-10 flex flex-col justify-between space-y-8">
           <div className="space-y-4">
             <div className="inline-flex items-center gap-2">
@@ -204,7 +204,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* 5. FAST ONBOARDING WALLET CARD (Cohere Soft Stone or Console) */}
+      {/* Account onboarding card */}
       <div className="max-w-2xl mx-auto cohere-card-console p-8 space-y-6">
         <div className="flex items-center justify-between pb-4 border-b border-console-border">
           <div className="flex items-center gap-3">
@@ -275,7 +275,7 @@ export default function HomePage() {
         )}
       </div>
 
-      {/* 6. COHERE PUBLICATION-STYLE RESEARCH LIST (Execution Lifecycle) */}
+      {/* Execution pipeline */}
       <div className="cohere-card-console p-8 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-console-border">
           <div>

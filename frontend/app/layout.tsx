@@ -27,7 +27,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className="bg-console-bg min-h-screen text-white flex flex-col font-sans selection:bg-coral/20 selection:text-coral">
-        {/* Cohere Announcement Bar: 36px tall, black #000000 with microcopy (DESIGN.md) */}
+        {/* Top live ticker bar */}
         <div className="cohere-announcement-bar">
           <div className="max-w-[1600px] w-full mx-auto flex items-center justify-between gap-4 font-mono text-[11px]">
             <div className="flex items-center gap-3 overflow-x-auto scrollbar-none py-1">
@@ -53,7 +53,7 @@ export default function RootLayout({
           </div>
         </div>
 
-        {/* Primary Command Header */}
+        {/* Command header */}
         <header className="border-b border-console-border bg-console-surface/90 backdrop-blur-md sticky top-0 z-40">
           <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             {/* Brand Logo */}

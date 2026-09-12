@@ -29,10 +29,7 @@ import { ApprovalModal } from './ApprovalModal';
 import { KillSwitchButton } from './KillSwitchButton';
 import type { TradeEventPayload } from '../../shared/types/agentConfig';
 
-/* -------------------------------------------------------------------------- */
-/* Dynamic Chart Loaders                                                      */
-/* -------------------------------------------------------------------------- */
-
+// Dynamic chart loaders with custom fallbacks
 const createChartLoader = (label: string, minHeight = 480) => {
   return function ChartLoadingFallback() {
     return (
@@ -66,10 +63,6 @@ const TradingViewStyleUI = dynamic(
   () => import('./Chart/TradingViewStyleUI'),
   { ssr: false, loading: createChartLoader('Initializing candlestick studio...', 520) }
 );
-
-/* -------------------------------------------------------------------------- */
-/* Constants & Helpers                                                        */
-/* -------------------------------------------------------------------------- */
 
 type ChartTab = 'STUDIO' | 'BACKPACK' | 'TRADINGVIEW' | 'AGENT_VAULT';
 type EventFilter = 'ALL' | 'EXECUTED' | 'APPROVAL' | 'REJECTED';
@@ -114,10 +107,6 @@ const getStatusBadgeClass = (status: TradeEventPayload['status']) => {
       return 'bg-rose-500/15 text-rose-400 border-rose-500/30';
   }
 };
-
-/* -------------------------------------------------------------------------- */
-/* Main Component                                                             */
-/* -------------------------------------------------------------------------- */
 
 export const TradingTerminal: React.FC = () => {
   const {
