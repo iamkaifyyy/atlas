@@ -46,36 +46,13 @@ const createChartLoader = (label: string, minHeight = 480) => {
   };
 };
 
-const PriceChart = dynamic(
-  () => import('./Chart/PriceChart').then((mod) => mod.PriceChart),
-  { ssr: false, loading: createChartLoader('Connecting price feed...', 480) }
-);
-
 const TradingViewChart = dynamic(
   () => import('./Chart/TradingViewChart').then((mod) => mod.TradingViewChart),
-  { ssr: false, loading: createChartLoader('Loading TradingView widget...', 480) }
+  { ssr: false, loading: createChartLoader('Loading TradingView widget...', 580) }
 );
 
-const BackpackChart = dynamic(
-  () => import('./Chart/BackpackChart').then((mod) => mod.BackpackChart),
-  { ssr: false, loading: createChartLoader('Streaming Backpack order flow...', 480) }
-);
-
-const TradingViewStyleUI = dynamic(
-  () => import('./Chart/TradingViewStyleUI'),
-  { ssr: false, loading: createChartLoader('Initializing candlestick studio...', 480) }
-);
-
-type ChartTab = 'TRADINGVIEW' | 'STUDIO' | 'BACKPACK' | 'AGENT_VAULT';
 type BottomConsoleTab = 'LEDGER' | 'SIMULATION' | 'GUARDRAILS';
 type EventFilter = 'ALL' | 'EXECUTED' | 'APPROVAL' | 'REJECTED';
-
-const CHART_TABS: { id: ChartTab; label: string }[] = [
-  { id: 'TRADINGVIEW', label: 'TradingView Stock Widget' },
-  { id: 'STUDIO', label: 'Studio Pro (Backpack)' },
-  { id: 'BACKPACK', label: 'Backpack Feed' },
-  { id: 'AGENT_VAULT', label: 'Agent Vault Flow' }
-];
 
 const FILTER_TABS: { id: EventFilter; label: string; activeColor: string }[] = [
   { id: 'ALL', label: 'All', activeColor: 'bg-white text-console-surface font-semibold' },
@@ -132,7 +109,6 @@ export const TradingTerminal: React.FC = () => {
   const [activeFilter, setActiveFilter] = useState<EventFilter>('ALL');
   const [bottomTab, setBottomTab] = useState<BottomConsoleTab>('LEDGER');
   const [copiedVault, setCopiedVault] = useState(false);
-  const [chartType, setChartType] = useState<ChartTab>('TRADINGVIEW');
   const [tvSymbol, setTvSymbol] = useState('NASDAQ:AAPL');
 
   // Dynamically map selected chart symbol to Backpack pair
@@ -309,61 +285,18 @@ export const TradingTerminal: React.FC = () => {
 
       {/* 2. Main Workspace: Side-by-Side Seamless Grid */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-3 items-stretch">
-        {/* Left: Interactive Pro Chart Panel */}
+        {/* Left: Live Terminal Chart Panel */}
         <div className="xl:col-span-8 flex flex-col">
-          <div className="cohere-card-console !p-0 overflow-hidden flex flex-col flex-1 border border-console-border rounded-xl">
-            {/* Chart Engine Switcher Toolbar */}
-            <div className="flex flex-wrap items-center justify-between px-3.5 py-2 bg-zinc-950/90 border-b border-console-border text-xs font-mono gap-2">
-              <div className="flex items-center gap-1 bg-console-elevated p-0.5 rounded-lg border border-console-border">
-                {CHART_TABS.map((tab) => {
-                  const isActive = chartType === tab.id;
-                  return (
-                    <button
-                      key={tab.id}
-                      type="button"
-                      onClick={() => setChartType(tab.id)}
-                      className={`px-2.5 py-1 rounded text-xs transition ${
-                        isActive
-                          ? 'bg-white text-console-surface font-bold shadow-sm'
-                          : 'text-muted hover:text-white'
-                      }`}
-                    >
-                      {tab.label}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Active Symbol Display */}
-              <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-zinc-400">
-                <span>Active:</span>
-                <span className="text-white font-medium px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800">
-                  {tvSymbol}
-                </span>
-              </div>
-            </div>
-
-            {/* Chart Viewport */}
-            <div className="relative flex-1 w-full min-h-[560px] h-[560px] bg-[#09090b]">
-              {chartType === 'TRADINGVIEW' && (
-                <TradingViewChart
-                  symbol={tvSymbol}
-                  interval="1D"
-                  range="12m"
-                  theme="Dark"
-                  height="100%"
-                  embedded={true}
-                  onSymbolChange={(s) => setTvSymbol(s)}
-                />
-              )}
-              {chartType === 'STUDIO' && <TradingViewStyleUI initialSymbol="ETH_USDC" />}
-              {chartType === 'BACKPACK' && <BackpackChart initialSymbol="ETH_USDC" height={560} />}
-              {chartType === 'AGENT_VAULT' && (
-                <div className="p-4 h-full">
-                  <PriceChart currentPrice={currentPrice} events={events} />
-                </div>
-              )}
-            </div>
+          <div className="cohere-card-console !p-0 overflow-hidden flex flex-col flex-1 border border-console-border rounded-xl min-h-[580px] h-[580px] bg-[#09090b]">
+            <TradingViewChart
+              symbol={tvSymbol}
+              interval="1D"
+              range="12m"
+              theme="Dark"
+              height="100%"
+              embedded={true}
+              onSymbolChange={(s) => setTvSymbol(s)}
+            />
           </div>
         </div>
 
