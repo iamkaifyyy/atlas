@@ -5,78 +5,147 @@
 @layer base {
   :root {
     --font-mono: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, Monaco, monospace;
-    --font-sans: -apple-system, BlinkMacSystemFont, 'Inter', 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Inter Variable', 'Inter', 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
   }
 
   body {
-    @apply bg-background text-zinc-100 antialiased selection:bg-zinc-700 selection:text-white min-h-screen;
+    @apply bg-canvas text-ink antialiased selection:bg-surface-2 selection:text-white min-h-screen;
     font-family: var(--font-sans);
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-    background-color: #09090b;
-    background-image: 
-      radial-gradient(at 0% 0%, rgba(255, 255, 255, 0.02) 0px, transparent 50%),
-      radial-gradient(at 100% 100%, rgba(18, 18, 21, 0.5) 0px, transparent 50%);
+    font-feature-settings: "cv01", "cv05", "cv09", "cv11", "ss03", "ss07", "dlig";
+    background-color: #090909;
+    color: #ffffff;
     background-attachment: fixed;
   }
 }
 
-/* Custom scrollbar for pro dark trading terminal feel */
+/* Custom scrollbar matching Framer dark canvas */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 4px;
+  height: 4px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #09090b;
+  background: #090909;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #27272a;
-  border-radius: 4px;
+  background: #262626;
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #3f3f46;
+  background: #333333;
 }
 
-/* Premium Pro Visual Utilities - Sleek Neutral Dark */
+/* Framer Design System Components (from DESIGN.md) */
+.framer-btn-primary {
+  background-color: #ffffff;
+  color: #000000;
+  border-radius: 100px;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.14px;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.framer-btn-primary:hover {
+  transform: scale(1.02);
+  background-color: #f5f5f5;
+}
+
+.framer-btn-primary:active {
+  transform: scale(0.98);
+}
+
+.framer-btn-secondary {
+  background-color: #141414;
+  color: #ffffff;
+  border: 1px solid #262626;
+  border-radius: 100px;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.14px;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.framer-btn-secondary:hover {
+  background-color: #1c1c1c;
+  border-color: #333333;
+}
+
+.framer-btn-translucent {
+  background-color: rgba(28, 28, 28, 0.8);
+  color: #ffffff;
+  border: 1px solid rgba(38, 38, 38, 0.8);
+  border-radius: 100px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.15s ease;
+  backdrop-filter: blur(8px);
+}
+
+.framer-btn-translucent:hover {
+  background-color: #262626;
+}
+
+/* Framer Cards */
+.framer-card {
+  background-color: #141414;
+  border: 1px solid #262626;
+  border-radius: 20px;
+}
+
+.framer-card-featured {
+  background-color: #1c1c1c;
+  border: 1px solid #333333;
+  border-radius: 20px;
+}
+
+/* Framer Gradient Spotlight Atmosphere Cards */
+.framer-spotlight-violet {
+  background: radial-gradient(circle at 100% 0%, rgba(106, 76, 245, 0.45) 0%, rgba(20, 20, 20, 0.95) 75%), #141414;
+  border: 1px solid rgba(106, 76, 245, 0.35);
+  border-radius: 30px;
+}
+
+.framer-spotlight-magenta {
+  background: radial-gradient(circle at 100% 0%, rgba(212, 77, 240, 0.45) 0%, rgba(20, 20, 20, 0.95) 75%), #141414;
+  border: 1px solid rgba(212, 77, 240, 0.35);
+  border-radius: 30px;
+}
+
+.framer-spotlight-orange {
+  background: radial-gradient(circle at 100% 0%, rgba(255, 122, 61, 0.45) 0%, rgba(20, 20, 20, 0.95) 75%), #141414;
+  border: 1px solid rgba(255, 122, 61, 0.35);
+  border-radius: 30px;
+}
+
+/* Backward compatibility utilities */
 .glass-panel {
-  background: rgba(18, 18, 21, 0.85);
+  background: rgba(20, 20, 20, 0.92);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(39, 39, 42, 0.8);
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.7);
+  border: 1px solid #262626;
+  border-radius: 20px;
 }
 
 .glass-panel-elevated {
-  background: rgba(26, 26, 31, 0.85);
+  background: rgba(28, 28, 28, 0.92);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(63, 63, 70, 0.5);
-}
-
-.glow-emerald {
-  box-shadow: 0 0 20px -3px rgba(16, 185, 129, 0.25);
-}
-
-.glow-rose {
-  box-shadow: 0 0 20px -3px rgba(244, 63, 94, 0.25);
-}
-
-.glow-amber {
-  box-shadow: 0 0 20px -3px rgba(245, 158, 11, 0.25);
-}
-
-.glow-white {
-  box-shadow: 0 0 20px -3px rgba(255, 255, 255, 0.1);
-}
-
-/* Depth Bar Shimmers */
-@keyframes depthPulse {
-  0%, 100% { opacity: 0.85; }
-  50% { opacity: 1; }
-}
-
-.depth-bar-pulse {
-  animation: depthPulse 2s ease-in-out infinite;
+  border: 1px solid #333333;
+  border-radius: 20px;
 }

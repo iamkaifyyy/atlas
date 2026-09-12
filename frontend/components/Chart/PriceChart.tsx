@@ -25,31 +25,31 @@ export const PriceChart: React.FC<PriceChartProps> = ({ currentPrice, events }) 
 
     const chart = createChart(chartContainerRef.current, {
       layout: {
-        background: { type: ColorType.Solid, color: '#09090b' },
-        textColor: '#a1a1aa',
+        background: { type: ColorType.Solid, color: '#090909' },
+        textColor: '#999999',
         fontSize: 11,
         fontFamily: 'monospace'
       },
       grid: {
-        vertLines: { color: 'rgba(39, 39, 42, 0.4)' },
-        horzLines: { color: 'rgba(39, 39, 42, 0.4)' }
+        vertLines: { color: 'rgba(38, 38, 38, 0.4)' },
+        horzLines: { color: 'rgba(38, 38, 38, 0.4)' }
       },
       width: chartContainerRef.current.clientWidth,
       height: 330,
       timeScale: {
         timeVisible: true,
         secondsVisible: true,
-        borderColor: '#27272a'
+        borderColor: '#262626'
       },
       rightPriceScale: {
-        borderColor: '#27272a'
+        borderColor: '#262626'
       }
     });
 
     const areaSeries = chart.addAreaSeries({
-      topColor: 'rgba(16, 185, 129, 0.25)',
-      bottomColor: 'rgba(16, 185, 129, 0.01)',
-      lineColor: '#10b981',
+      topColor: 'rgba(255, 255, 255, 0.2)',
+      bottomColor: 'rgba(255, 255, 255, 0.01)',
+      lineColor: '#ffffff',
       lineWidth: 2
     });
 
@@ -134,11 +134,11 @@ export const PriceChart: React.FC<PriceChartProps> = ({ currentPrice, events }) 
   );
 
   return (
-    <div className="bg-surface rounded-xl border border-border/80 p-5 shadow-sm relative flex flex-col">
+    <div className="framer-card p-5 relative flex flex-col">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-3">
           <div>
-            <span className="text-xs text-slate-400 font-mono">ETH / USDC</span>
+            <span className="text-xs text-ink-muted font-mono uppercase tracking-wider">ETH / USDC</span>
             <div className="flex items-baseline gap-2">
               <span className="text-2xl font-bold font-mono text-white tracking-tight">
                 ${currentPrice ? currentPrice.toFixed(2) : '3,045.00'}
@@ -152,9 +152,9 @@ export const PriceChart: React.FC<PriceChartProps> = ({ currentPrice, events }) 
         )}
       </div>
 
-      <div ref={chartContainerRef} className="w-full h-[330px] rounded-lg overflow-hidden" />
+      <div ref={chartContainerRef} className="w-full h-[330px] rounded-xl overflow-hidden border border-hairline" />
 
-      <div className="flex items-center justify-between text-[11px] text-slate-400 mt-3 pt-2.5 border-t border-border/50">
+      <div className="flex items-center justify-between text-[11px] text-ink-muted mt-3 pt-2.5 border-t border-hairline">
         <div className="flex items-center gap-4">
           <span className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
@@ -169,7 +169,7 @@ export const PriceChart: React.FC<PriceChartProps> = ({ currentPrice, events }) 
             Cap Blocked
           </span>
         </div>
-        <span className="font-mono text-slate-500">Live feed</span>
+        <span className="font-mono text-ink-muted">Live feed</span>
       </div>
     </div>
   );

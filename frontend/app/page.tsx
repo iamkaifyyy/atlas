@@ -3,20 +3,19 @@
 import React from 'react';
 import Link from 'next/link';
 import {
-  ShieldCheck,
-  ArrowRight,
-  Zap,
-  SlidersHorizontal,
   LineChart,
+  SlidersHorizontal,
   Lock,
-  Wallet,
-  Coins,
-  Shield,
-  Layers,
-  Sparkles,
+  ArrowRight,
   TrendingUp,
-  Activity,
-  Code2
+  Wallet,
+  Zap,
+  Sparkles,
+  BarChart3,
+  ShieldCheck,
+  Cpu,
+  Layers,
+  CheckCircle2
 } from 'lucide-react';
 import { useWallet } from '../hooks/useWallet';
 import { useBackpackTicker } from '../hooks/useBackpackTicker';
@@ -26,197 +25,206 @@ export default function HomePage() {
   const backpack = useBackpackTicker('ETH_USDC');
 
   return (
-    <div className="py-6 space-y-12 max-w-6xl mx-auto">
-      {/* Hero Section */}
-      <div className="text-center space-y-5 pt-4">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-zinc-800/80 border border-zinc-700/60 text-zinc-300 text-xs font-mono font-medium">
-          <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-          <span>Autonomous AI Agents • EVM Hard Caps • Backpack DEX</span>
+    <div className="py-6 space-y-16 max-w-6xl mx-auto">
+      {/* HERO POSTER SECTION (Framer Design System: Bold Display + Tight Negative Tracking) */}
+      <div className="text-center space-y-6 pt-8 pb-4">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-pill bg-surface-1 border border-hairline text-ink-muted text-xs font-mono font-medium">
+          <Sparkles className="w-3.5 h-3.5 text-white" />
+          <span>Decentralized Execution • EVM Hard Escrow • Backpack Orderbook</span>
         </div>
 
-        <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
-          Program Autonomous Trading Rules <br className="hidden sm:inline" />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-zinc-100 via-emerald-300 to-zinc-400">
-            With Hard On-Chain Safety Limits
-          </span>
+        <h1 className="text-4xl sm:text-6xl md:text-7xl font-bold tracking-[-0.04em] text-white leading-[0.95] max-w-4xl mx-auto">
+          The Autonomous Crypto Platform <br />
+          <span className="text-ink-muted">With On-Chain Hard Limits.</span>
         </h1>
 
-        <p className="text-sm sm:text-base text-zinc-400 max-w-2xl mx-auto leading-relaxed">
-          Set conditional triggers, enforce programmatic spend ceilings in smart contract escrow, and stream real-time liquidity from Backpack Exchange.
+        <p className="text-base sm:text-lg text-ink-muted max-w-2xl mx-auto leading-relaxed font-normal">
+          Program algorithmic execution rules, stream institutional liquidity from Backpack Exchange, and enforce non-custodial spend ceilings in EVM smart contracts.
         </p>
 
-        {/* Primary CTA Buttons */}
-        <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+        {/* Action CTAs: White Pill + Charcoal Pill */}
+        <div className="flex flex-wrap items-center justify-center gap-3 pt-4">
           <Link
             href="/terminal"
-            className="flex items-center gap-2 py-3 px-6 rounded-xl bg-zinc-100 hover:bg-white text-zinc-950 font-bold text-sm transition shadow-lg shadow-white/5"
+            className="framer-btn-primary"
           >
-            <LineChart className="w-4 h-4 text-zinc-900" />
-            <span>Launch Watch Terminal</span>
-            <ArrowRight className="w-4 h-4 text-zinc-900" />
+            <LineChart className="w-4 h-4" />
+            <span>Launch Trade Terminal</span>
+            <ArrowRight className="w-4 h-4" />
           </Link>
+
           <Link
-            href="/automation"
-            className="flex items-center gap-2 py-3 px-6 rounded-xl bg-surface-elevated hover:bg-zinc-800 text-zinc-200 font-semibold text-sm border border-border transition"
+            href="/markets"
+            className="framer-btn-secondary"
           >
-            <SlidersHorizontal className="w-4 h-4 text-emerald-400" />
-            <span>No-Code Automation</span>
+            <BarChart3 className="w-4 h-4 text-ink-muted" />
+            <span>Explore Markets</span>
           </Link>
+
           <Link
             href="/vault"
-            className="flex items-center gap-2 py-3 px-6 rounded-xl bg-surface-elevated hover:bg-zinc-800 text-zinc-200 font-semibold text-sm border border-border transition"
+            className="framer-btn-secondary"
           >
-            <Lock className="w-4 h-4 text-amber-400" />
+            <Lock className="w-4 h-4 text-ink-muted" />
             <span>Escrow Vault</span>
           </Link>
         </div>
       </div>
 
-      {/* Live Market & Protocol Ticker Banner */}
+      {/* LIVE MARKET STATS TICKER STRIP */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="glass-panel rounded-xl p-4 border border-border/70 space-y-1">
-          <div className="text-[11px] font-mono text-slate-400 flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span>BACKPACK ETH/USDC</span>
+        <div className="framer-card p-4 space-y-1">
+          <div className="text-[11px] font-mono text-ink-muted flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-semantic-success animate-pulse" />
+            <span>BACKPACK ETH / USDC</span>
           </div>
-          <div className="text-xl font-bold font-mono text-white">
-            ${backpack.lastPrice.toFixed(2)}
+          <div className="text-2xl font-bold font-mono text-white tracking-tight">
+            ${backpack.lastPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
-          <div className="text-[11px] font-mono text-emerald-400 flex items-center">
+          <div className="text-[11px] font-mono text-semantic-success flex items-center">
             <TrendingUp className="w-3 h-3 mr-0.5" />
             {backpack.priceChangePercent.toFixed(2)}% (24h)
           </div>
         </div>
 
-        <div className="glass-panel rounded-xl p-4 border border-border/70 space-y-1">
-          <div className="text-[11px] font-mono text-zinc-400">ON-CHAIN ESCROW</div>
-          <div className="text-xl font-bold font-mono text-white">
+        <div className="framer-card p-4 space-y-1">
+          <div className="text-[11px] font-mono text-ink-muted">ESCROW COLLATERAL</div>
+          <div className="text-2xl font-bold font-mono text-white tracking-tight">
             0.20 ETH
           </div>
-          <div className="text-[11px] font-mono text-zinc-400">
-            5.00 ETH Hard Cap Ceil
+          <div className="text-[11px] font-mono text-ink-muted">
+            5.00 ETH Programmatic Cap
           </div>
         </div>
 
-        <div className="glass-panel rounded-xl p-4 border border-border/70 space-y-1">
-          <div className="text-[11px] font-mono text-zinc-400">24H DEX VOLUME</div>
-          <div className="text-xl font-bold font-mono text-white">
+        <div className="framer-card p-4 space-y-1">
+          <div className="text-[11px] font-mono text-ink-muted">24H DEX VOLUME</div>
+          <div className="text-2xl font-bold font-mono text-white tracking-tight">
             ${(backpack.quoteVolume24h / 1000000).toFixed(2)}M
           </div>
-          <div className="text-[11px] font-mono text-zinc-400">
-            {backpack.volume24h.toFixed(1)} ETH Traded
+          <div className="text-[11px] font-mono text-ink-muted">
+            {backpack.volume24h.toFixed(1)} ETH Executed
           </div>
         </div>
 
-        <div className="glass-panel rounded-xl p-4 border border-border/70 space-y-1">
-          <div className="text-[11px] font-mono text-zinc-400">MATCHING ENGINE</div>
-          <div className="text-xl font-bold font-mono text-emerald-400">
+        <div className="framer-card p-4 space-y-1">
+          <div className="text-[11px] font-mono text-ink-muted">MATCHING ENGINE</div>
+          <div className="text-2xl font-bold font-mono text-semantic-success tracking-tight">
             &lt; 1.2 ms
           </div>
-          <div className="text-[11px] font-mono text-zinc-400">
-            In-Memory Price-Time Priority
+          <div className="text-[11px] font-mono text-ink-muted">
+            Price-Time Priority
           </div>
         </div>
       </div>
 
-      {/* Navigation Sections Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
-        {/* Card 1: Watch Terminal */}
-        <Link
-          href="/terminal"
-          className="group glass-panel rounded-2xl p-6 border border-border/80 hover:border-zinc-500/60 transition duration-300 space-y-4 hover:shadow-xl hover:shadow-white/5 flex flex-col justify-between"
-        >
-          <div className="space-y-3">
-            <div className="p-3 w-fit rounded-xl bg-zinc-800 text-zinc-200 border border-zinc-700 group-hover:scale-105 transition">
-              <LineChart className="w-6 h-6" />
-            </div>
-            <h3 className="text-lg font-bold text-white group-hover:text-zinc-200 transition">
-              Watch Terminal
-            </h3>
-            <p className="text-xs text-zinc-400 leading-relaxed">
-              Live trading desk featuring real-time Backpack Exchange candlestick charts, L2 Order Book depth, on-chain execution telemetry, and interactive simulation.
-            </p>
-          </div>
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-300 group-hover:text-white pt-2">
-            <span>Enter Terminal</span>
-            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition" />
-          </div>
-        </Link>
+      {/* SIGNATURE GRADIENT SPOTLIGHT CARDS (from DESIGN.md) */}
+      <div className="space-y-4">
+        <div className="text-xs uppercase tracking-widest text-ink-muted font-mono font-semibold">
+          Platform Architecture & Living Tiles
+        </div>
 
-        {/* Card 2: No-Code Automation */}
-        <Link
-          href="/automation"
-          className="group glass-panel rounded-2xl p-6 border border-border/80 hover:border-emerald-500/60 transition duration-300 space-y-4 hover:shadow-xl hover:shadow-emerald-500/10 flex flex-col justify-between"
-        >
-          <div className="space-y-3">
-            <div className="p-3 w-fit rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 group-hover:scale-105 transition">
-              <SlidersHorizontal className="w-6 h-6" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {/* Tile 1: Violet Spotlight Card */}
+          <div className="framer-spotlight-violet p-7 flex flex-col justify-between space-y-8 group transition duration-300 hover:border-gradient-violet">
+            <div className="space-y-3">
+              <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white border border-white/20">
+                <Cpu className="w-5 h-5" />
+              </div>
+              <h3 className="text-2xl font-bold text-white tracking-tight">
+                Backpack DEX Liquidity
+              </h3>
+              <p className="text-sm text-ink-muted leading-relaxed font-normal">
+                Direct WebSocket & REST pipeline to Backpack Exchange with Level 2 orderbook depth, historical candlestick klines, and sub-second price updates.
+              </p>
             </div>
-            <h3 className="text-lg font-bold text-white group-hover:text-emerald-400 transition">
-              No-Code Automation
-            </h3>
-            <p className="text-xs text-zinc-400 leading-relaxed">
-              Visually assemble autonomous rules with 3 simple primitives: Price Trigger, Spending & Risk Caps, and Human Approval Threshold with live JSON payload preview.
-            </p>
+            <Link
+              href="/terminal"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-white group-hover:translate-x-1 transition"
+            >
+              <span>Explore Trading Desk</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
           </div>
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-400 pt-2">
-            <span>Build Strategy</span>
-            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition" />
-          </div>
-        </Link>
 
-        {/* Card 3: Escrow Vault */}
-        <Link
-          href="/vault"
-          className="group glass-panel rounded-2xl p-6 border border-border/80 hover:border-amber-500/60 transition duration-300 space-y-4 hover:shadow-xl hover:shadow-amber-500/10 flex flex-col justify-between"
-        >
-          <div className="space-y-3">
-            <div className="p-3 w-fit rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 group-hover:scale-105 transition">
-              <Lock className="w-6 h-6" />
+          {/* Tile 2: Magenta Spotlight Card */}
+          <div className="framer-spotlight-magenta p-7 flex flex-col justify-between space-y-8 group transition duration-300 hover:border-gradient-magenta">
+            <div className="space-y-3">
+              <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white border border-white/20">
+                <ShieldCheck className="w-5 h-5" />
+              </div>
+              <h3 className="text-2xl font-bold text-white tracking-tight">
+                On-Chain Risk Caps
+              </h3>
+              <p className="text-sm text-ink-muted leading-relaxed font-normal">
+                Smart contract escrow limits enforcing single-trade caps, lifetime spending limits, and emergency 1-click refund kill switches on EVM.
+              </p>
             </div>
-            <h3 className="text-lg font-bold text-white group-hover:text-amber-400 transition">
-              Escrow Vault & Kill Switch
-            </h3>
-            <p className="text-xs text-zinc-400 leading-relaxed">
-              Smart contract escrow running on EVM. Audit hard spending limits, verify on-chain balances, and access the emergency kill-switch to refund collateral.
-            </p>
+            <Link
+              href="/vault"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-white group-hover:translate-x-1 transition"
+            >
+              <span>Inspect Escrow Vault</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
           </div>
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-amber-400 pt-2">
-            <span>Inspect Vault</span>
-            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition" />
+
+          {/* Tile 3: Orange Spotlight Card */}
+          <div className="framer-spotlight-orange p-7 flex flex-col justify-between space-y-8 group transition duration-300 hover:border-gradient-orange">
+            <div className="space-y-3">
+              <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white border border-white/20">
+                <Layers className="w-5 h-5" />
+              </div>
+              <h3 className="text-2xl font-bold text-white tracking-tight">
+                Autonomous Algo Studio
+              </h3>
+              <p className="text-sm text-ink-muted leading-relaxed font-normal">
+                Assemble automated trading triggers with 3 visual primitives: Price Triggers, Spend Ceilings, and Human-in-the-loop Approval Thresholds.
+              </p>
+            </div>
+            <Link
+              href="/automation"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-white group-hover:translate-x-1 transition"
+            >
+              <span>Configure Algo Bots</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
           </div>
-        </Link>
+        </div>
       </div>
 
-      {/* Wallet Connection Card */}
-      <div className="max-w-md mx-auto glass-panel rounded-xl p-5 border border-border/80 space-y-4 shadow-lg">
-        <div className="flex items-center justify-between pb-3 border-b border-border/60">
-          <div className="flex items-center gap-2">
-            <Wallet className="w-4 h-4 text-zinc-300" />
-            <h3 className="text-sm font-semibold text-white">Wallet Connection</h3>
+      {/* FAST ONBOARDING WALLET CARD */}
+      <div className="max-w-xl mx-auto framer-card p-6 space-y-5 border border-hairline">
+        <div className="flex items-center justify-between pb-3 border-b border-hairline">
+          <div className="flex items-center gap-2.5">
+            <Wallet className="w-5 h-5 text-white" />
+            <div>
+              <h3 className="text-sm font-bold text-white">Instant Account & Collateral</h3>
+              <p className="text-xs text-ink-muted">Connect your web3 wallet or launch with pre-funded demo assets</p>
+            </div>
           </div>
           {isConnected && (
-            <span className="flex items-center gap-1.5 text-xs text-emerald-400 font-mono">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-              Connected
+            <span className="flex items-center gap-1.5 text-xs text-semantic-success font-mono font-medium">
+              <span className="w-1.5 h-1.5 rounded-full bg-semantic-success animate-pulse" />
+              Ready
             </span>
           )}
         </div>
 
         {isConnected ? (
-          <div className="space-y-3">
-            <div className="bg-surface-elevated/70 rounded-lg p-3 border border-border/60 space-y-1 font-mono text-xs">
-              <div className="text-[11px] text-zinc-400">Account</div>
-              <div className="text-white truncate">{address}</div>
-              <div className="text-[11px] text-zinc-400 pt-1">
-                Balance: <span className="text-emerald-400 font-medium">{balance} ETH</span>
+          <div className="space-y-3 font-mono text-xs">
+            <div className="bg-surface-2 rounded-lg p-3 border border-hairline space-y-1">
+              <div className="text-[11px] text-ink-muted">Account Address</div>
+              <div className="text-white truncate font-medium">{address}</div>
+              <div className="text-[11px] text-ink-muted pt-1">
+                Collateral Balance: <strong className="text-semantic-success">{balance} ETH</strong>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 pt-1">
+            <div className="grid grid-cols-2 gap-2.5 pt-1">
               <Link
                 href="/terminal"
-                className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-zinc-100 hover:bg-white text-zinc-950 font-bold text-xs transition"
+                className="framer-btn-primary !w-full justify-center text-xs"
               >
                 Go to Terminal
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -224,7 +232,7 @@ export default function HomePage() {
               <button
                 type="button"
                 onClick={disconnect}
-                className="py-2 px-3 rounded-lg bg-surface-elevated hover:bg-zinc-800 text-zinc-300 text-xs border border-border transition"
+                className="framer-btn-secondary !w-full justify-center text-xs"
               >
                 Disconnect
               </button>
@@ -234,62 +242,67 @@ export default function HomePage() {
           <div className="space-y-2.5">
             <button
               type="button"
-              onClick={connect}
-              disabled={isConnecting}
-              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-zinc-100 hover:bg-white text-zinc-950 font-semibold text-xs transition disabled:opacity-50"
+              onClick={connectDemoWallet}
+              className="w-full framer-btn-primary justify-center text-xs"
             >
-              <Wallet className="w-4 h-4" />
-              {isConnecting ? 'Connecting...' : 'Connect Metamask Wallet'}
+              <Zap className="w-4 h-4 text-black" />
+              <span>Launch with Pre-Funded Demo Account (100 ETH)</span>
             </button>
 
             <button
               type="button"
-              onClick={connectDemoWallet}
-              className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-lg bg-surface-elevated hover:bg-zinc-800 text-zinc-300 text-xs border border-border transition"
+              onClick={connect}
+              disabled={isConnecting}
+              className="w-full framer-btn-secondary justify-center text-xs disabled:opacity-50"
             >
-              <Zap className="w-3.5 h-3.5 text-amber-400" />
-              Use Pre-Funded Demo Account (100 ETH)
+              <Wallet className="w-4 h-4" />
+              <span>{isConnecting ? 'Connecting...' : 'Connect MetaMask / Browser Wallet'}</span>
             </button>
           </div>
         )}
       </div>
 
-      {/* Protocol Architecture Workflow */}
-      <div className="glass-panel rounded-2xl p-6 border border-border/70 space-y-4">
-        <h3 className="text-sm font-semibold text-white uppercase tracking-wider text-center">
-          Guarded Execution Lifecycle
-        </h3>
+      {/* EXECUTION LIFECYCLE GRID */}
+      <div className="framer-card p-7 space-y-6">
+        <div className="text-center space-y-1">
+          <h3 className="text-base font-bold text-white uppercase tracking-wider">
+            Guarded Execution Lifecycle
+          </h3>
+          <p className="text-xs text-ink-muted">
+            How Atlas processes signals from Backpack DEX through EVM escrow into the matching engine
+          </p>
+        </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs font-mono">
-          <div className="bg-surface-elevated/70 p-4 rounded-xl border border-border/50 space-y-1.5 text-center">
-            <div className="text-zinc-300 font-bold">01. TRIGGER</div>
-            <div className="text-zinc-300 text-[11px]">Backpack DEX Feed</div>
-            <p className="text-[10px] text-zinc-500">
-              Evaluates ETH/USDC price condition (e.g. &lt; $3,050).
+          <div className="bg-surface-2 p-4 rounded-lg border border-hairline space-y-1.5">
+            <div className="text-white font-bold">01. TRIGGER</div>
+            <div className="text-ink text-[11px]">Backpack DEX Feed</div>
+            <p className="text-[10px] text-ink-muted">
+              Evaluates live ETH/USDC price conditions against bot strategy rules.
             </p>
           </div>
 
-          <div className="bg-surface-elevated/70 p-4 rounded-xl border border-border/50 space-y-1.5 text-center">
-            <div className="text-emerald-400 font-bold">02. CAP CHECK</div>
-            <div className="text-zinc-300 text-[11px]">Smart Contract Escrow</div>
-            <p className="text-[10px] text-zinc-500">
-              Verifies order does not exceed single (1.5 ETH) or total spend limits.
+          <div className="bg-surface-2 p-4 rounded-lg border border-hairline space-y-1.5">
+            <div className="text-semantic-success font-bold">02. CAP CHECK</div>
+            <div className="text-ink text-[11px]">Smart Contract Escrow</div>
+            <p className="text-[10px] text-ink-muted">
+              Verifies order does not breach per-trade ceiling or total spend limit.
             </p>
           </div>
 
-          <div className="bg-surface-elevated/70 p-4 rounded-xl border border-border/50 space-y-1.5 text-center">
-            <div className="text-amber-400 font-bold">03. APPROVAL</div>
-            <div className="text-zinc-300 text-[11px]">Human-in-the-Loop</div>
-            <p className="text-[10px] text-zinc-500">
-              High-value trades (&gt; 0.5 ETH) pause for wallet confirmation.
+          <div className="bg-surface-2 p-4 rounded-lg border border-hairline space-y-1.5">
+            <div className="text-accent-amber font-bold">03. APPROVAL</div>
+            <div className="text-ink text-[11px]">Human Confirmation</div>
+            <p className="text-[10px] text-ink-muted">
+              High-value trades (&gt; 0.5 ETH) pause for cryptographic signature.
             </p>
           </div>
 
-          <div className="bg-surface-elevated/70 p-4 rounded-xl border border-border/50 space-y-1.5 text-center">
-            <div className="text-zinc-400 font-bold">04. SETTLEMENT</div>
-            <div className="text-zinc-300 text-[11px]">Matching Engine</div>
-            <p className="text-[10px] text-zinc-500">
-              Atomic fill on orderbook and on-chain event emission.
+          <div className="bg-surface-2 p-4 rounded-lg border border-hairline space-y-1.5">
+            <div className="text-white font-bold">04. SETTLEMENT</div>
+            <div className="text-ink text-[11px]">Matching Engine</div>
+            <p className="text-[10px] text-ink-muted">
+              Atomic fill on orderbook with verified on-chain event emission.
             </p>
           </div>
         </div>
