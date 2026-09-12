@@ -1,7 +1,7 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Terminal, LineChart, SlidersHorizontal, Shield } from 'lucide-react';
+import { Terminal, LineChart, SlidersHorizontal, Shield, Lock, Home } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Atlas | Guarded Trading Agent',
@@ -29,26 +29,40 @@ export default function RootLayout({
                     Atlas
                   </span>
                   <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 font-mono border border-blue-500/20">
-                    V1 TERMINAL
+                    PROTOCOL
                   </span>
                 </div>
               </Link>
 
-              {/* Navigation */}
-              <nav className="flex items-center gap-1.5 pl-2 border-l border-border/60">
+              {/* Navigation Tabs */}
+              <nav className="hidden md:flex items-center gap-1 pl-2 border-l border-border/60">
                 <Link
                   href="/"
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-200 hover:text-white hover:bg-surface-elevated transition"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-surface-elevated transition"
                 >
-                  <LineChart className="w-3.5 h-3.5 text-blue-400" />
-                  <span>Terminal</span>
+                  <Home className="w-3.5 h-3.5 text-slate-400" />
+                  <span>Overview</span>
                 </Link>
                 <Link
-                  href="/builder"
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-surface-elevated transition"
+                  href="/terminal"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-surface-elevated transition"
+                >
+                  <LineChart className="w-3.5 h-3.5 text-blue-400" />
+                  <span>Watch Terminal</span>
+                </Link>
+                <Link
+                  href="/automation"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-surface-elevated transition"
                 >
                   <SlidersHorizontal className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Strategy Builder</span>
+                  <span>No-Code Automation</span>
+                </Link>
+                <Link
+                  href="/vault"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-surface-elevated transition"
+                >
+                  <Lock className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Escrow Vault</span>
                 </Link>
               </nav>
             </div>

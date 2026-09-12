@@ -56,9 +56,9 @@ export const RuleBuilder: React.FC<RuleBuilderProps> = ({ initialConfig, current
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(config)
       });
-      router.push('/dashboard');
+      router.push('/terminal');
     } catch {
-      router.push('/dashboard');
+      router.push('/terminal');
     } finally {
       setIsSubmitting(false);
     }

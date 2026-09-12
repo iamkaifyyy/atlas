@@ -215,7 +215,7 @@ export const TradingTerminal: React.FC = () => {
         {/* Right Action Controls */}
         <div className="flex items-center gap-2.5">
           <Link
-            href="/builder"
+            href="/automation"
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-elevated hover:bg-slate-800 text-slate-300 text-xs font-medium border border-border/70 transition"
           >
             <SlidersHorizontal className="w-3.5 h-3.5 text-blue-400" />
