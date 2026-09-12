@@ -52,20 +52,20 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
 
         <div className="bg-surface-elevated rounded-lg p-3 border border-border/70 space-y-2 text-xs">
           <div className="flex justify-between">
-            <span className="text-slate-400">Pair</span>
-            <span className="font-mono text-slate-200">ETH/USDC</span>
+            <span className="text-zinc-400">Pair</span>
+            <span className="font-mono text-zinc-200">ETH/USDC</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-slate-400">Amount</span>
+            <span className="text-zinc-400">Amount</span>
             <span className="font-mono font-medium text-white">{currentTrade.amount} ETH</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-slate-400">Trigger Price</span>
-            <span className="font-mono text-slate-200">${currentTrade.price.toFixed(2)}</span>
+            <span className="text-zinc-400">Trigger Price</span>
+            <span className="font-mono text-zinc-200">${currentTrade.price.toFixed(2)}</span>
           </div>
           <div className="flex justify-between border-t border-border/50 pt-1.5">
-            <span className="text-slate-400">Total</span>
-            <span className="font-mono font-semibold text-blue-400">
+            <span className="text-zinc-400">Total</span>
+            <span className="font-mono font-semibold text-emerald-400">
               ${(currentTrade.amount * currentTrade.price).toFixed(2)} USDC
             </span>
           </div>

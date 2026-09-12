@@ -35,8 +35,8 @@ const PriceChart = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="bg-surface rounded-xl border border-border/80 h-[370px] flex flex-col items-center justify-center gap-2 text-xs text-slate-500 font-mono">
-        <Activity className="w-5 h-5 text-blue-500 animate-spin" />
+      <div className="bg-surface rounded-xl border border-border/80 h-[370px] flex flex-col items-center justify-center gap-2 text-xs text-zinc-500 font-mono">
+        <Activity className="w-5 h-5 text-emerald-400 animate-spin" />
         <span>Initializing High-Frequency Price Feed...</span>
       </div>
     )
@@ -48,8 +48,8 @@ const TradingViewChart = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="bg-surface rounded-xl border border-border/80 h-[460px] flex flex-col items-center justify-center gap-2 text-xs text-slate-500 font-mono">
-        <Activity className="w-5 h-5 text-blue-500 animate-spin" />
+      <div className="bg-surface rounded-xl border border-border/80 h-[460px] flex flex-col items-center justify-center gap-2 text-xs text-zinc-500 font-mono">
+        <Activity className="w-5 h-5 text-emerald-400 animate-spin" />
         <span>Loading TradingView Pro Chart...</span>
       </div>
     )
@@ -61,8 +61,8 @@ const BackpackChart = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="bg-surface rounded-xl border border-border/80 h-[480px] flex flex-col items-center justify-center gap-2 text-xs text-slate-500 font-mono">
-        <Activity className="w-5 h-5 text-blue-500 animate-spin" />
+      <div className="bg-surface rounded-xl border border-border/80 h-[480px] flex flex-col items-center justify-center gap-2 text-xs text-zinc-500 font-mono">
+        <Activity className="w-5 h-5 text-emerald-400 animate-spin" />
         <span>Loading Backpack Exchange Candlestick Feed...</span>
       </div>
     )
@@ -132,7 +132,7 @@ export const TradingTerminal: React.FC = () => {
         <div className="flex items-center gap-4 flex-wrap">
           {/* Pair Badge */}
           <div className="flex items-center gap-2.5 pr-4 border-r border-border/60">
-            <div className="w-8 h-8 rounded-lg bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400 font-bold text-xs">
+            <div className="w-8 h-8 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-200 font-bold text-xs">
               ETH
             </div>
             <div>
@@ -196,15 +196,15 @@ export const TradingTerminal: React.FC = () => {
 
           {/* Vault Contract Address */}
           <div className="hidden xl:flex items-center gap-2 bg-surface-elevated/80 px-2.5 py-1.5 rounded-lg border border-border/50 text-xs font-mono">
-            <Shield className="w-3.5 h-3.5 text-blue-400" />
-            <span className="text-slate-400 text-[11px]">Vault:</span>
-            <span className="text-slate-200 text-[11px]">
+            <Shield className="w-3.5 h-3.5 text-zinc-400" />
+            <span className="text-zinc-400 text-[11px]">Vault:</span>
+            <span className="text-zinc-200 text-[11px]">
               {vaultAddress.slice(0, 6)}...{vaultAddress.slice(-4)}
             </span>
             <button
               type="button"
               onClick={() => copyToClipboard(vaultAddress)}
-              className="text-slate-400 hover:text-white transition ml-1"
+              className="text-zinc-400 hover:text-white transition ml-1"
               title="Copy Vault Address"
             >
               {copiedVault ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
@@ -216,9 +216,9 @@ export const TradingTerminal: React.FC = () => {
         <div className="flex items-center gap-2.5">
           <Link
             href="/automation"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-elevated hover:bg-slate-800 text-slate-300 text-xs font-medium border border-border/70 transition"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-elevated hover:bg-zinc-800 text-zinc-300 text-xs font-medium border border-border/70 transition"
           >
-            <SlidersHorizontal className="w-3.5 h-3.5 text-blue-400" />
+            <SlidersHorizontal className="w-3.5 h-3.5 text-zinc-300" />
             <span>Configure Strategy</span>
           </Link>
           <KillSwitchButton onTrigger={handleKill} isKilled={isKilled} />
@@ -229,9 +229,9 @@ export const TradingTerminal: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
         {/* Card 1: Agent Rule */}
         <div className="glass-panel rounded-xl p-3.5 space-y-1.5 border border-border/60">
-          <div className="flex items-center justify-between text-xs text-slate-400">
-            <span className="flex items-center gap-1.5 text-blue-400 font-medium">
-              <Radio className="w-3.5 h-3.5" />
+          <div className="flex items-center justify-between text-xs text-zinc-400">
+            <span className="flex items-center gap-1.5 text-zinc-200 font-medium">
+              <Radio className="w-3.5 h-3.5 text-emerald-400" />
               Active Strategy
             </span>
             <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
@@ -241,15 +241,15 @@ export const TradingTerminal: React.FC = () => {
           <div className="font-semibold text-white text-sm">
             {agentConfig?.name || 'ETH Momentum Guard'}
           </div>
-          <div className="text-xs text-slate-400 font-mono">
+          <div className="text-xs text-zinc-400 font-mono">
             Trigger: {agentConfig?.trigger?.type === 'PRICE_BELOW' ? '<' : '>'} ${agentConfig?.trigger?.targetPrice || 3050} USDC
           </div>
         </div>
 
         {/* Card 2: Cumulative Spend Cap */}
         <div className="glass-panel rounded-xl p-3.5 space-y-2 border border-border/60">
-          <div className="flex items-center justify-between text-xs text-slate-400">
-            <span className="text-slate-300 font-medium">Escrow Total Cap</span>
+          <div className="flex items-center justify-between text-xs text-zinc-400">
+            <span className="text-zinc-300 font-medium">Escrow Total Cap</span>
             <span className="font-mono text-emerald-400 text-xs font-semibold">
               {currentTotalSpend.toFixed(2)} / {maxTotalCap.toFixed(1)} ETH
             </span>
@@ -257,7 +257,7 @@ export const TradingTerminal: React.FC = () => {
           <div className="w-full bg-surface-elevated rounded-full h-2 overflow-hidden border border-border/40">
             <div
               className={`h-full transition-all duration-500 rounded-full ${
-                capPercentage > 90 ? 'bg-rose-500 glow-rose' : capPercentage > 75 ? 'bg-amber-500' : 'bg-blue-500'
+                capPercentage > 90 ? 'bg-rose-500 glow-rose' : capPercentage > 75 ? 'bg-amber-500' : 'bg-emerald-500 glow-emerald'
               }`}
               style={{ width: `${capPercentage}%` }}
             />
@@ -286,9 +286,9 @@ export const TradingTerminal: React.FC = () => {
 
         {/* Card 4: Wallet Account & Balance */}
         <div className="glass-panel rounded-xl p-3.5 space-y-1.5 border border-border/60">
-          <div className="flex items-center justify-between text-xs text-slate-400">
-            <span className="flex items-center gap-1.5 text-slate-300 font-medium">
-              <Wallet className="w-3.5 h-3.5 text-blue-400" />
+          <div className="flex items-center justify-between text-xs text-zinc-400">
+            <span className="flex items-center gap-1.5 text-zinc-300 font-medium">
+              <Wallet className="w-3.5 h-3.5 text-zinc-400" />
               Connected Wallet
             </span>
             {wallet.isConnected && (
@@ -300,7 +300,7 @@ export const TradingTerminal: React.FC = () => {
           </div>
           {wallet.isConnected ? (
             <div>
-              <div className="font-mono text-xs text-slate-200 truncate">
+              <div className="font-mono text-xs text-zinc-200 truncate">
                 {wallet.address}
               </div>
               <div className="text-xs text-emerald-400 font-mono font-medium pt-0.5">
@@ -312,7 +312,7 @@ export const TradingTerminal: React.FC = () => {
               <button
                 type="button"
                 onClick={wallet.connectDemoWallet}
-                className="w-full py-1.5 px-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-medium transition"
+                className="w-full py-1.5 px-2 bg-zinc-100 hover:bg-white text-zinc-950 font-bold rounded-lg text-xs transition shadow-sm"
               >
                 Connect Demo Account
               </button>
@@ -334,8 +334,8 @@ export const TradingTerminal: React.FC = () => {
                   onClick={() => setChartType('BACKPACK')}
                   className={`px-3 py-1 rounded-md transition ${
                     chartType === 'BACKPACK'
-                      ? 'bg-blue-600 text-white font-medium shadow-sm'
-                      : 'text-slate-400 hover:text-slate-200'
+                      ? 'bg-zinc-200 text-zinc-950 font-bold shadow-sm'
+                      : 'text-zinc-400 hover:text-zinc-200'
                   }`}
                 >
                   Backpack Live
@@ -345,8 +345,8 @@ export const TradingTerminal: React.FC = () => {
                   onClick={() => setChartType('TRADINGVIEW')}
                   className={`px-3 py-1 rounded-md transition ${
                     chartType === 'TRADINGVIEW'
-                      ? 'bg-blue-600 text-white font-medium shadow-sm'
-                      : 'text-slate-400 hover:text-slate-200'
+                      ? 'bg-zinc-200 text-zinc-950 font-bold shadow-sm'
+                      : 'text-zinc-400 hover:text-zinc-200'
                   }`}
                 >
                   TradingView Pro
@@ -356,8 +356,8 @@ export const TradingTerminal: React.FC = () => {
                   onClick={() => setChartType('AGENT_VAULT')}
                   className={`px-3 py-1 rounded-md transition ${
                     chartType === 'AGENT_VAULT'
-                      ? 'bg-blue-600 text-white font-medium shadow-sm'
-                      : 'text-slate-400 hover:text-slate-200'
+                      ? 'bg-zinc-200 text-zinc-950 font-bold shadow-sm'
+                      : 'text-zinc-400 hover:text-zinc-200'
                   }`}
                 >
                   Agent Vault Flow
@@ -366,11 +366,11 @@ export const TradingTerminal: React.FC = () => {
 
               {chartType === 'TRADINGVIEW' && (
                 <div className="flex items-center gap-2 text-xs font-mono">
-                  <span className="text-slate-400 text-[11px]">Symbol:</span>
+                  <span className="text-zinc-400 text-[11px]">Symbol:</span>
                   <select
                     value={tvSymbol}
                     onChange={(e) => setTvSymbol(e.target.value)}
-                    className="bg-surface-elevated border border-border/60 rounded px-2.5 py-1 text-slate-200 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="bg-surface-elevated border border-border/60 rounded px-2.5 py-1 text-zinc-200 text-xs focus:outline-none focus:ring-1 focus:ring-zinc-500"
                   >
                     <option value="AAPL">AAPL (Demo Feed)</option>
                     <option value="BINANCE:ETHUSDT">ETH / USDT (Binance)</option>
@@ -432,9 +432,9 @@ export const TradingTerminal: React.FC = () => {
                     status: 'EXECUTED'
                   })
                 }
-                className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-blue-600/10 hover:bg-blue-600/20 text-xs font-medium text-blue-300 border border-blue-500/30 transition"
+                className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-xs font-medium text-emerald-300 border border-emerald-500/30 transition"
               >
-                <CheckCircle2 className="w-3.5 h-3.5 text-blue-400" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                 <span>0.4 ETH Safe Buy</span>
               </button>
 
@@ -492,10 +492,10 @@ export const TradingTerminal: React.FC = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-border/60">
           <div className="flex items-center gap-3">
             <h3 className="text-xs font-semibold text-white uppercase tracking-wider flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 text-blue-400" />
+              <Clock className="w-3.5 h-3.5 text-zinc-400" />
               On-Chain Execution Ledger & Safety Trail
             </h3>
-            <span className="text-[11px] font-mono text-slate-400">
+            <span className="text-[11px] font-mono text-zinc-400">
               ({filteredEvents.length} events logged)
             </span>
           </div>
@@ -505,7 +505,7 @@ export const TradingTerminal: React.FC = () => {
             <button
               type="button"
               onClick={() => setActiveFilter('ALL')}
-              className={`px-2.5 py-1 rounded transition ${activeFilter === 'ALL' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+              className={`px-2.5 py-1 rounded transition ${activeFilter === 'ALL' ? 'bg-zinc-200 text-zinc-950 font-bold' : 'text-zinc-400 hover:text-zinc-200'}`}
             >
               All
             </button>
@@ -582,9 +582,9 @@ export const TradingTerminal: React.FC = () => {
                       {e.reason ? (
                         <span className="text-rose-300">{e.reason}</span>
                       ) : e.txHash ? (
-                        <span className="text-blue-400 flex items-center gap-1">
+                        <span className="text-zinc-300 hover:text-white flex items-center gap-1">
                           <span>{e.txHash.slice(0, 10)}...{e.txHash.slice(-6)}</span>
-                          <ArrowUpRight className="w-3 h-3" />
+                          <ArrowUpRight className="w-3 h-3 text-zinc-400" />
                         </span>
                       ) : (
                         <span className="text-emerald-400/80">On-Chain Vault Verified</span>

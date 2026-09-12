@@ -63,24 +63,24 @@ export const BackpackChart: React.FC<BackpackChartProps> = ({
 
     const chart = createChart(chartContainerRef.current, {
       layout: {
-        background: { type: ColorType.Solid, color: '#080c14' },
-        textColor: '#94a3b8',
+        background: { type: ColorType.Solid, color: '#09090b' },
+        textColor: '#a1a1aa',
         fontSize: 11,
         fontFamily: 'monospace'
       },
       grid: {
-        vertLines: { color: 'rgba(51, 65, 85, 0.15)' },
-        horzLines: { color: 'rgba(51, 65, 85, 0.15)' }
+        vertLines: { color: 'rgba(39, 39, 42, 0.35)' },
+        horzLines: { color: 'rgba(39, 39, 42, 0.35)' }
       },
       width: chartContainerRef.current.clientWidth,
       height: height - 60,
       timeScale: {
         timeVisible: true,
         secondsVisible: false,
-        borderColor: '#1e293b'
+        borderColor: '#27272a'
       },
       rightPriceScale: {
-        borderColor: '#1e293b'
+        borderColor: '#27272a'
       }
     });
 
@@ -93,7 +93,7 @@ export const BackpackChart: React.FC<BackpackChartProps> = ({
     });
 
     const volumeSeries = chart.addHistogramSeries({
-      color: '#3b82f6',
+      color: '#3f3f46',
       priceFormat: {
         type: 'volume'
       },
@@ -182,7 +182,7 @@ export const BackpackChart: React.FC<BackpackChartProps> = ({
   const isPositive = priceChangeNum >= 0;
 
   return (
-    <div className="relative w-full rounded-xl overflow-hidden bg-[#080c14] border border-border/70 flex flex-col">
+    <div className="relative w-full rounded-xl overflow-hidden bg-[#09090b] border border-border/70 flex flex-col">
       {/* Top Header Bar */}
       <div className="flex flex-wrap items-center justify-between px-3.5 py-2.5 bg-surface/90 border-b border-border/60 text-xs font-mono gap-2">
         <div className="flex items-center gap-3">
@@ -195,7 +195,7 @@ export const BackpackChart: React.FC<BackpackChartProps> = ({
           <select
             value={symbol}
             onChange={(e) => setSymbol(e.target.value)}
-            className="bg-surface-elevated border border-border/60 rounded px-2 py-0.5 text-slate-200 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="bg-surface-elevated border border-border/60 rounded px-2 py-0.5 text-slate-200 text-xs focus:outline-none focus:ring-1 focus:ring-zinc-500"
           >
             <option value="ETH_USDC">ETH / USDC</option>
             <option value="SOL_USDC">SOL / USDC</option>
@@ -222,7 +222,7 @@ export const BackpackChart: React.FC<BackpackChartProps> = ({
               type="button"
               onClick={() => setTimeframe(iv)}
               className={`px-2 py-0.5 rounded uppercase transition ${
-                timeframe === iv ? 'bg-blue-600 text-white font-semibold' : 'text-slate-400 hover:text-slate-200'
+                timeframe === iv ? 'bg-zinc-200 text-zinc-950 font-bold shadow-sm' : 'text-slate-400 hover:text-slate-200'
               }`}
             >
               {iv}
@@ -234,8 +234,8 @@ export const BackpackChart: React.FC<BackpackChartProps> = ({
       {/* Chart Canvas */}
       <div className="relative w-full" style={{ height: height - 60 }}>
         {isLoading && (
-          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-[#080c14]/80 backdrop-blur-sm text-xs font-mono text-slate-400">
-            <RefreshCw className="w-5 h-5 text-blue-400 animate-spin" />
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-[#09090b]/80 backdrop-blur-sm text-xs font-mono text-slate-400">
+            <RefreshCw className="w-5 h-5 text-zinc-300 animate-spin" />
             <span>Streaming Backpack Candlestick Klines...</span>
           </div>
         )}

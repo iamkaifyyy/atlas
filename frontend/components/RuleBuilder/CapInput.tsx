@@ -37,7 +37,7 @@ export const CapInput: React.FC<CapInputProps> = ({ value, onChange }) => {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-          <label className="block text-xs text-slate-400 mb-1">
+          <label className="block text-xs text-zinc-400 mb-1">
             Max Total Budget
           </label>
           <div className="relative rounded-lg">
@@ -47,17 +47,17 @@ export const CapInput: React.FC<CapInputProps> = ({ value, onChange }) => {
               value={value.maxTotalSpend || ''}
               onChange={handleMaxTotalChange}
               placeholder="5.0"
-              className="block w-full pl-3 pr-12 py-2 bg-surface-elevated border border-border rounded-lg text-white font-mono text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="block w-full pl-3 pr-12 py-2 bg-surface-elevated border border-border rounded-lg text-white font-mono text-sm focus:outline-none focus:ring-1 focus:ring-zinc-500"
             />
-            <span className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400 text-xs font-mono">
+            <span className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-zinc-400 text-xs font-mono">
               ETH
             </span>
           </div>
-          <p className="mt-1 text-[11px] text-slate-500">Cumulative ceiling for the agent</p>
+          <p className="mt-1 text-[11px] text-zinc-500">Cumulative ceiling for the agent</p>
         </div>
 
         <div>
-          <label className="block text-xs text-slate-400 mb-1">
+          <label className="block text-xs text-zinc-400 mb-1">
             Max Per-Trade Size
           </label>
           <div className="relative rounded-lg">
@@ -67,13 +67,13 @@ export const CapInput: React.FC<CapInputProps> = ({ value, onChange }) => {
               value={value.maxPerTradeSpend || ''}
               onChange={handleMaxPerTradeChange}
               placeholder="1.5"
-              className="block w-full pl-3 pr-12 py-2 bg-surface-elevated border border-border rounded-lg text-white font-mono text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="block w-full pl-3 pr-12 py-2 bg-surface-elevated border border-border rounded-lg text-white font-mono text-sm focus:outline-none focus:ring-1 focus:ring-zinc-500"
             />
-            <span className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400 text-xs font-mono">
+            <span className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-zinc-400 text-xs font-mono">
               ETH
             </span>
           </div>
-          <p className="mt-1 text-[11px] text-slate-500">Hard limit on single transactions</p>
+          <p className="mt-1 text-[11px] text-zinc-500">Hard limit on single transactions</p>
         </div>
       </div>
     </div>

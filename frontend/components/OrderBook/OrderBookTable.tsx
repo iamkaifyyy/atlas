@@ -136,7 +136,7 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
       {/* Header & Source Toggles */}
       <div className="flex flex-wrap items-center justify-between pb-2 border-b border-border/60 gap-1.5">
         <div className="flex items-center gap-2">
-          <Layers className="w-3.5 h-3.5 text-blue-400" />
+          <Layers className="w-3.5 h-3.5 text-zinc-300" />
           <h3 className="text-xs font-semibold text-white">Order Book</h3>
 
           {/* Source Switcher */}
@@ -146,8 +146,8 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
               onClick={() => setBookSource('backpack')}
               className={`px-1.5 py-0.5 rounded transition ${
                 bookSource === 'backpack'
-                  ? 'bg-blue-600 text-white font-medium shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-zinc-200 text-zinc-950 font-bold shadow-sm'
+                  : 'text-zinc-400 hover:text-zinc-200'
               }`}
             >
               Backpack L2
@@ -157,8 +157,8 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
               onClick={() => setBookSource('local')}
               className={`px-1.5 py-0.5 rounded transition ${
                 bookSource === 'local'
-                  ? 'bg-blue-600 text-white font-medium shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-zinc-200 text-zinc-950 font-bold shadow-sm'
+                  : 'text-zinc-400 hover:text-zinc-200'
               }`}
             >
               Atlas Engine
@@ -173,8 +173,8 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
             onClick={() => setActiveTab('depth')}
             className={`px-2 py-0.5 rounded font-medium transition ${
               activeTab === 'depth'
-                ? 'bg-blue-600 text-white shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-zinc-200 text-zinc-950 font-bold shadow-sm'
+                : 'text-zinc-400 hover:text-zinc-200'
             }`}
           >
             Depth
@@ -187,8 +187,8 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
             }}
             className={`px-2 py-0.5 rounded font-medium transition flex items-center gap-1 ${
               activeTab === 'order'
-                ? 'bg-blue-600 text-white shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-zinc-200 text-zinc-950 font-bold shadow-sm'
+                : 'text-zinc-400 hover:text-zinc-200'
             }`}
           >
             <PlusCircle className="w-2.5 h-2.5" />
@@ -208,7 +208,7 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
                 className={`py-1.5 rounded text-xs font-medium transition flex items-center justify-center gap-1 ${
                   orderSide === 'BUY'
                     ? 'bg-emerald-600 text-white'
-                    : 'text-slate-400 hover:text-slate-200'
+                    : 'text-zinc-400 hover:text-zinc-200'
                 }`}
               >
                 <ArrowDown className="w-3 h-3" />
@@ -220,7 +220,7 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
                 className={`py-1.5 rounded text-xs font-medium transition flex items-center justify-center gap-1 ${
                   orderSide === 'SELL'
                     ? 'bg-rose-600 text-white'
-                    : 'text-slate-400 hover:text-slate-200'
+                    : 'text-zinc-400 hover:text-zinc-200'
                 }`}
               >
                 <ArrowUp className="w-3 h-3" />
@@ -229,7 +229,7 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
             </div>
 
             <div>
-              <label className="block text-[11px] text-slate-400 mb-1">
+              <label className="block text-[11px] text-zinc-400 mb-1">
                 Limit Price (USDC)
               </label>
               <input
@@ -238,12 +238,12 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
                 value={orderPrice}
                 onChange={(e) => setOrderPrice(e.target.value)}
                 placeholder={effectiveLastPrice.toFixed(2)}
-                className="w-full px-2.5 py-1.5 bg-surface-elevated border border-border rounded-lg text-white font-mono text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full px-2.5 py-1.5 bg-surface-elevated border border-border rounded-lg text-white font-mono text-xs focus:outline-none focus:ring-1 focus:ring-zinc-500"
               />
             </div>
 
             <div>
-              <label className="block text-[11px] text-slate-400 mb-1">
+              <label className="block text-[11px] text-zinc-400 mb-1">
                 Quantity (ETH)
               </label>
               <input
@@ -252,7 +252,7 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
                 value={orderQty}
                 onChange={(e) => setOrderQty(e.target.value)}
                 placeholder="0.5"
-                className="w-full px-2.5 py-1.5 bg-surface-elevated border border-border rounded-lg text-white font-mono text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full px-2.5 py-1.5 bg-surface-elevated border border-border rounded-lg text-white font-mono text-xs focus:outline-none focus:ring-1 focus:ring-zinc-500"
               />
             </div>
 

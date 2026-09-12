@@ -25,8 +25,8 @@ export default function AutomationPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2 text-xs font-mono text-slate-400 bg-surface-elevated/70 px-3 py-2 rounded-lg border border-border/50">
-          <SlidersHorizontal className="w-4 h-4 text-blue-400" />
+        <div className="flex items-center gap-2 text-xs font-mono text-zinc-400 bg-surface-elevated/70 px-3 py-2 rounded-lg border border-border/50">
+          <SlidersHorizontal className="w-4 h-4 text-zinc-300" />
           <span>Active Asset: ETH / USDC</span>
         </div>
       </div>

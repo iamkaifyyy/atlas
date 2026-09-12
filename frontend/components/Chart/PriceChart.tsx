@@ -25,31 +25,31 @@ export const PriceChart: React.FC<PriceChartProps> = ({ currentPrice, events }) 
 
     const chart = createChart(chartContainerRef.current, {
       layout: {
-        background: { type: ColorType.Solid, color: '#090d16' },
-        textColor: '#94a3b8',
+        background: { type: ColorType.Solid, color: '#09090b' },
+        textColor: '#a1a1aa',
         fontSize: 11,
         fontFamily: 'monospace'
       },
       grid: {
-        vertLines: { color: 'rgba(51, 65, 85, 0.2)' },
-        horzLines: { color: 'rgba(51, 65, 85, 0.2)' }
+        vertLines: { color: 'rgba(39, 39, 42, 0.4)' },
+        horzLines: { color: 'rgba(39, 39, 42, 0.4)' }
       },
       width: chartContainerRef.current.clientWidth,
       height: 330,
       timeScale: {
         timeVisible: true,
         secondsVisible: true,
-        borderColor: '#334155'
+        borderColor: '#27272a'
       },
       rightPriceScale: {
-        borderColor: '#334155'
+        borderColor: '#27272a'
       }
     });
 
     const areaSeries = chart.addAreaSeries({
-      topColor: 'rgba(59, 130, 246, 0.4)',
-      bottomColor: 'rgba(59, 130, 246, 0.01)',
-      lineColor: '#3b82f6',
+      topColor: 'rgba(16, 185, 129, 0.25)',
+      bottomColor: 'rgba(16, 185, 129, 0.01)',
+      lineColor: '#10b981',
       lineWidth: 2
     });
 

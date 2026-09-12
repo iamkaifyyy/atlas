@@ -50,8 +50,8 @@ export default function VaultPage() {
       {/* Header */}
       <div className="glass-panel rounded-xl p-6 border border-border/70 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 text-[11px] font-mono border border-blue-500/20">
-            <Lock className="w-3 h-3" />
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-zinc-800 text-zinc-300 text-[11px] font-mono border border-zinc-700">
+            <Lock className="w-3 h-3 text-amber-400" />
             <span>Smart Contract Escrow</span>
           </div>
           <h1 className="text-2xl font-bold text-white tracking-tight">
@@ -70,8 +70,8 @@ export default function VaultPage() {
         {/* Total Spend Cap */}
         <div className="glass-panel rounded-xl p-5 border border-border/70 space-y-3">
           <div className="flex items-center justify-between text-xs text-slate-400">
-            <span className="flex items-center gap-1.5 text-slate-300 font-semibold">
-              <Coins className="w-4 h-4 text-blue-400" />
+            <span className="flex items-center gap-1.5 text-zinc-300 font-semibold">
+              <Coins className="w-4 h-4 text-zinc-300" />
               Cumulative Lifetime Cap
             </span>
             <span className="font-mono text-xs text-emerald-400 font-bold">
@@ -82,7 +82,7 @@ export default function VaultPage() {
           <div className="w-full bg-surface-elevated rounded-full h-2.5 overflow-hidden border border-border/50">
             <div
               className={`h-full transition-all duration-500 rounded-full ${
-                capPercent > 90 ? 'bg-rose-500 glow-rose' : capPercent > 75 ? 'bg-amber-500' : 'bg-blue-500'
+                capPercent > 90 ? 'bg-rose-500 glow-rose' : capPercent > 75 ? 'bg-amber-500' : 'bg-emerald-500 glow-emerald'
               }`}
               style={{ width: `${capPercent}%` }}
             />
@@ -181,7 +181,7 @@ export default function VaultPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
           <Link
             href="/terminal"
-            className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs transition"
+            className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-zinc-100 hover:bg-white text-zinc-950 font-bold text-xs transition"
           >
             <span>Launch Watch Terminal</span>
             <ArrowRight className="w-4 h-4" />

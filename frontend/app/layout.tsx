@@ -21,14 +21,14 @@ export default function RootLayout({
             {/* Logo */}
             <div className="flex items-center gap-6">
               <Link href="/" className="flex items-center gap-2.5">
-                <div className="p-1.5 rounded-lg bg-blue-600 text-white shadow-lg shadow-blue-500/30">
-                  <Terminal className="w-4 h-4" />
+                <div className="p-1.5 rounded-lg bg-zinc-100 text-zinc-950 shadow-md">
+                  <Terminal className="w-4 h-4 stroke-[2.5]" />
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-white tracking-tight text-base">
+                  <span className="font-bold text-zinc-100 tracking-tight text-base">
                     Atlas
                   </span>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 font-mono border border-blue-500/20">
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-800/80 text-zinc-300 font-mono border border-zinc-700/60 font-semibold tracking-wider">
                     PROTOCOL
                   </span>
                 </div>
@@ -38,28 +38,28 @@ export default function RootLayout({
               <nav className="hidden md:flex items-center gap-1 pl-2 border-l border-border/60">
                 <Link
                   href="/"
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-surface-elevated transition"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-300 hover:text-white hover:bg-surface-elevated transition"
                 >
-                  <Home className="w-3.5 h-3.5 text-slate-400" />
+                  <Home className="w-3.5 h-3.5 text-zinc-400" />
                   <span>Overview</span>
                 </Link>
                 <Link
                   href="/terminal"
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-surface-elevated transition"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-300 hover:text-white hover:bg-surface-elevated transition"
                 >
-                  <LineChart className="w-3.5 h-3.5 text-blue-400" />
+                  <LineChart className="w-3.5 h-3.5 text-zinc-300" />
                   <span>Watch Terminal</span>
                 </Link>
                 <Link
                   href="/automation"
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-surface-elevated transition"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-300 hover:text-white hover:bg-surface-elevated transition"
                 >
                   <SlidersHorizontal className="w-3.5 h-3.5 text-emerald-400" />
                   <span>No-Code Automation</span>
                 </Link>
                 <Link
                   href="/vault"
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-surface-elevated transition"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-300 hover:text-white hover:bg-surface-elevated transition"
                 >
                   <Lock className="w-3.5 h-3.5 text-amber-400" />
                   <span>Escrow Vault</span>
