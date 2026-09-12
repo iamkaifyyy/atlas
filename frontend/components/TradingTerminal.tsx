@@ -111,17 +111,25 @@ export const TradingTerminal: React.FC = () => {
   const [copiedVault, setCopiedVault] = useState(false);
   const [tvSymbol, setTvSymbol] = useState('NASDAQ:AAPL');
 
-  // Dynamically map selected chart symbol to Backpack pair
+  // Dynamically map selected chart symbol to Backpack/market pair
   const selectedBpSymbol = useMemo(() => {
+    if (tvSymbol.includes('AAPL')) return 'NASDAQ:AAPL';
     if (tvSymbol.includes('BTC')) return 'BTC_USDC';
     if (tvSymbol.includes('SOL')) return 'SOL_USDC';
     return 'ETH_USDC';
   }, [tvSymbol]);
 
+  const assetUnit = useMemo(() => {
+    if (tvSymbol.includes('AAPL')) return 'AAPL';
+    if (tvSymbol.includes('BTC')) return 'BTC';
+    if (tvSymbol.includes('SOL')) return 'SOL';
+    return 'ETH';
+  }, [tvSymbol]);
+
   const backpack = useBackpackTicker(selectedBpSymbol);
 
-  // Price & stats calculations
-  const displayPrice = backpack.isLoading ? currentPrice : backpack.lastPrice;
+  // Real-time price & stats calculations
+  const displayPrice = backpack.lastPrice;
   const isPricePositive = backpack.priceChangePercent >= 0;
   const TrendIcon = isPricePositive ? TrendingUp : TrendingDown;
   const vaultAddress = agentConfig?.vaultAddress || '0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9';
@@ -170,7 +178,7 @@ export const TradingTerminal: React.FC = () => {
           {/* Pair & Symbol Dropdown */}
           <div className="flex items-center gap-2.5 pr-4 border-r border-console-border">
             <div className="w-8 h-8 rounded-lg bg-console-elevated border border-console-border flex items-center justify-center text-white font-bold text-xs font-mono">
-              {tvSymbol.includes('AAPL') ? 'AAPL' : selectedBpSymbol.split('_')[0]}
+              {assetUnit}
             </div>
 
             <div>
@@ -188,27 +196,37 @@ export const TradingTerminal: React.FC = () => {
                 </select>
                 <span className="cohere-chip-coral !py-0.5 !px-2 !text-[9px] flex items-center gap-1 font-semibold">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  BACKPACK L2 LIVE
+                  {tvSymbol.includes('AAPL') ? 'NASDAQ LIVE' : 'BACKPACK L2 LIVE'}
                 </span>
               </div>
               <div className="text-[10px] text-muted font-mono flex items-center gap-1.5">
-                <span>api.backpack.exchange</span>
+                <span>{tvSymbol.includes('AAPL') ? 'nasdaq.com' : 'api.backpack.exchange'}</span>
                 <span className="text-zinc-600">•</span>
                 <span className="text-emerald-400 font-medium">{selectedBpSymbol}</span>
               </div>
             </div>
           </div>
 
-          {/* Real-Time Mark Price & 24h Delta */}
+          {/* Real-Time Mark Price & 24h Delta with dynamic live tick flash */}
           <div className="pr-4 border-r border-console-border">
-            <div className="text-[9px] text-muted font-mono uppercase tracking-[0.28px]">Backpack Mark Price</div>
+            <div className="text-[9px] text-muted font-mono uppercase tracking-[0.28px]">
+              {tvSymbol.includes('AAPL') ? 'NASDAQ Mark Price' : 'Backpack Mark Price'}
+            </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-xl font-mono font-bold text-white tracking-tight">
+              <span
+                className={`text-xl font-mono font-bold tracking-tight transition-all duration-300 ${
+                  backpack.tickDirection === 'up'
+                    ? 'text-emerald-400 bg-emerald-500/25 px-1 rounded scale-105'
+                    : backpack.tickDirection === 'down'
+                    ? 'text-rose-400 bg-rose-500/25 px-1 rounded scale-105'
+                    : 'text-white'
+                }`}
+              >
                 {formatUsd(displayPrice)}
               </span>
               <span
-                className={`inline-flex items-center text-xs font-mono font-semibold ${
-                  isPricePositive ? 'text-emerald-400' : 'text-rose-400'
+                className={`inline-flex items-center text-xs font-mono font-semibold px-1.5 py-0.5 rounded ${
+                  isPricePositive ? 'text-emerald-400 bg-emerald-500/10' : 'text-rose-400 bg-rose-500/10'
                 }`}
               >
                 <TrendIcon className="w-3 h-3 mr-0.5" />
@@ -230,7 +248,10 @@ export const TradingTerminal: React.FC = () => {
             <div>
               <div className="text-[9px] text-muted uppercase tracking-[0.28px]">24H Volume</div>
               <div className="text-white font-medium">
-                {backpack.volume24h.toFixed(1)} {selectedBpSymbol.split('_')[0]} (${(backpack.quoteVolume24h / 1e6).toFixed(2)}M)
+                {backpack.volume24h > 1000000
+                  ? `${(backpack.volume24h / 1e6).toFixed(1)}M ${assetUnit}`
+                  : `${backpack.volume24h.toLocaleString(undefined, { maximumFractionDigits: 1 })} ${assetUnit}`}
+                {' '}(${(backpack.quoteVolume24h / 1e6).toFixed(2)}M)
               </div>
             </div>
             <div>
@@ -302,11 +323,11 @@ export const TradingTerminal: React.FC = () => {
 
         {/* Right: Order Book & Execution Tape */}
         <div className="xl:col-span-4 flex flex-col">
-          <div className="cohere-card-console !p-3 overflow-hidden flex flex-col flex-1 border border-console-border rounded-xl min-h-[560px]">
+          <div className="cohere-card-console !p-3 overflow-hidden flex flex-col flex-1 border border-console-border rounded-xl min-h-[580px]">
             <OrderBookTable
               bids={orderBook.bids}
               asks={orderBook.asks}
-              lastPrice={currentPrice}
+              lastPrice={displayPrice}
               isLoading={orderBook.isLoading}
               onPlaceOrder={orderBook.placeOrder}
               isSubmitting={orderBook.isSubmitting}

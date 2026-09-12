@@ -146,10 +146,13 @@ export const TradingViewChart: React.FC<TradingViewChartProps> = ({
     async function fetchBackpackData() {
       const startTime = performance.now();
       try {
-        // 1. Fetch live Ticker from Backpack Exchange API
-        let tickerRes = await fetch(`https://api.backpack.exchange/api/v1/ticker?symbol=${bpSymbol}`).catch(() => null);
+        // 1. Fetch live Ticker from Next.js proxy route (same-origin, zero CORS issues)
+        let tickerRes = await fetch(`/api/backpack/ticker?symbol=${bpSymbol}`).catch(() => null);
         if (!tickerRes || !tickerRes.ok) {
           tickerRes = await fetch(`${BACKEND_HTTP_URL}/api/backpack/ticker?symbol=${bpSymbol}`).catch(() => null);
+        }
+        if (!tickerRes || !tickerRes.ok) {
+          tickerRes = await fetch(`https://api.backpack.exchange/api/v1/ticker?symbol=${bpSymbol}`).catch(() => null);
         }
 
         if (tickerRes && tickerRes.ok) {
@@ -166,6 +169,9 @@ export const TradingViewChart: React.FC<TradingViewChartProps> = ({
             }
             prevPriceRef.current = nextPrice;
 
+            const rawPct = parseFloat(tJson.priceChangePercent) || 0;
+            const pct = Math.abs(rawPct) < 1 ? rawPct * 100 : rawPct;
+
             setBpTicker({
               symbol: tJson.symbol || bpSymbol,
               lastPrice: nextPrice,
@@ -174,7 +180,7 @@ export const TradingViewChart: React.FC<TradingViewChartProps> = ({
               volume24h: parseFloat(tJson.volume) || 0,
               quoteVolume24h: parseFloat(tJson.quoteVolume) || 0,
               priceChange: parseFloat(tJson.priceChange) || 0,
-              priceChangePercent: (parseFloat(tJson.priceChangePercent) || 0) * 100,
+              priceChangePercent: pct,
               trades: parseInt(tJson.trades, 10) || 0,
               timestamp: Date.now()
             });
@@ -182,10 +188,13 @@ export const TradingViewChart: React.FC<TradingViewChartProps> = ({
           }
         }
 
-        // 2. Fetch live Trades from Backpack Exchange API
-        let tradesRes = await fetch(`https://api.backpack.exchange/api/v1/trades?symbol=${bpSymbol}&limit=8`).catch(() => null);
+        // 2. Fetch live Trades from proxy
+        let tradesRes = await fetch(`/api/backpack/trades?symbol=${bpSymbol}&limit=8`).catch(() => null);
         if (!tradesRes || !tradesRes.ok) {
           tradesRes = await fetch(`${BACKEND_HTTP_URL}/api/backpack/trades?symbol=${bpSymbol}&limit=8`).catch(() => null);
+        }
+        if (!tradesRes || !tradesRes.ok) {
+          tradesRes = await fetch(`https://api.backpack.exchange/api/v1/trades?symbol=${bpSymbol}&limit=8`).catch(() => null);
         }
 
         if (tradesRes && tradesRes.ok) {
