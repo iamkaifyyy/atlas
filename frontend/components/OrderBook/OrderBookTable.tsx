@@ -38,6 +38,7 @@ type LayoutMode = 'both' | 'bids' | 'asks';
 type Precision = 0.01 | 0.1 | 1.0 | 5.0;
 type DepthViewMode = 'ladder' | 'chart';
 
+
 interface RecentTrade {
   id: number | string;
   price: number;
