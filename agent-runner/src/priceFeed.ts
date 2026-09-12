@@ -67,18 +67,30 @@ export class PriceFeedService extends EventEmitter {
     return this.currentPrice;
   }
 
-  public start(intervalMs = 3000): void {
+  public start(intervalMs = 2500): void {
     if (this.isRunning) return;
     this.isRunning = true;
 
-    this.emitPrice('orderbook');
+    // Initial sync with Backpack
+    this.syncWithBackpack();
 
-    // Ambient market making simulation (keeps the orderbook alive and active)
-    this.timer = setInterval(() => {
+    // Poll live Backpack Exchange ticker
+    this.timer = setInterval(async () => {
       if (!this.manualOverride) {
-        const drift = (Math.random() - 0.49) * 1.2;
-        this.currentPrice = Number((this.currentPrice + drift).toFixed(2));
-        this.matchingEngine.setLastPrice(this.currentPrice);
+        try {
+          const ticker = await backpackClient.getTicker('ETH_USDC');
+          if (ticker && ticker.lastPrice) {
+            this.currentPrice = Number(parseFloat(ticker.lastPrice).toFixed(2));
+            this.matchingEngine.setLastPrice(this.currentPrice);
+            this.emitPrice('backpack');
+            return;
+          }
+        } catch {
+          // Graceful fallback to drift if offline
+          const drift = (Math.random() - 0.49) * 1.2;
+          this.currentPrice = Number((this.currentPrice + drift).toFixed(2));
+          this.matchingEngine.setLastPrice(this.currentPrice);
+        }
       }
       this.emitPrice(this.manualOverride ? 'manual' : 'orderbook');
     }, intervalMs);

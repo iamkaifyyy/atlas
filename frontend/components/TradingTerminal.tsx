@@ -25,6 +25,7 @@ import {
 import { useContractEvents } from '../hooks/useContractEvents';
 import { useOrderBook } from '../hooks/useOrderBook';
 import { useWallet } from '../hooks/useWallet';
+import { useBackpackTicker } from '../hooks/useBackpackTicker';
 import { OrderBookTable } from './OrderBook/OrderBookTable';
 import { ApprovalModal } from './ApprovalModal';
 import { KillSwitchButton } from './KillSwitchButton';
@@ -85,11 +86,15 @@ export const TradingTerminal: React.FC = () => {
 
   const orderBook = useOrderBook();
   const wallet = useWallet();
+  const backpack = useBackpackTicker('ETH_USDC');
   const [isKilled, setIsKilled] = useState(false);
   const [activeFilter, setActiveFilter] = useState<'ALL' | 'EXECUTED' | 'APPROVAL' | 'REJECTED'>('ALL');
   const [copiedVault, setCopiedVault] = useState(false);
   const [chartType, setChartType] = useState<'BACKPACK' | 'TRADINGVIEW' | 'AGENT_VAULT'>('BACKPACK');
   const [tvSymbol, setTvSymbol] = useState<string>('COINBASE:ETHUSD');
+
+  const displayPrice = backpack.isLoading ? currentPrice : backpack.lastPrice;
+  const isPricePositive = backpack.priceChangePercent >= 0;
 
   const vaultAddress = agentConfig?.vaultAddress || '0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9';
 
@@ -133,27 +138,36 @@ export const TradingTerminal: React.FC = () => {
             <div>
               <div className="flex items-center gap-1.5">
                 <span className="font-bold text-white text-sm tracking-tight">ETH / USDC</span>
-                <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 font-mono border border-blue-500/20">
-                  SPOT
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-mono border border-emerald-500/20">
+                  BACKPACK LIVE
                 </span>
               </div>
               <div className="text-[11px] text-slate-400 font-mono flex items-center gap-1.5">
-                <span className={`w-1.5 h-1.5 rounded-full ${isWsConnected ? 'bg-emerald-400' : 'bg-amber-400 animate-ping'}`} />
-                <span>{isWsConnected ? 'Live Matching Engine' : 'Reconnecting...'}</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span>api.backpack.exchange</span>
               </div>
             </div>
           </div>
 
           {/* Mark Price */}
           <div className="pr-4 border-r border-border/60">
-            <div className="text-[10px] text-slate-400 font-mono">MARK PRICE</div>
+            <div className="text-[10px] text-slate-400 font-mono">MARK PRICE (USDC)</div>
             <div className="flex items-baseline gap-2">
               <span className="text-xl font-mono font-bold text-white tracking-tight">
-                ${currentPrice.toFixed(2)}
+                ${displayPrice.toFixed(2)}
               </span>
-              <span className="inline-flex items-center text-xs font-mono font-medium text-emerald-400">
-                <TrendingUp className="w-3 h-3 mr-0.5" />
-                +2.34%
+              <span
+                className={`inline-flex items-center text-xs font-mono font-semibold ${
+                  isPricePositive ? 'text-emerald-400' : 'text-rose-400'
+                }`}
+              >
+                {isPricePositive ? (
+                  <TrendingUp className="w-3 h-3 mr-0.5" />
+                ) : (
+                  <TrendingDown className="w-3 h-3 mr-0.5" />
+                )}
+                {isPricePositive ? '+' : ''}
+                {backpack.priceChangePercent.toFixed(2)}%
               </span>
             </div>
           </div>
@@ -162,15 +176,21 @@ export const TradingTerminal: React.FC = () => {
           <div className="hidden md:flex items-center gap-6 pr-4 border-r border-border/60 text-xs font-mono">
             <div>
               <div className="text-[10px] text-slate-400">24H HIGH</div>
-              <div className="text-slate-200">${(currentPrice * 1.025).toFixed(2)}</div>
+              <div className="text-slate-200">${backpack.high24h.toFixed(2)}</div>
             </div>
             <div>
               <div className="text-[10px] text-slate-400">24H LOW</div>
-              <div className="text-slate-200">${(currentPrice * 0.985).toFixed(2)}</div>
+              <div className="text-slate-200">${backpack.low24h.toFixed(2)}</div>
             </div>
             <div>
               <div className="text-[10px] text-slate-400">24H VOLUME</div>
-              <div className="text-slate-200">{totalVolumeEth.toFixed(2)} ETH (${totalVolumeUsdc.toFixed(0)})</div>
+              <div className="text-slate-200">
+                {backpack.volume24h.toFixed(1)} ETH (${(backpack.quoteVolume24h / 1000000).toFixed(2)}M)
+              </div>
+            </div>
+            <div>
+              <div className="text-[10px] text-slate-400">24H TRADES</div>
+              <div className="text-slate-200">{backpack.trades.toLocaleString()}</div>
             </div>
           </div>
 
