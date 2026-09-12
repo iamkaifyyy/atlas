@@ -69,6 +69,19 @@ const BackpackChart = dynamic(
   }
 );
 
+const TradingViewStyleUI = dynamic(
+  () => import('./Chart/TradingViewStyleUI'),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="bg-surface rounded-xl border border-border/80 h-[520px] flex flex-col items-center justify-center gap-2 text-xs text-zinc-500 font-mono">
+        <Activity className="w-5 h-5 text-emerald-400 animate-spin" />
+        <span>Loading Backpack Pro Candlestick Studio...</span>
+      </div>
+    )
+  }
+);
+
 export const TradingTerminal: React.FC = () => {
   const {
     events,
@@ -90,7 +103,7 @@ export const TradingTerminal: React.FC = () => {
   const [isKilled, setIsKilled] = useState(false);
   const [activeFilter, setActiveFilter] = useState<'ALL' | 'EXECUTED' | 'APPROVAL' | 'REJECTED'>('ALL');
   const [copiedVault, setCopiedVault] = useState(false);
-  const [chartType, setChartType] = useState<'BACKPACK' | 'TRADINGVIEW' | 'AGENT_VAULT'>('BACKPACK');
+  const [chartType, setChartType] = useState<'STUDIO' | 'BACKPACK' | 'TRADINGVIEW' | 'AGENT_VAULT'>('STUDIO');
   const [tvSymbol, setTvSymbol] = useState<string>('COINBASE:ETHUSD');
 
   const displayPrice = backpack.isLoading ? currentPrice : backpack.lastPrice;
@@ -331,6 +344,17 @@ export const TradingTerminal: React.FC = () => {
               <div className="flex items-center gap-1.5 bg-surface-elevated/70 p-0.5 rounded-lg border border-border/50 text-xs font-mono">
                 <button
                   type="button"
+                  onClick={() => setChartType('STUDIO')}
+                  className={`px-3 py-1 rounded-md transition ${
+                    chartType === 'STUDIO'
+                      ? 'bg-zinc-200 text-zinc-950 font-bold shadow-sm'
+                      : 'text-zinc-400 hover:text-zinc-200'
+                  }`}
+                >
+                  Studio Pro (Backpack)
+                </button>
+                <button
+                  type="button"
                   onClick={() => setChartType('BACKPACK')}
                   className={`px-3 py-1 rounded-md transition ${
                     chartType === 'BACKPACK'
@@ -338,7 +362,7 @@ export const TradingTerminal: React.FC = () => {
                       : 'text-zinc-400 hover:text-zinc-200'
                   }`}
                 >
-                  Backpack Live
+                  Backpack Feed
                 </button>
                 <button
                   type="button"
@@ -349,7 +373,7 @@ export const TradingTerminal: React.FC = () => {
                       : 'text-zinc-400 hover:text-zinc-200'
                   }`}
                 >
-                  TradingView Pro
+                  TradingView
                 </button>
                 <button
                   type="button"
@@ -381,7 +405,9 @@ export const TradingTerminal: React.FC = () => {
               )}
             </div>
 
-            {chartType === 'BACKPACK' ? (
+            {chartType === 'STUDIO' ? (
+              <TradingViewStyleUI initialSymbol="ETH_USDC" />
+            ) : chartType === 'BACKPACK' ? (
               <BackpackChart initialSymbol="ETH_USDC" height={480} />
             ) : chartType === 'TRADINGVIEW' ? (
               <TradingViewChart symbol={tvSymbol} interval="1D" height={480} />
