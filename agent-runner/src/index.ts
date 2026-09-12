@@ -153,7 +153,8 @@ app.get('/api/backpack/klines', async (req, res) => {
     const symbol = (req.query.symbol as string) || 'ETH_USDC';
     const interval = (req.query.interval as string) || '1h';
     const startTime = req.query.startTime ? Number(req.query.startTime) : undefined;
-    const klines = await backpackClient.getKlines(symbol, interval, startTime);
+    const endTime = req.query.endTime ? Number(req.query.endTime) : undefined;
+    const klines = await backpackClient.getKlines(symbol, interval, startTime, endTime);
     res.json(klines);
   } catch (err) {
     res.status(500).json({ error: (err as Error).message });
