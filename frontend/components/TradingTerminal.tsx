@@ -68,9 +68,9 @@ type ChartTab = 'STUDIO' | 'BACKPACK' | 'TRADINGVIEW' | 'AGENT_VAULT';
 type EventFilter = 'ALL' | 'EXECUTED' | 'APPROVAL' | 'REJECTED';
 
 const CHART_TABS: { id: ChartTab; label: string }[] = [
+  { id: 'TRADINGVIEW', label: 'TradingView Stock Widget' },
   { id: 'STUDIO', label: 'Studio Pro (Backpack)' },
   { id: 'BACKPACK', label: 'Backpack Feed' },
-  { id: 'TRADINGVIEW', label: 'TradingView' },
   { id: 'AGENT_VAULT', label: 'Agent Vault Flow' }
 ];
 
@@ -82,10 +82,11 @@ const FILTER_TABS: { id: EventFilter; label: string; activeColor: string }[] = [
 ];
 
 const TV_SYMBOLS = [
+  { value: 'NASDAQ:AAPL', label: 'AAPL (NASDAQ:AAPL)' },
   { value: 'COINBASE:ETHUSD', label: 'ETH / USD (Coinbase)' },
-  { value: 'BINANCE:ETHUSDT', label: 'ETH / USDT (Binance)' },
   { value: 'BINANCE:BTCUSDT', label: 'BTC / USDT (Binance)' },
-  { value: 'AAPL', label: 'AAPL (Demo Feed)' }
+  { value: 'BINANCE:SOLUSDT', label: 'SOL / USDT (Binance)' },
+  { value: 'BINANCE:ETHUSDT', label: 'ETH / USDT (Binance)' }
 ];
 
 const truncateAddress = (addr: string) =>
@@ -128,8 +129,8 @@ export const TradingTerminal: React.FC = () => {
   const [isKilled, setIsKilled] = useState(false);
   const [activeFilter, setActiveFilter] = useState<EventFilter>('ALL');
   const [copiedVault, setCopiedVault] = useState(false);
-  const [chartType, setChartType] = useState<ChartTab>('STUDIO');
-  const [tvSymbol, setTvSymbol] = useState('COINBASE:ETHUSD');
+  const [chartType, setChartType] = useState<ChartTab>('TRADINGVIEW');
+  const [tvSymbol, setTvSymbol] = useState('NASDAQ:AAPL');
 
   // Price & stats calculations
   const displayPrice = backpack.isLoading ? currentPrice : backpack.lastPrice;
@@ -408,7 +409,14 @@ export const TradingTerminal: React.FC = () => {
             {chartType === 'STUDIO' && <TradingViewStyleUI initialSymbol="ETH_USDC" />}
             {chartType === 'BACKPACK' && <BackpackChart initialSymbol="ETH_USDC" height={480} />}
             {chartType === 'TRADINGVIEW' && (
-              <TradingViewChart symbol={tvSymbol} interval="1D" height={480} />
+              <TradingViewChart
+                symbol={tvSymbol}
+                interval="1D"
+                range="12m"
+                theme="Dark"
+                height={520}
+                onSymbolChange={(s) => setTvSymbol(s)}
+              />
             )}
             {chartType === 'AGENT_VAULT' && (
               <PriceChart currentPrice={currentPrice} events={events} />
