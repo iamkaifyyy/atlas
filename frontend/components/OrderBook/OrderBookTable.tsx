@@ -11,7 +11,11 @@ import {
   History,
   TrendingUp,
   TrendingDown,
-  ChevronDown
+  XCircle,
+  Percent,
+  Sliders,
+  BarChart2,
+  List
 } from 'lucide-react';
 import type { OrderBookEntry } from '../../../shared/types/agentConfig';
 import type { PlaceOrderParams } from '../../hooks/useOrderBook';
@@ -27,11 +31,12 @@ interface OrderBookTableProps {
 }
 
 type BookSource = 'backpack' | 'local';
-type ActiveTab = 'depth' | 'trades' | 'order';
+type ActiveTab = 'depth' | 'trades' | 'orders' | 'order';
 type OrderSide = 'BUY' | 'SELL';
 type OrderType = 'LIMIT' | 'MARKET';
 type LayoutMode = 'both' | 'bids' | 'asks';
 type Precision = 0.01 | 0.1 | 1.0 | 5.0;
+type DepthViewMode = 'ladder' | 'chart';
 
 interface RecentTrade {
   id: number | string;
@@ -40,6 +45,26 @@ interface RecentTrade {
   side: 'BUY' | 'SELL';
   timestamp: number;
 }
+
+interface OpenOrder {
+  id: string;
+  symbol: string;
+  side: 'BUY' | 'SELL';
+  type: 'LIMIT' | 'MARKET';
+  price: number;
+  quantity: number;
+  filledQuantity: number;
+  remainingQuantity: number;
+  status: string;
+  timestamp: number;
+}
+
+const MARKET_PAIRS = [
+  { symbol: 'ETH_USDC', label: 'ETH/USDC', base: 'ETH', quote: 'USDC' },
+  { symbol: 'BTC_USDC', label: 'BTC/USDC', base: 'BTC', quote: 'USDC' },
+  { symbol: 'SOL_USDC', label: 'SOL/USDC', base: 'SOL', quote: 'USDC' },
+  { symbol: 'RENDER_USDC', label: 'RENDER/USDC', base: 'RENDER', quote: 'USDC' }
+];
 
 interface DepthRowProps {
   entry: OrderBookEntry;
@@ -90,8 +115,10 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
   onPlaceOrder,
   isSubmitting
 }) => {
-  // Navigation & configuration state
+  // Navigation & configuration
+  const [selectedPair, setSelectedPair] = useState('ETH_USDC');
   const [activeTab, setActiveTab] = useState<ActiveTab>('depth');
+  const [depthViewMode, setDepthViewMode] = useState<DepthViewMode>('ladder');
   const [bookSource, setBookSource] = useState<BookSource>('backpack');
   const [layoutMode, setLayoutMode] = useState<LayoutMode>('both');
   const [precision, setPrecision] = useState<Precision>(0.1);
@@ -101,6 +128,9 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
   const [orderType, setOrderType] = useState<OrderType>('LIMIT');
   const [orderPrice, setOrderPrice] = useState('');
   const [orderQty, setOrderQty] = useState('0.5');
+  const [attachTpSl, setAttachTpSl] = useState(false);
+  const [takeProfitPrice, setTakeProfitPrice] = useState('');
+  const [stopLossPrice, setStopLossPrice] = useState('');
   const [orderError, setOrderError] = useState<string | null>(null);
   const [orderSuccess, setOrderSuccess] = useState(false);
 
@@ -114,15 +144,19 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
   const [recentTrades, setRecentTrades] = useState<RecentTrade[]>([]);
   const [isTradesLoading, setIsTradesLoading] = useState(true);
 
-  // Poll live depth
+  // Open working orders
+  const [openOrders, setOpenOrders] = useState<OpenOrder[]>([]);
+  const [cancellingOrderId, setCancellingOrderId] = useState<string | null>(null);
+
+  // Poll live depth for selected market pair
   useEffect(() => {
     let isMounted = true;
 
     async function fetchBackpackDepth() {
       try {
-        let res = await fetch('https://api.backpack.exchange/api/v1/depth?symbol=ETH_USDC');
+        let res = await fetch(`https://api.backpack.exchange/api/v1/depth?symbol=${selectedPair}`);
         if (!res.ok) {
-          res = await fetch(`${BACKEND_HTTP_URL}/api/backpack/depth?symbol=ETH_USDC`);
+          res = await fetch(`${BACKEND_HTTP_URL}/api/backpack/depth?symbol=${selectedPair}`);
         }
         if (!res.ok || !isMounted) return;
 
@@ -157,14 +191,14 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
       isMounted = false;
       clearInterval(interval);
     };
-  }, []);
+  }, [selectedPair]);
 
   // Poll recent market trades
   const fetchRecentTrades = useCallback(async () => {
     try {
-      let res = await fetch('https://api.backpack.exchange/api/v1/trades?symbol=ETH_USDC&limit=25');
+      let res = await fetch(`https://api.backpack.exchange/api/v1/trades?symbol=${selectedPair}&limit=25`);
       if (!res.ok) {
-        res = await fetch(`${BACKEND_HTTP_URL}/api/backpack/trades?symbol=ETH_USDC&limit=25`);
+        res = await fetch(`${BACKEND_HTTP_URL}/api/backpack/trades?symbol=${selectedPair}&limit=25`);
       }
       if (!res.ok) return;
 
@@ -183,13 +217,54 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
     } catch {
       // Fallback
     }
-  }, []);
+  }, [selectedPair]);
 
   useEffect(() => {
     fetchRecentTrades();
     const interval = setInterval(fetchRecentTrades, 3000);
     return () => clearInterval(interval);
   }, [fetchRecentTrades]);
+
+  // Poll open orders from matching engine
+  const fetchOpenOrders = useCallback(async () => {
+    try {
+      const res = await fetch(`${BACKEND_HTTP_URL}/api/orderbook/orders`);
+      if (res.ok) {
+        const json = await res.json();
+        if (Array.isArray(json.orders)) {
+          setOpenOrders(json.orders);
+        }
+      }
+    } catch {
+      // Fallback
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'orders') {
+      fetchOpenOrders();
+      const interval = setInterval(fetchOpenOrders, 2500);
+      return () => clearInterval(interval);
+    }
+  }, [activeTab, fetchOpenOrders]);
+
+  const handleCancelOrder = async (orderId: string) => {
+    setCancellingOrderId(orderId);
+    try {
+      const res = await fetch(`${BACKEND_HTTP_URL}/api/orderbook/cancel`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId })
+      });
+      if (res.ok) {
+        setOpenOrders((prev) => prev.filter((o) => o.id !== orderId));
+      }
+    } catch {
+      // Error
+    } finally {
+      setCancellingOrderId(null);
+    }
+  };
 
   // Aggregate levels by selected precision
   const aggregateLevels = (levels: OrderBookEntry[], prec: Precision): OrderBookEntry[] => {
@@ -227,6 +302,14 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
     () => (activeBids.length ? Math.max(...activeBids.map((b) => b.total)) : 1),
     [activeBids]
   );
+
+  // Order book pressure / imbalance calculation
+  const totalBidVolume = useMemo(() => activeBids.reduce((sum, b) => sum + b.amount, 0), [activeBids]);
+  const totalAskVolume = useMemo(() => activeAsks.reduce((sum, a) => sum + a.amount, 0), [activeAsks]);
+  const buyPressurePct = useMemo(() => {
+    const total = totalBidVolume + totalAskVolume;
+    return total > 0 ? Math.round((totalBidVolume / total) * 100) : 50;
+  }, [totalBidVolume, totalAskVolume]);
 
   const spread = useMemo(() => {
     if (activeAsks[0] && activeBids[0]) {
@@ -274,6 +357,7 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
 
     if (res.success) {
       setOrderSuccess(true);
+      fetchOpenOrders();
       setTimeout(() => {
         setOrderSuccess(false);
         setActiveTab('depth');
@@ -283,7 +367,7 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
     }
   };
 
-  // Order calculation metrics
+  // Pricing calculations
   const numericPrice = orderType === 'LIMIT'
     ? (Number.parseFloat(orderPrice) || effectiveLastPrice)
     : effectiveLastPrice;
@@ -295,13 +379,38 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
     ? orderValueUsdc + estimatedFeeUsdc
     : orderValueUsdc - estimatedFeeUsdc;
 
+  // Risk / reward ratio calculation
+  const riskRewardRatio = useMemo(() => {
+    const tp = parseFloat(takeProfitPrice);
+    const sl = parseFloat(stopLossPrice);
+    if (!tp || !sl || !numericPrice) return null;
+
+    const reward = orderSide === 'BUY' ? tp - numericPrice : numericPrice - tp;
+    const risk = orderSide === 'BUY' ? numericPrice - sl : sl - numericPrice;
+
+    if (risk <= 0 || reward <= 0) return null;
+    return (reward / risk).toFixed(2);
+  }, [takeProfitPrice, stopLossPrice, numericPrice, orderSide]);
+
   return (
     <div className="flex flex-col h-full font-mono">
       {/* 1. Header Toolbar */}
       <div className="flex flex-wrap items-center justify-between pb-3 border-b border-console-border gap-2">
         <div className="flex items-center gap-2">
           <Layers className="w-3.5 h-3.5 text-coral" />
-          <h3 className="text-xs font-semibold text-white tracking-[0.28px] uppercase">Order Book</h3>
+
+          {/* Market Pair Dropdown */}
+          <select
+            value={selectedPair}
+            onChange={(e) => setSelectedPair(e.target.value)}
+            className="bg-console-elevated border border-console-border rounded px-2 py-0.5 text-xs text-white font-semibold focus:outline-none focus:border-coral cursor-pointer"
+          >
+            {MARKET_PAIRS.map((p) => (
+              <option key={p.symbol} value={p.symbol}>
+                {p.label}
+              </option>
+            ))}
+          </select>
 
           {/* Engine Source Selector */}
           <div className="flex items-center gap-0.5 bg-console-elevated p-0.5 rounded border border-console-border text-[10px]">
@@ -316,7 +425,7 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
                     : 'text-muted hover:text-white'
                 }`}
               >
-                {source === 'backpack' ? 'Backpack L2' : 'Atlas Engine'}
+                {source === 'backpack' ? 'Backpack' : 'Atlas'}
               </button>
             ))}
           </div>
@@ -349,6 +458,21 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
           </button>
           <button
             type="button"
+            onClick={() => setActiveTab('orders')}
+            className={`px-2 py-0.5 rounded font-medium transition flex items-center gap-1 ${
+              activeTab === 'orders'
+                ? 'bg-white text-console-surface font-semibold shadow-sm'
+                : 'text-muted hover:text-white'
+            }`}
+          >
+            <List className="w-2.5 h-2.5" />
+            Orders
+            {openOrders.length > 0 && (
+              <span className="w-1.5 h-1.5 rounded-full bg-coral animate-ping" />
+            )}
+          </button>
+          <button
+            type="button"
             onClick={() => {
               if (!orderPrice) setOrderPrice(effectiveLastPrice.toFixed(2));
               setActiveTab('order');
@@ -365,13 +489,40 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
         </div>
       </div>
 
+      {/* Orderbook Pressure / Imbalance Gauge */}
+      {activeTab === 'depth' && (
+        <div className="py-2 border-b border-console-border space-y-1">
+          <div className="flex items-center justify-between text-[10px] font-mono">
+            <span className="text-emerald-400 flex items-center gap-1">
+              <span>Bids</span>
+              <strong>{buyPressurePct}%</strong>
+            </span>
+            <span className="text-muted uppercase text-[9px] tracking-wider">Book Pressure</span>
+            <span className="text-rose-400 flex items-center gap-1">
+              <strong>{100 - buyPressurePct}%</strong>
+              <span>Asks</span>
+            </span>
+          </div>
+          <div className="w-full h-1 bg-rose-500/30 rounded-full overflow-hidden flex">
+            <div
+              className="h-full bg-emerald-500 transition-all duration-500"
+              style={{ width: `${buyPressurePct}%` }}
+            />
+            <div
+              className="h-full bg-rose-500 transition-all duration-500"
+              style={{ width: `${100 - buyPressurePct}%` }}
+            />
+          </div>
+        </div>
+      )}
+
       {/* 2. Mode-Specific Content */}
       {activeTab === 'trades' ? (
         /* Market Trades Stream (Tape) */
         <div className="flex-1 flex flex-col pt-2 font-mono text-xs">
           <div className="flex items-center justify-between pb-2 border-b border-console-border text-[10px] text-muted uppercase tracking-[0.28px]">
             <div>Price (USDC)</div>
-            <div className="text-right">Size (ETH)</div>
+            <div className="text-right">Size</div>
             <div className="text-right">Time</div>
           </div>
 
@@ -411,6 +562,66 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
             </div>
           )}
         </div>
+      ) : activeTab === 'orders' ? (
+        /* Open Orders Ledger */
+        <div className="flex-1 flex flex-col pt-2 font-mono text-xs space-y-2">
+          <div className="flex items-center justify-between pb-2 border-b border-console-border text-[10px] text-muted uppercase tracking-[0.28px]">
+            <div>Order / Side</div>
+            <div className="text-right">Price / Size</div>
+            <div className="text-right">Action</div>
+          </div>
+
+          {openOrders.length === 0 ? (
+            <div className="flex-1 flex flex-col items-center justify-center text-xs text-muted py-16 gap-2">
+              <List className="w-5 h-5 text-muted opacity-50" />
+              <span>No active open orders in engine</span>
+            </div>
+          ) : (
+            <div className="flex-1 overflow-y-auto space-y-1.5 py-1 max-h-[380px]">
+              {openOrders.map((order) => {
+                const isBuy = order.side === 'BUY';
+                return (
+                  <div
+                    key={order.id}
+                    className="bg-console-elevated p-2.5 rounded-lg border border-console-border flex items-center justify-between text-xs"
+                  >
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                          isBuy ? 'bg-emerald-500/15 text-emerald-400' : 'bg-rose-500/15 text-rose-400'
+                        }`}>
+                          {order.side}
+                        </span>
+                        <span className="text-white text-[11px] font-medium">{order.type}</span>
+                      </div>
+                      <div className="text-[10px] text-muted pt-0.5">
+                        #{order.id.slice(0, 12)}
+                      </div>
+                    </div>
+
+                    <div className="text-right">
+                      <div className="text-white font-medium text-[11px]">
+                        ${order.price.toFixed(2)}
+                      </div>
+                      <div className="text-[10px] text-muted">
+                        {order.remainingQuantity} / {order.quantity} ETH
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleCancelOrder(order.id)}
+                      disabled={cancellingOrderId === order.id}
+                      className="px-2 py-1 rounded bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 border border-rose-800/50 text-[10px] font-medium transition disabled:opacity-50"
+                    >
+                      {cancellingOrderId === order.id ? '...' : 'Cancel'}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
       ) : activeTab === 'order' ? (
         /* Order Placement Ticket */
         <form onSubmit={handleOrderSubmit} className="flex-1 flex flex-col justify-between py-3 space-y-3">
@@ -439,7 +650,7 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
               </button>
             </div>
 
-            {/* Order Type Toggle (Limit vs Market) */}
+            {/* Order Type Toggle */}
             <div className="flex items-center justify-between text-xs">
               <span className="text-muted text-[11px] uppercase tracking-[0.28px]">Execution Type</span>
               <div className="flex items-center gap-1 bg-console-elevated p-0.5 rounded border border-console-border text-[11px]">
@@ -531,6 +742,70 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
               </div>
             </div>
 
+            {/* TP / SL Risk Guardrails Accordion */}
+            <div className="border border-console-border rounded-lg p-2.5 bg-console-elevated space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="flex items-center gap-2 text-[11px] text-white cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={attachTpSl}
+                    onChange={(e) => setAttachTpSl(e.target.checked)}
+                    className="rounded bg-console-surface border-console-border text-coral focus:ring-0"
+                  />
+                  <span>Attach TP / SL Guardrails</span>
+                </label>
+                {riskRewardRatio && (
+                  <span className="text-[10px] text-emerald-400 font-bold font-mono">
+                    R:R {riskRewardRatio}
+                  </span>
+                )}
+              </div>
+
+              {attachTpSl && (
+                <div className="grid grid-cols-2 gap-2 pt-1 border-t border-console-border/60">
+                  <div>
+                    <div className="flex justify-between text-[10px] text-muted mb-0.5">
+                      <span>Take-Profit</span>
+                      <button
+                        type="button"
+                        onClick={() => setTakeProfitPrice((numericPrice * 1.05).toFixed(2))}
+                        className="text-emerald-400 hover:underline"
+                      >
+                        +5%
+                      </button>
+                    </div>
+                    <input
+                      type="number"
+                      value={takeProfitPrice}
+                      onChange={(e) => setTakeProfitPrice(e.target.value)}
+                      placeholder={(numericPrice * 1.05).toFixed(2)}
+                      className="w-full px-2 py-1 bg-console-surface border border-console-border rounded text-[11px] text-emerald-400 font-mono focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between text-[10px] text-muted mb-0.5">
+                      <span>Stop-Loss</span>
+                      <button
+                        type="button"
+                        onClick={() => setStopLossPrice((numericPrice * 0.97).toFixed(2))}
+                        className="text-rose-400 hover:underline"
+                      >
+                        -3%
+                      </button>
+                    </div>
+                    <input
+                      type="number"
+                      value={stopLossPrice}
+                      onChange={(e) => setStopLossPrice(e.target.value)}
+                      placeholder={(numericPrice * 0.97).toFixed(2)}
+                      className="w-full px-2 py-1 bg-console-surface border border-console-border rounded text-[11px] text-rose-400 font-mono focus:outline-none"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Estimated Settlement Docket */}
             <div className="p-3 bg-console-elevated rounded-lg border border-console-border space-y-1.5 text-xs font-mono">
               <div className="flex justify-between text-[11px]">
@@ -580,7 +855,7 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
       ) : (
         /* Depth Ladder View */
         <>
-          {/* Sub-Header: Precision selector & View Layout Mode */}
+          {/* Sub-Header: Precision selector, Layout Mode & Depth Chart toggle */}
           <div className="flex items-center justify-between text-[10px] font-mono text-muted py-1.5 border-b border-console-border">
             <div className="flex items-center gap-1">
               <span>Spread:</span>
@@ -589,33 +864,55 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
             </div>
 
             {/* Layout Toggles (Both, Bids, Asks) & Precision */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
+              {/* Chart vs Ladder Toggle */}
               <div className="flex items-center gap-0.5 bg-console-elevated p-0.5 rounded border border-console-border text-[9px]">
                 <button
                   type="button"
-                  onClick={() => setLayoutMode('both')}
-                  className={`px-1.5 py-0.5 rounded ${layoutMode === 'both' ? 'bg-white text-black font-bold' : 'text-muted hover:text-white'}`}
-                  title="Show Bids and Asks"
+                  onClick={() => setDepthViewMode('ladder')}
+                  className={`p-1 rounded ${depthViewMode === 'ladder' ? 'bg-white text-black' : 'text-muted hover:text-white'}`}
+                  title="Show Depth Ladder"
                 >
-                  Both
+                  <List className="w-2.5 h-2.5" />
                 </button>
                 <button
                   type="button"
-                  onClick={() => setLayoutMode('bids')}
-                  className={`px-1.5 py-0.5 rounded ${layoutMode === 'bids' ? 'bg-emerald-600 text-white font-bold' : 'text-muted hover:text-white'}`}
-                  title="Show Bids Only"
+                  onClick={() => setDepthViewMode('chart')}
+                  className={`p-1 rounded ${depthViewMode === 'chart' ? 'bg-white text-black' : 'text-muted hover:text-white'}`}
+                  title="Show Depth Curve Chart"
                 >
-                  Bids
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setLayoutMode('asks')}
-                  className={`px-1.5 py-0.5 rounded ${layoutMode === 'asks' ? 'bg-rose-600 text-white font-bold' : 'text-muted hover:text-white'}`}
-                  title="Show Asks Only"
-                >
-                  Asks
+                  <BarChart2 className="w-2.5 h-2.5" />
                 </button>
               </div>
+
+              {depthViewMode === 'ladder' && (
+                <div className="flex items-center gap-0.5 bg-console-elevated p-0.5 rounded border border-console-border text-[9px]">
+                  <button
+                    type="button"
+                    onClick={() => setLayoutMode('both')}
+                    className={`px-1.5 py-0.5 rounded ${layoutMode === 'both' ? 'bg-white text-black font-bold' : 'text-muted hover:text-white'}`}
+                    title="Show Bids and Asks"
+                  >
+                    Both
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLayoutMode('bids')}
+                    className={`px-1.5 py-0.5 rounded ${layoutMode === 'bids' ? 'bg-emerald-600 text-white font-bold' : 'text-muted hover:text-white'}`}
+                    title="Show Bids Only"
+                  >
+                    Bids
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLayoutMode('asks')}
+                    className={`px-1.5 py-0.5 rounded ${layoutMode === 'asks' ? 'bg-rose-600 text-white font-bold' : 'text-muted hover:text-white'}`}
+                    title="Show Asks Only"
+                  >
+                    Asks
+                  </button>
+                </div>
+              )}
 
               {/* Tick Grouping */}
               <select
@@ -631,73 +928,127 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-3 text-[10px] font-medium text-muted py-1.5 border-b border-console-border uppercase tracking-[0.28px]">
-            <div>Price (USDC)</div>
-            <div className="text-right">Size (ETH)</div>
-            <div className="text-right">Total (USDC)</div>
-          </div>
+          {depthViewMode === 'chart' ? (
+            /* Visual Cumulative Depth Curve (SVG Visualizer) */
+            <div className="py-4 space-y-3 font-mono text-xs">
+              <div className="flex justify-between text-[11px] px-1">
+                <span className="text-emerald-400 font-semibold">Cumulative Bids (Buyers)</span>
+                <span className="text-rose-400 font-semibold">Cumulative Asks (Sellers)</span>
+              </div>
 
-          {effectiveLoading && activeBids.length === 0 ? (
-            <div className="flex-1 flex items-center justify-center text-xs text-muted py-12 font-mono">
-              <Activity className="w-4 h-4 text-coral animate-spin mr-2" />
-              Connecting {bookSource === 'backpack' ? 'Backpack Exchange' : 'Atlas Engine'}...
-            </div>
-          ) : (
-            <div className="flex-1 flex flex-col justify-between space-y-1 py-1">
-              {/* Asks (Sell Orders) */}
-              {(layoutMode === 'both' || layoutMode === 'asks') && (
-                <div className="space-y-0.5">
-                  {activeAsks
-                    .slice(0, layoutMode === 'asks' ? 12 : 6)
-                    .reverse()
-                    .map((ask, idx) => (
-                      <DepthRow
-                        key={`ask-${idx}`}
-                        entry={ask}
-                        maxTotal={maxAskTotal}
-                        side="ask"
-                        onSelectPrice={handleQuickPriceSelect}
-                      />
-                    ))}
-                </div>
-              )}
+              {/* Visual SVG Curve */}
+              <div className="h-44 w-full bg-console-elevated rounded-lg p-2 border border-console-border relative flex items-end">
+                <svg className="w-full h-full overflow-visible" viewBox="0 0 300 120" preserveAspectRatio="none">
+                  {/* Green Bids curve on left half */}
+                  <polygon
+                    points={`
+                      0,120
+                      ${activeBids.slice(0, 6).reverse().map((b, i) => `${(i / 5) * 140},${120 - Math.min(110, (b.total / maxBidTotal) * 110)}`).join(' ')}
+                      140,120
+                    `}
+                    className="fill-emerald-500/20 stroke-emerald-500 stroke-1"
+                  />
+                  {/* Red Asks curve on right half */}
+                  <polygon
+                    points={`
+                      160,120
+                      ${activeAsks.slice(0, 6).map((a, i) => `${160 + (i / 5) * 140},${120 - Math.min(110, (a.total / maxAskTotal) * 110)}`).join(' ')}
+                      300,120
+                    `}
+                    className="fill-rose-500/20 stroke-rose-500 stroke-1"
+                  />
+                  {/* Center Mid line */}
+                  <line x1="150" y1="0" x2="150" y2="120" stroke="#ff7759" strokeDasharray="3 3" strokeWidth="1" />
+                </svg>
 
-              {/* Mid-Market Price Strip */}
-              <div className="py-2 px-3 bg-console-elevated rounded-lg border border-console-border flex items-center justify-between text-xs font-mono my-1">
-                <div className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  <span className="text-muted text-[10px]">
-                    {bookSource === 'backpack' ? 'Backpack Mark Price' : 'Atlas Mid Price'}
-                  </span>
-                </div>
-                <div className="flex items-baseline gap-2">
-                  <span className="font-bold text-white text-sm tracking-tight">
+                {/* Center mid-price pin */}
+                <div className="absolute inset-x-0 bottom-2 flex justify-center pointer-events-none">
+                  <span className="px-2 py-0.5 rounded bg-console-surface border border-console-border text-[10px] text-white font-bold">
                     ${effectiveLastPrice.toFixed(2)}
                   </span>
                 </div>
               </div>
 
-              {/* Bids (Buy Orders) */}
-              {(layoutMode === 'both' || layoutMode === 'bids') && (
-                <div className="space-y-0.5">
-                  {activeBids
-                    .slice(0, layoutMode === 'bids' ? 12 : 6)
-                    .map((bid, idx) => (
-                      <DepthRow
-                        key={`bid-${idx}`}
-                        entry={bid}
-                        maxTotal={maxBidTotal}
-                        side="bid"
-                        onSelectPrice={handleQuickPriceSelect}
-                      />
-                    ))}
+              <div className="grid grid-cols-2 gap-2 text-[10px] text-muted">
+                <div className="bg-console-elevated p-2 rounded border border-console-border">
+                  <div>Total Bid Depth: <strong className="text-white">{totalBidVolume.toFixed(2)} ETH</strong></div>
+                </div>
+                <div className="bg-console-elevated p-2 rounded border border-console-border text-right">
+                  <div>Total Ask Depth: <strong className="text-white">{totalAskVolume.toFixed(2)} ETH</strong></div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            /* Depth Ladder Table */
+            <>
+              <div className="grid grid-cols-3 text-[10px] font-medium text-muted py-1.5 border-b border-console-border uppercase tracking-[0.28px]">
+                <div>Price (USDC)</div>
+                <div className="text-right">Size ({selectedPair.split('_')[0]})</div>
+                <div className="text-right">Total (USDC)</div>
+              </div>
+
+              {effectiveLoading && activeBids.length === 0 ? (
+                <div className="flex-1 flex items-center justify-center text-xs text-muted py-12 font-mono">
+                  <Activity className="w-4 h-4 text-coral animate-spin mr-2" />
+                  Connecting {bookSource === 'backpack' ? 'Backpack Exchange' : 'Atlas Engine'}...
+                </div>
+              ) : (
+                <div className="flex-1 flex flex-col justify-between space-y-1 py-1">
+                  {/* Asks (Sell Orders) */}
+                  {(layoutMode === 'both' || layoutMode === 'asks') && (
+                    <div className="space-y-0.5">
+                      {activeAsks
+                        .slice(0, layoutMode === 'asks' ? 12 : 6)
+                        .reverse()
+                        .map((ask, idx) => (
+                          <DepthRow
+                            key={`ask-${idx}`}
+                            entry={ask}
+                            maxTotal={maxAskTotal}
+                            side="ask"
+                            onSelectPrice={handleQuickPriceSelect}
+                          />
+                        ))}
+                    </div>
+                  )}
+
+                  {/* Mid-Market Price Strip */}
+                  <div className="py-2 px-3 bg-console-elevated rounded-lg border border-console-border flex items-center justify-between text-xs font-mono my-1">
+                    <div className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      <span className="text-muted text-[10px]">
+                        {bookSource === 'backpack' ? 'Backpack Mark Price' : 'Atlas Mid Price'}
+                      </span>
+                    </div>
+                    <div className="flex items-baseline gap-2">
+                      <span className="font-bold text-white text-sm tracking-tight">
+                        ${effectiveLastPrice.toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Bids (Buy Orders) */}
+                  {(layoutMode === 'both' || layoutMode === 'bids') && (
+                    <div className="space-y-0.5">
+                      {activeBids
+                        .slice(0, layoutMode === 'bids' ? 12 : 6)
+                        .map((bid, idx) => (
+                          <DepthRow
+                            key={`bid-${idx}`}
+                            entry={bid}
+                            maxTotal={maxBidTotal}
+                            side="bid"
+                            onSelectPrice={handleQuickPriceSelect}
+                          />
+                        ))}
+                    </div>
+                  )}
                 </div>
               )}
-            </div>
+            </>
           )}
         </>
       )}
     </div>
   );
 };
-

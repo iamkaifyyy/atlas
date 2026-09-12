@@ -217,6 +217,13 @@ app.post('/api/orderbook/cancel', (req, res) => {
   res.json({ success: cancelled });
 });
 
+// Get Active Open Orders
+app.get('/api/orderbook/orders', (req, res) => {
+  const userId = req.query.userId as string | undefined;
+  const orders = matchingEngine.getOpenOrders(userId);
+  res.json({ orders });
+});
+
 // On-Chain Trade Approval (Human in the Loop)
 app.post('/api/trade/approve', async (req, res) => {
   try {
