@@ -132,22 +132,22 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
   };
 
   return (
-    <div className="framer-card p-3.5 flex flex-col h-full">
+    <div className="cohere-card-console p-4 flex flex-col h-full font-mono">
       {/* Header & Source Toggles */}
-      <div className="flex flex-wrap items-center justify-between pb-2 border-b border-hairline gap-1.5">
+      <div className="flex flex-wrap items-center justify-between pb-3 border-b border-console-border gap-2">
         <div className="flex items-center gap-2">
-          <Layers className="w-3.5 h-3.5 text-white" />
-          <h3 className="text-xs font-semibold text-white">Order Book</h3>
+          <Layers className="w-3.5 h-3.5 text-coral" />
+          <h3 className="text-xs font-semibold text-white tracking-[0.28px] uppercase">Order Book</h3>
 
           {/* Source Switcher */}
-          <div className="flex items-center gap-0.5 bg-surface-2 p-0.5 rounded-full border border-hairline text-[10px]">
+          <div className="flex items-center gap-0.5 bg-console-elevated p-0.5 rounded border border-console-border text-[10px]">
             <button
               type="button"
               onClick={() => setBookSource('backpack')}
-              className={`px-2 py-0.5 rounded-full transition ${
+              className={`px-2 py-0.5 rounded transition ${
                 bookSource === 'backpack'
-                  ? 'bg-white text-canvas font-bold shadow-sm'
-                  : 'text-ink-muted hover:text-white'
+                  ? 'bg-white text-console-surface font-semibold shadow-sm'
+                  : 'text-muted hover:text-white'
               }`}
             >
               Backpack L2
@@ -155,10 +155,10 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
             <button
               type="button"
               onClick={() => setBookSource('local')}
-              className={`px-2 py-0.5 rounded-full transition ${
+              className={`px-2 py-0.5 rounded transition ${
                 bookSource === 'local'
-                  ? 'bg-white text-canvas font-bold shadow-sm'
-                  : 'text-ink-muted hover:text-white'
+                  ? 'bg-white text-console-surface font-semibold shadow-sm'
+                  : 'text-muted hover:text-white'
               }`}
             >
               Atlas Engine
@@ -167,14 +167,14 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
         </div>
 
         {/* View Tabs */}
-        <div className="flex items-center gap-1 bg-surface-2 p-0.5 rounded-full border border-hairline text-[10px]">
+        <div className="flex items-center gap-1 bg-console-elevated p-0.5 rounded border border-console-border text-[10px]">
           <button
             type="button"
             onClick={() => setActiveTab('depth')}
-            className={`px-2.5 py-0.5 rounded-full font-medium transition ${
+            className={`px-2.5 py-0.5 rounded font-medium transition ${
               activeTab === 'depth'
-                ? 'bg-white text-canvas font-bold shadow-sm'
-                : 'text-ink-muted hover:text-white'
+                ? 'bg-white text-console-surface font-semibold shadow-sm'
+                : 'text-muted hover:text-white'
             }`}
           >
             Depth
@@ -185,10 +185,10 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
               if (!orderPrice) setOrderPrice(effectiveLastPrice.toFixed(2));
               setActiveTab('order');
             }}
-            className={`px-2.5 py-0.5 rounded-full font-medium transition flex items-center gap-1 ${
+            className={`px-2.5 py-0.5 rounded font-medium transition flex items-center gap-1 ${
               activeTab === 'order'
-                ? 'bg-white text-canvas font-bold shadow-sm'
-                : 'text-ink-muted hover:text-white'
+                ? 'bg-white text-console-surface font-semibold shadow-sm'
+                : 'text-muted hover:text-white'
             }`}
           >
             <PlusCircle className="w-2.5 h-2.5" />
@@ -201,14 +201,14 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
         /* Place Limit/Market Order Form */
         <form onSubmit={handleOrderSubmit} className="flex-1 flex flex-col justify-between py-3 space-y-3">
           <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-1.5 p-1 bg-surface-2 rounded-xl border border-hairline">
+            <div className="grid grid-cols-2 gap-1.5 p-1 bg-console-elevated rounded-lg border border-console-border">
               <button
                 type="button"
                 onClick={() => setOrderSide('BUY')}
-                className={`py-1.5 rounded-lg text-xs font-semibold transition flex items-center justify-center gap-1 ${
+                className={`py-1.5 rounded text-xs font-semibold transition flex items-center justify-center gap-1 ${
                   orderSide === 'BUY'
                     ? 'bg-emerald-600 text-white'
-                    : 'text-ink-muted hover:text-white'
+                    : 'text-muted hover:text-white'
                 }`}
               >
                 <ArrowDown className="w-3 h-3" />
@@ -217,10 +217,10 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
               <button
                 type="button"
                 onClick={() => setOrderSide('SELL')}
-                className={`py-1.5 rounded-lg text-xs font-semibold transition flex items-center justify-center gap-1 ${
+                className={`py-1.5 rounded text-xs font-semibold transition flex items-center justify-center gap-1 ${
                   orderSide === 'SELL'
                     ? 'bg-rose-600 text-white'
-                    : 'text-ink-muted hover:text-white'
+                    : 'text-muted hover:text-white'
                 }`}
               >
                 <ArrowUp className="w-3 h-3" />
@@ -229,7 +229,7 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
             </div>
 
             <div>
-              <label className="block text-[11px] text-ink-muted mb-1">
+              <label className="block text-[11px] text-muted mb-1 uppercase tracking-[0.28px]">
                 Limit Price (USDC)
               </label>
               <input
@@ -238,12 +238,12 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
                 value={orderPrice}
                 onChange={(e) => setOrderPrice(e.target.value)}
                 placeholder={effectiveLastPrice.toFixed(2)}
-                className="w-full px-3 py-2 bg-surface-2 border border-hairline rounded-xl text-white font-mono text-xs focus:outline-none focus:ring-1 focus:ring-zinc-600"
+                className="w-full px-3 py-2 bg-console-elevated border border-console-border rounded-lg text-white font-mono text-xs focus:outline-none focus:border-coral transition"
               />
             </div>
 
             <div>
-              <label className="block text-[11px] text-ink-muted mb-1">
+              <label className="block text-[11px] text-muted mb-1 uppercase tracking-[0.28px]">
                 Quantity (ETH)
               </label>
               <input
@@ -252,7 +252,7 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
                 value={orderQty}
                 onChange={(e) => setOrderQty(e.target.value)}
                 placeholder="0.5"
-                className="w-full px-3 py-2 bg-surface-2 border border-hairline rounded-xl text-white font-mono text-xs focus:outline-none focus:ring-1 focus:ring-zinc-600"
+                className="w-full px-3 py-2 bg-console-elevated border border-console-border rounded-lg text-white font-mono text-xs focus:outline-none focus:border-coral transition"
               />
             </div>
 
@@ -270,7 +270,7 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
               orderSuccess
                 ? 'bg-emerald-600 text-white'
                 : orderSide === 'BUY'
-                ? 'bg-white hover:bg-zinc-200 text-canvas'
+                ? 'bg-white hover:bg-soft-stone text-console-surface'
                 : 'bg-rose-600 hover:bg-rose-500 text-white'
             }`}
           >
@@ -289,21 +289,21 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
       ) : (
         /* Depth Ladder Table */
         <>
-          <div className="flex items-center justify-between text-[10px] font-mono text-ink-muted py-1.5 border-b border-hairline">
+          <div className="flex items-center justify-between text-[10px] font-mono text-muted py-1.5 border-b border-console-border">
             <span>Spread: ${spread}</span>
-            <span className="text-ink-muted">
+            <span className="text-muted">
               {bookSource === 'backpack' ? 'Backpack Exchange API' : 'Atlas In-Memory Engine'}
             </span>
           </div>
 
-          <div className="grid grid-cols-3 text-[10px] font-medium text-ink-muted py-1.5 border-b border-hairline">
+          <div className="grid grid-cols-3 text-[10px] font-medium text-muted py-1.5 border-b border-console-border uppercase tracking-[0.28px]">
             <div>Price (USDC)</div>
             <div className="text-right">Size (ETH)</div>
             <div className="text-right">Total (USDC)</div>
           </div>
 
           {effectiveLoading && activeBids.length === 0 ? (
-            <div className="flex-1 flex items-center justify-center text-xs text-ink-muted py-12 font-mono">
+            <div className="flex-1 flex items-center justify-center text-xs text-muted py-12 font-mono">
               Loading {bookSource === 'backpack' ? 'Backpack' : 'Atlas'} depth...
             </div>
           ) : (
@@ -316,23 +316,23 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
                     <div
                       key={`ask-${idx}`}
                       onClick={() => handleQuickPriceSelect(ask.price)}
-                      className="relative grid grid-cols-3 text-xs font-mono py-1 px-1.5 cursor-pointer hover:bg-rose-500/10 rounded-lg transition"
+                      className="relative grid grid-cols-3 text-xs font-mono py-1 px-1.5 cursor-pointer hover:bg-rose-500/10 rounded transition"
                     >
                       <div
-                        className="absolute inset-y-0 right-0 bg-rose-500/10 pointer-events-none rounded-lg"
+                        className="absolute inset-y-0 right-0 bg-rose-500/10 pointer-events-none rounded"
                         style={{ width: `${depthPct}%` }}
                       />
                       <span className="text-rose-400 z-10">{ask.price.toFixed(2)}</span>
                       <span className="text-right text-white z-10">{ask.amount.toFixed(3)}</span>
-                      <span className="text-right text-ink-muted z-10">${ask.total.toFixed(0)}</span>
+                      <span className="text-right text-muted z-10">${ask.total.toFixed(0)}</span>
                     </div>
                   );
                 })}
               </div>
 
               {/* Mid Price */}
-              <div className="py-1.5 px-3 bg-surface-2 rounded-xl border border-hairline flex items-center justify-between text-xs font-mono">
-                <span className="text-ink-muted text-[10px]">
+              <div className="py-2 px-3 bg-console-elevated rounded-lg border border-console-border flex items-center justify-between text-xs font-mono">
+                <span className="text-muted text-[10px]">
                   {bookSource === 'backpack' ? 'Backpack Last Price' : 'Atlas Mid Price'}
                 </span>
                 <span className="font-bold text-white tracking-wider">
@@ -348,15 +348,15 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
                     <div
                       key={`bid-${idx}`}
                       onClick={() => handleQuickPriceSelect(bid.price)}
-                      className="relative grid grid-cols-3 text-xs font-mono py-1 px-1.5 cursor-pointer hover:bg-emerald-500/10 rounded-lg transition"
+                      className="relative grid grid-cols-3 text-xs font-mono py-1 px-1.5 cursor-pointer hover:bg-emerald-500/10 rounded transition"
                     >
                       <div
-                        className="absolute inset-y-0 right-0 bg-emerald-500/10 pointer-events-none rounded-lg"
+                        className="absolute inset-y-0 right-0 bg-emerald-500/10 pointer-events-none rounded"
                         style={{ width: `${depthPct}%` }}
                       />
                       <span className="text-emerald-400 z-10">{bid.price.toFixed(2)}</span>
                       <span className="text-right text-white z-10">{bid.amount.toFixed(3)}</span>
-                      <span className="text-right text-ink-muted z-10">${bid.total.toFixed(0)}</span>
+                      <span className="text-right text-muted z-10">${bid.total.toFixed(0)}</span>
                     </div>
                   );
                 })}

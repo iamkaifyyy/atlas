@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Search, TrendingUp, TrendingDown, ArrowUpRight, Filter, Sparkles } from 'lucide-react';
+import { Search, TrendingUp, TrendingDown, ArrowUpRight, Filter, Sparkles, Activity } from 'lucide-react';
 
 interface CryptoMarket {
   ticker: string;
@@ -119,123 +119,127 @@ export default function MarketsPage() {
   return (
     <div className="py-4 space-y-8 max-w-6xl mx-auto">
       {/* Header Banner */}
-      <div className="framer-card p-6 border border-hairline flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="space-y-1.5">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-pill bg-surface-2 text-ink-muted text-xs font-mono border border-hairline">
-            <Sparkles className="w-3.5 h-3.5 text-white" />
-            <span>Institutional Crypto Directory</span>
+      <div className="cohere-card-console p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="space-y-2">
+          <div className="inline-flex items-center gap-2">
+            <span className="cohere-chip-coral">
+              BACKPACK LIQUIDITY DIRECTORY
+            </span>
+            <span className="font-mono text-[11px] text-muted hidden sm:inline">
+              // LEVEL 2 DEPTH
+            </span>
           </div>
-          <h1 className="text-3xl font-bold tracking-[-0.03em] text-white">
-            Crypto Spot & DEX Markets
+          <h1 className="text-3xl sm:text-4xl font-normal tracking-[-0.03em] text-white">
+            Crypto Spot & Liquidity Screener
           </h1>
-          <p className="text-xs text-ink-muted max-w-xl">
-            Stream real-time Level 2 liquidity and trade across leading cryptocurrency markets powered by Backpack Exchange API.
+          <p className="text-xs sm:text-sm text-muted max-w-xl leading-relaxed">
+            Publication directory of live digital assets streaming real-time Level 2 orderbook depth directly from Backpack Exchange API.
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           <Link
             href="/terminal"
-            className="framer-btn-primary text-xs"
+            className="cohere-btn-primary text-xs"
           >
-            <span>Open Terminal</span>
+            <span>Open High-Frequency Desk</span>
             <ArrowUpRight className="w-3.5 h-3.5" />
           </Link>
         </div>
       </div>
 
-      {/* Filter & Search Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 font-mono text-xs">
-        {/* Category Pills */}
-        <div className="flex items-center gap-1.5 bg-surface-1 p-1 rounded-pill border border-hairline overflow-x-auto w-full sm:w-auto">
+      {/* Cohere Taxonomy Filter Chips & Search Bar */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-xs">
+        {/* Coral Taxonomy Chips (DESIGN.md line 176 & 376) */}
+        <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
           {['ALL', 'L1', 'DeFi', 'AI', 'Solana'].map((cat) => (
             <button
               key={cat}
               type="button"
               onClick={() => setSelectedCategory(cat)}
-              className={`px-3 py-1.5 rounded-pill transition text-xs ${
+              className={`px-3.5 py-1.5 rounded-lg transition text-xs font-mono tracking-[0.28px] uppercase ${
                 selectedCategory === cat
-                  ? 'bg-white text-black font-semibold'
-                  : 'text-ink-muted hover:text-white'
+                  ? 'cohere-chip-coral-active'
+                  : 'cohere-chip-coral'
               }`}
             >
-              {cat === 'ALL' ? 'All Markets' : cat}
+              {cat === 'ALL' ? 'All Assets' : cat}
             </button>
           ))}
         </div>
 
-        {/* Search Input */}
-        <div className="relative w-full sm:w-64">
-          <Search className="w-3.5 h-3.5 text-ink-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+        {/* Search Field */}
+        <div className="relative w-full sm:w-72">
+          <Search className="w-3.5 h-3.5 text-muted absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search market or ticker..."
-            className="w-full pl-9 pr-3 py-2 bg-surface-1 border border-hairline rounded-pill text-white text-xs outline-none focus:border-white transition"
+            placeholder="Filter market or symbol..."
+            className="w-full pl-9 pr-3.5 py-2 bg-console-surface border border-console-border rounded-lg text-white font-mono text-xs outline-none focus:border-coral transition placeholder:text-slate-500"
           />
         </div>
       </div>
 
-      {/* Markets Table */}
-      <div className="framer-card overflow-hidden border border-hairline shadow-xl">
+      {/* Cohere Research Table (DESIGN.md line 182 & 380) */}
+      <div className="cohere-card-console overflow-hidden shadow-2xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs font-mono">
-            <thead className="bg-surface-2 border-b border-hairline text-ink-muted text-[11px] uppercase tracking-wider">
+            <thead className="bg-console-elevated border-b border-console-border text-muted text-[11px] uppercase tracking-[0.28px]">
               <tr>
-                <th className="py-3.5 px-4 font-normal">Asset</th>
-                <th className="py-3.5 px-4 font-normal">Price (USDC)</th>
-                <th className="py-3.5 px-4 font-normal">24h Change</th>
-                <th className="py-3.5 px-4 font-normal hidden md:table-cell">24h Range (Low - High)</th>
-                <th className="py-3.5 px-4 font-normal hidden sm:table-cell">24h Volume</th>
-                <th className="py-3.5 px-4 font-normal hidden lg:table-cell">24h Trades</th>
-                <th className="py-3.5 px-4 font-normal text-right">Action</th>
+                <th className="py-4 px-5 font-normal">Asset / Token</th>
+                <th className="py-4 px-5 font-normal">Price (USDC)</th>
+                <th className="py-4 px-5 font-normal">24h Change</th>
+                <th className="py-4 px-5 font-normal hidden md:table-cell">24h Low / High Range</th>
+                <th className="py-4 px-5 font-normal hidden sm:table-cell">24h Volume</th>
+                <th className="py-4 px-5 font-normal hidden lg:table-cell">Trades</th>
+                <th className="py-4 px-5 font-normal text-right">Execution</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-hairline">
+            <tbody className="divide-y divide-console-border">
               {filteredMarkets.map((m) => {
                 const isPositive = m.change24h >= 0;
                 return (
-                  <tr key={m.ticker} className="hover:bg-surface-2/60 transition group">
+                  <tr key={m.ticker} className="hover:bg-console-elevated/70 transition group">
                     {/* Asset & Ticker */}
-                    <td className="py-4 px-4">
+                    <td className="py-4 px-5">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-surface-2 border border-hairline flex items-center justify-center font-bold text-white text-xs">
+                        <div className="w-8 h-8 rounded-lg bg-console-elevated border border-console-border flex items-center justify-center font-bold text-white text-xs">
                           {m.ticker.slice(0, 3)}
                         </div>
                         <div>
-                          <div className="font-bold text-white tracking-tight flex items-center gap-1.5">
+                          <div className="font-semibold text-white tracking-tight flex items-center gap-1.5">
                             <span>{m.name}</span>
-                            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-surface-2 text-ink-muted border border-hairline">
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-console-elevated text-muted border border-console-border">
                               {m.ticker}
                             </span>
                           </div>
-                          <div className="text-[10px] text-ink-muted">{m.category}</div>
+                          <div className="text-[10px] text-muted">{m.category}</div>
                         </div>
                       </div>
                     </td>
 
                     {/* Price */}
-                    <td className="py-4 px-4 font-bold text-white text-sm">
+                    <td className="py-4 px-5 font-semibold text-white text-sm">
                       ${m.price < 1 ? m.price.toFixed(4) : m.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </td>
 
                     {/* 24h Change */}
-                    <td className="py-4 px-4">
-                      <span className={`inline-flex items-center gap-0.5 font-semibold text-xs ${isPositive ? 'text-semantic-success' : 'text-accent-red'}`}>
+                    <td className="py-4 px-5">
+                      <span className={`inline-flex items-center gap-0.5 font-medium text-xs ${isPositive ? 'text-emerald-400' : 'text-rose-400'}`}>
                         {isPositive ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
                         {isPositive ? '+' : ''}{m.change24h.toFixed(2)}%
                       </span>
                     </td>
 
                     {/* 24h Range Bar */}
-                    <td className="py-4 px-4 hidden md:table-cell">
-                      <div className="space-y-1 w-44">
-                        <div className="flex justify-between text-[10px] text-ink-muted">
+                    <td className="py-4 px-5 hidden md:table-cell">
+                      <div className="space-y-1.5 w-44">
+                        <div className="flex justify-between text-[10px] text-muted">
                           <span>${m.low24h.toFixed(1)}</span>
                           <span>${m.high24h.toFixed(1)}</span>
                         </div>
-                        <div className="w-full bg-surface-2 h-1.5 rounded-full overflow-hidden border border-hairline">
+                        <div className="w-full bg-console-elevated h-1.5 rounded-full overflow-hidden border border-console-border">
                           <div
                             className="h-full bg-white rounded-full"
                             style={{
@@ -247,20 +251,20 @@ export default function MarketsPage() {
                     </td>
 
                     {/* Volume */}
-                    <td className="py-4 px-4 hidden sm:table-cell text-white font-medium">
+                    <td className="py-4 px-5 hidden sm:table-cell text-white font-medium">
                       ${m.volume24h.toFixed(1)}M
                     </td>
 
                     {/* Trades */}
-                    <td className="py-4 px-4 hidden lg:table-cell text-ink-muted">
+                    <td className="py-4 px-5 hidden lg:table-cell text-muted">
                       {m.trades24h.toLocaleString()}
                     </td>
 
                     {/* Action */}
-                    <td className="py-4 px-4 text-right">
+                    <td className="py-4 px-5 text-right">
                       <Link
                         href={`/terminal`}
-                        className="framer-btn-primary !py-1.5 !px-3 text-xs"
+                        className="cohere-btn-outline !py-1.5 !px-3 text-xs"
                       >
                         <span>Trade</span>
                         <ArrowUpRight className="w-3 h-3" />

@@ -4,148 +4,247 @@
 
 @layer base {
   :root {
-    --font-mono: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, Monaco, monospace;
-    --font-sans: -apple-system, BlinkMacSystemFont, 'Inter Variable', 'Inter', 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+    --font-mono: 'Space Mono', 'JetBrains Mono', 'SF Mono', Menlo, Consolas, Monaco, monospace;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
   }
 
   body {
-    @apply bg-canvas text-ink antialiased selection:bg-surface-2 selection:text-white min-h-screen;
+    @apply antialiased selection:bg-coral/20 selection:text-coral min-h-screen;
     font-family: var(--font-sans);
-    font-feature-settings: "cv01", "cv05", "cv09", "cv11", "ss03", "ss07", "dlig";
-    background-color: #090909;
+    background-color: #0e0e12;
     color: #ffffff;
-    background-attachment: fixed;
   }
 }
 
-/* Custom scrollbar matching Framer dark canvas */
+/* Custom scrollbar matching Cohere dark console */
 ::-webkit-scrollbar {
   width: 4px;
   height: 4px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #090909;
+  background: #0e0e12;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #262626;
+  background: #2a2a35;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #333333;
+  background: #ff7759;
 }
 
-/* Framer Design System Components (from DESIGN.md) */
-.framer-btn-primary {
+/* Cohere Design System Components (from DESIGN.md) */
+
+/* button-primary: Near-black or crisp white pill CTA, 32px pill radius, 12px 24px padding */
+.cohere-btn-primary {
   background-color: #ffffff;
-  color: #000000;
-  border-radius: 100px;
-  padding: 10px 18px;
+  color: #17171c;
+  border-radius: 32px;
+  padding: 10px 22px;
   font-size: 14px;
   font-weight: 500;
-  line-height: 1;
-  letter-spacing: -0.14px;
-  transition: all 0.15s ease;
+  line-height: 1.71;
+  letter-spacing: 0;
+  transition: all 0.18s ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
 }
 
-.framer-btn-primary:hover {
-  transform: scale(1.02);
-  background-color: #f5f5f5;
+.cohere-btn-primary:hover {
+  background-color: #eeece7;
+  transform: translateY(-1px);
 }
 
-.framer-btn-primary:active {
-  transform: scale(0.98);
+.cohere-btn-primary:active {
+  transform: translateY(0);
 }
 
-.framer-btn-secondary {
-  background-color: #141414;
+/* button-secondary: Text-only action link, rule-aligned with underline hover */
+.cohere-btn-secondary {
+  background-color: transparent;
   color: #ffffff;
-  border: 1px solid #262626;
-  border-radius: 100px;
-  padding: 10px 18px;
+  padding: 8px 0;
   font-size: 14px;
   font-weight: 500;
-  line-height: 1;
-  letter-spacing: -0.14px;
-  transition: all 0.15s ease;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
+  gap: 6px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  transition: color 0.15s ease;
 }
 
-.framer-btn-secondary:hover {
-  background-color: #1c1c1c;
-  border-color: #333333;
+.cohere-btn-secondary:hover {
+  color: #ff7759;
 }
 
-.framer-btn-translucent {
-  background-color: rgba(28, 28, 28, 0.8);
+/* button-pill-outline: Outlined pill control with transparent fill, 1px border, 30px radius */
+.cohere-btn-outline {
+  background-color: transparent;
   color: #ffffff;
-  border: 1px solid rgba(38, 38, 38, 0.8);
-  border-radius: 100px;
-  padding: 8px 14px;
+  border: 1px solid #2a2a35;
+  border-radius: 30px;
+  padding: 6px 14px;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 400;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   transition: all 0.15s ease;
-  backdrop-filter: blur(8px);
 }
 
-.framer-btn-translucent:hover {
-  background-color: #262626;
+.cohere-btn-outline:hover {
+  border-color: #ff7759;
+  color: #ff7759;
+  background-color: rgba(255, 119, 89, 0.05);
 }
 
-/* Framer Cards */
+/* blog-filter-chip: Coral taxonomy chip (DESIGN.md) */
+.cohere-chip-coral {
+  border: 1px solid rgba(255, 119, 89, 0.4);
+  color: #ff7759;
+  background-color: rgba(255, 119, 89, 0.08);
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.28px;
+  transition: all 0.15s ease;
+}
+
+.cohere-chip-coral:hover {
+  background-color: rgba(255, 119, 89, 0.18);
+  border-color: #ff7759;
+}
+
+.cohere-chip-coral-active {
+  background-color: #ff7759;
+  color: #17171c;
+  font-weight: 600;
+  border-color: #ff7759;
+}
+
+/* announcement-bar: 36px tall, black #000000 with microcopy (DESIGN.md) */
+.cohere-announcement-bar {
+  background-color: #000000;
+  color: #ffffff;
+  height: 36px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  border-bottom: 1px solid #1f1f26;
+}
+
+/* agent-console-card: Deep console card (DESIGN.md) */
+.cohere-card-console {
+  background-color: #17171c;
+  border: 1px solid #2a2a35;
+  border-radius: 16px;
+}
+
+.cohere-card-console-elevated {
+  background-color: #1f1f26;
+  border: 1px solid #363645;
+  border-radius: 16px;
+}
+
+/* dark-feature-band: Deep enterprise green (#003c33) & Dark Navy (#071829) */
+.cohere-band-green {
+  background-color: #003c33;
+  color: #ffffff;
+  border: 1px solid rgba(237, 252, 233, 0.15);
+  border-radius: 22px;
+}
+
+.cohere-band-navy {
+  background-color: #071829;
+  color: #ffffff;
+  border: 1px solid rgba(241, 245, 255, 0.15);
+  border-radius: 22px;
+}
+
+/* product-card: Soft stone warm neutral card (DESIGN.md) */
+.cohere-card-stone {
+  background-color: #eeece7;
+  color: #17171c;
+  border-radius: 16px;
+}
+
+/* Backward compatibility classes mapped to Cohere tokens */
 .framer-card {
-  background-color: #141414;
-  border: 1px solid #262626;
-  border-radius: 20px;
+  background-color: #17171c;
+  border: 1px solid #2a2a35;
+  border-radius: 16px;
 }
 
 .framer-card-featured {
-  background-color: #1c1c1c;
-  border: 1px solid #333333;
-  border-radius: 20px;
+  background-color: #1f1f26;
+  border: 1px solid #363645;
+  border-radius: 16px;
 }
 
-/* Framer Gradient Spotlight Atmosphere Cards */
-.framer-spotlight-violet {
-  background: radial-gradient(circle at 100% 0%, rgba(106, 76, 245, 0.45) 0%, rgba(20, 20, 20, 0.95) 75%), #141414;
-  border: 1px solid rgba(106, 76, 245, 0.35);
+.framer-btn-primary {
+  @apply cohere-btn-primary;
+}
+
+.framer-btn-secondary {
+  background-color: #1f1f26;
+  color: #ffffff;
+  border: 1px solid #2a2a35;
   border-radius: 30px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.15s ease;
 }
 
-.framer-spotlight-magenta {
-  background: radial-gradient(circle at 100% 0%, rgba(212, 77, 240, 0.45) 0%, rgba(20, 20, 20, 0.95) 75%), #141414;
-  border: 1px solid rgba(212, 77, 240, 0.35);
-  border-radius: 30px;
+.framer-btn-secondary:hover {
+  background-color: #272732;
+  border-color: #363645;
 }
 
-.framer-spotlight-orange {
-  background: radial-gradient(circle at 100% 0%, rgba(255, 122, 61, 0.45) 0%, rgba(20, 20, 20, 0.95) 75%), #141414;
-  border: 1px solid rgba(255, 122, 61, 0.35);
-  border-radius: 30px;
+.framer-btn-translucent {
+  @apply cohere-btn-outline;
 }
 
-/* Backward compatibility utilities */
 .glass-panel {
-  background: rgba(20, 20, 20, 0.92);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid #262626;
-  border-radius: 20px;
+  background-color: #17171c;
+  border: 1px solid #2a2a35;
+  border-radius: 16px;
 }
 
 .glass-panel-elevated {
-  background: rgba(28, 28, 28, 0.92);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid #333333;
-  border-radius: 20px;
+  background-color: #1f1f26;
+  border: 1px solid #363645;
+  border-radius: 16px;
+}
+
+.framer-spotlight-violet {
+  background: radial-gradient(circle at 100% 0%, rgba(24, 99, 220, 0.25) 0%, rgba(23, 23, 28, 0.98) 75%), #17171c;
+  border: 1px solid rgba(24, 99, 220, 0.3);
+  border-radius: 22px;
+}
+
+.framer-spotlight-magenta {
+  background: radial-gradient(circle at 100% 0%, rgba(0, 60, 51, 0.4) 0%, rgba(23, 23, 28, 0.98) 75%), #17171c;
+  border: 1px solid rgba(0, 60, 51, 0.45);
+  border-radius: 22px;
+}
+
+.framer-spotlight-orange {
+  background: radial-gradient(circle at 100% 0%, rgba(255, 119, 89, 0.3) 0%, rgba(23, 23, 28, 0.98) 75%), #17171c;
+  border: 1px solid rgba(255, 119, 89, 0.35);
+  border-radius: 22px;
 }
