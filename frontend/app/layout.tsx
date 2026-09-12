@@ -90,7 +90,7 @@ export default function RootLayout({
         </header>
 
         {/* Main Workspace Content Area */}
-        <main className="flex-1 max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 relative z-10">
+        <main className="flex-1 max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-8 pt-2 sm:pt-3 pb-8 relative z-10">
           {children}
         </main>
 

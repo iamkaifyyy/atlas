@@ -30,7 +30,7 @@ export default function HomePage() {
   const backpack = useBackpackTicker('ETH_USDC');
 
   return (
-    <div className="relative py-8 space-y-24 max-w-6xl mx-auto">
+    <div className="relative pt-1 pb-8 space-y-20 max-w-6xl mx-auto">
       {/* 
         1. Stretched Background Hero Canvas: 
         Extends to the very top behind the navbar with animated ambient gradients & cybernetic grid
@@ -46,7 +46,7 @@ export default function HomePage() {
       </div>
 
       {/* 2. Hero section with Watermark Graphic Shape behind text */}
-      <section className="relative text-center space-y-6 pt-12 pb-8">
+      <section className="relative text-center space-y-5 pt-1 sm:pt-2 pb-6">
         {/* Holographic Watermark Graphic Shape centered behind the hero title */}
         <WatermarkShape className="opacity-90" />
 
