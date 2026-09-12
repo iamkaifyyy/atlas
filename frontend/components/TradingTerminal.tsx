@@ -124,13 +124,20 @@ export const TradingTerminal: React.FC = () => {
 
   const orderBook = useOrderBook();
   const wallet = useWallet();
-  const backpack = useBackpackTicker('ETH_USDC');
-
   const [isKilled, setIsKilled] = useState(false);
   const [activeFilter, setActiveFilter] = useState<EventFilter>('ALL');
   const [copiedVault, setCopiedVault] = useState(false);
   const [chartType, setChartType] = useState<ChartTab>('TRADINGVIEW');
   const [tvSymbol, setTvSymbol] = useState('NASDAQ:AAPL');
+
+  // Dynamically map selected chart symbol to Backpack pair
+  const selectedBpSymbol = useMemo(() => {
+    if (tvSymbol.includes('BTC')) return 'BTC_USDC';
+    if (tvSymbol.includes('SOL')) return 'SOL_USDC';
+    return 'ETH_USDC';
+  }, [tvSymbol]);
+
+  const backpack = useBackpackTicker(selectedBpSymbol);
 
   // Price & stats calculations
   const displayPrice = backpack.isLoading ? currentPrice : backpack.lastPrice;
@@ -181,18 +188,18 @@ export const TradingTerminal: React.FC = () => {
           {/* Pair Identity */}
           <div className="flex items-center gap-2.5 pr-4 border-r border-console-border">
             <div className="w-8 h-8 rounded-lg bg-console-elevated border border-console-border flex items-center justify-center text-white font-bold text-xs font-mono">
-              ETH
+              {selectedBpSymbol.split('_')[0]}
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-semibold text-white text-sm tracking-tight">ETH / USDC</span>
+                <span className="font-semibold text-white text-sm tracking-tight">{selectedBpSymbol.replace('_', ' / ')}</span>
                 <span className="cohere-chip-coral !py-0.5 !px-2 !text-[10px]">
                   BACKPACK LIVE
                 </span>
               </div>
               <div className="text-[11px] text-muted font-mono flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span>api.backpack.exchange</span>
+                <span>api.backpack.exchange ({selectedBpSymbol})</span>
               </div>
             </div>
           </div>
@@ -228,7 +235,7 @@ export const TradingTerminal: React.FC = () => {
             <div>
               <div className="text-[10px] text-muted uppercase tracking-[0.28px]">24H Volume</div>
               <div className="text-white font-medium">
-                {backpack.volume24h.toFixed(1)} ETH (${(backpack.quoteVolume24h / 1e6).toFixed(2)}M)
+                {backpack.volume24h.toFixed(1)} {selectedBpSymbol.split('_')[0]} (${(backpack.quoteVolume24h / 1e6).toFixed(2)}M)
               </div>
             </div>
             <div>
