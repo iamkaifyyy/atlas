@@ -58,7 +58,7 @@ const TradingViewChart = dynamic(
   { ssr: false, loading: createChartLoader('Loading TradingView widget...', 580) }
 );
 
-type BottomConsoleTab = 'LEDGER' | 'SIMULATION' | 'GUARDRAILS' | 'SPONSORS';
+type BottomConsoleTab = 'LEDGER' | 'SIMULATION' | 'GUARDRAILS';
 type EventFilter = 'ALL' | 'EXECUTED' | 'APPROVAL' | 'REJECTED';
 
 const FILTER_TABS: { id: EventFilter; label: string; activeColor: string }[] = [
@@ -365,60 +365,6 @@ export const TradingTerminal: React.FC = () => {
         </div>
       </header>
 
-      {/* Hackathon Sponsor Multi-Chain Enterprise Stack Bar */}
-      <div className="bg-console-elevated/70 border border-console-border rounded-xl px-4 py-2 flex flex-wrap items-center justify-between gap-2.5 text-xs font-mono">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-muted text-[10px] uppercase font-bold tracking-wider">PROTOCOL STACK:</span>
-          
-          {/* ENSv2 */}
-          <div className="flex items-center gap-1.5 bg-blue-950/60 border border-blue-500/30 px-2 py-0.5 rounded text-[11px] text-blue-300" title="ENSv2 Sepolia Agent Subname & ENSIP-26 Records">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
-            <span className="font-bold text-white">alpha.atlas.eth</span>
-            <span className="text-[9px] bg-blue-500/20 text-blue-300 px-1 rounded">ENSv2</span>
-          </div>
-
-          {/* World AgentKit */}
-          <div className="flex items-center gap-1.5 bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 rounded text-[11px] text-emerald-300" title="World AgentKit Verified Human-Backed Identity">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="font-bold text-white">WORLD AGENTKIT</span>
-            <span className="text-[9px] bg-emerald-500/20 text-emerald-300 px-1 rounded">HUMAN-BACKED</span>
-          </div>
-
-          {/* Arc Circle */}
-          <div className="flex items-center gap-1.5 bg-cyan-950/60 border border-cyan-500/30 px-2 py-0.5 rounded text-[11px] text-cyan-300" title="Circle Arc Testnet USDC Vault">
-            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
-            <span className="font-bold text-white">ARC L1</span>
-            <span className="text-[9px] bg-cyan-500/20 text-cyan-300 px-1 rounded">USDC NATIVE</span>
-          </div>
-
-          {/* Hedera HCS */}
-          <div className="flex items-center gap-1.5 bg-purple-950/60 border border-purple-500/30 px-2 py-0.5 rounded text-[11px] text-purple-300" title="Hedera Consensus Service Immutable Audit Trail">
-            <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />
-            <span className="font-bold text-white">HEDERA HCS</span>
-            <span className="text-[9px] bg-purple-500/20 text-purple-300 px-1 rounded">x402 PAID</span>
-          </div>
-
-          {/* The Graph */}
-          <div className="flex items-center gap-1.5 bg-amber-950/60 border border-amber-500/30 px-2 py-0.5 rounded text-[11px] text-amber-300" title="The Graph Subgraph Studio On-Chain Oracle">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-            <span className="font-bold text-white">THE GRAPH</span>
-            <span className="text-[9px] bg-amber-500/20 text-amber-300 px-1 rounded">SUBGRAPH ORACLE</span>
-          </div>
-
-          {/* 1inch Aqua */}
-          <div className="flex items-center gap-1.5 bg-rose-950/60 border border-rose-500/30 px-2 py-0.5 rounded text-[11px] text-rose-300" title="1inch Aqua Self-Custodial SwapVM Liquidity">
-            <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
-            <span className="font-bold text-white">1INCH AQUA</span>
-            <span className="text-[9px] bg-rose-500/20 text-rose-300 px-1 rounded">SWAPVM</span>
-          </div>
-        </div>
-
-        <div className="text-[10px] text-zinc-400 font-mono flex items-center gap-1">
-          <span>PRIZE TARGET:</span>
-          <span className="text-emerald-400 font-bold">$37,000</span>
-        </div>
-      </div>
-
       {/* Floating Animated Toast Feedback */}
       <AnimatePresence>
         {toastMessage && (
@@ -573,19 +519,6 @@ export const TradingTerminal: React.FC = () => {
             >
               <Shield className="w-3.5 h-3.5 text-emerald-400" />
               <span>Vault Guardrails & Hard Caps</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setBottomTab('SPONSORS')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md transition ${
-                bottomTab === 'SPONSORS'
-                  ? 'bg-white text-console-surface font-bold shadow-sm'
-                  : 'text-amber-400 hover:text-white font-medium'
-              }`}
-            >
-              <Activity className="w-3.5 h-3.5 text-amber-400" />
-              <span>The Graph & Hedera Intel ($37k Stack)</span>
             </button>
           </div>
 
@@ -842,166 +775,6 @@ export const TradingTerminal: React.FC = () => {
                 {truncateAddress(vaultAddress)}
               </div>
               <div className="text-emerald-400 text-[10px]">Hard Capped Smart Contract Settlement</div>
-            </div>
-          </div>
-        )}
-
-        {/* TAB CONTENT 4: Hackathon Sponsor Protocol Intel ($37k Bounties) */}
-        {bottomTab === 'SPONSORS' && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 py-1 font-mono text-xs">
-            {/* The Graph */}
-            <div className="bg-amber-950/20 p-3.5 rounded-lg border border-amber-500/30 space-y-2">
-              <div className="flex items-center justify-between text-amber-400 font-bold">
-                <span className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-                  THE GRAPH SUBGRAPH ORACLE
-                </span>
-                <span className="text-[10px] bg-amber-500/20 px-1.5 py-0.5 rounded text-amber-300">$5,000 TRACK</span>
-              </div>
-              <div className="text-white text-xs space-y-1">
-                <div className="flex justify-between">
-                  <span className="text-muted">Uniswap v3 Pool:</span>
-                  <span className="text-white font-medium">0x88e6...5640</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted">Subgraph Pool TVL:</span>
-                  <span className="text-emerald-400 font-bold">$142,850,900</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted">24h Subgraph Volume:</span>
-                  <span className="text-white font-medium">$89,450,120</span>
-                </div>
-                <div className="flex justify-between border-t border-amber-500/20 pt-1">
-                  <span className="text-muted">Cross-Venue Slippage:</span>
-                  <span className="text-emerald-400 font-bold">0.12% (SAFE)</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Hedera HCS */}
-            <div className="bg-purple-950/20 p-3.5 rounded-lg border border-purple-500/30 space-y-2">
-              <div className="flex items-center justify-between text-purple-400 font-bold">
-                <span className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-purple-400" />
-                  HEDERA CONSENSUS SERVICE
-                </span>
-                <span className="text-[10px] bg-purple-500/20 px-1.5 py-0.5 rounded text-purple-300">$15,000 TRACK</span>
-              </div>
-              <div className="text-white text-xs space-y-1">
-                <div className="flex justify-between">
-                  <span className="text-muted">HCS Consensus Topic:</span>
-                  <span className="text-white font-medium">0.0.5678912</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted">x402 Micropayment:</span>
-                  <span className="text-purple-300 font-bold">0.1 HBAR / Signal</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted">Consensus Finality:</span>
-                  <span className="text-emerald-400 font-bold">2.8s (aBFT Verified)</span>
-                </div>
-                <div className="flex justify-between border-t border-purple-500/20 pt-1">
-                  <span className="text-muted">HashScan Receipts:</span>
-                  <a href="https://hashscan.io/testnet" target="_blank" rel="noreferrer" className="text-purple-300 hover:underline flex items-center gap-1">
-                    HashScan Explorer ↗
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            {/* World AgentKit */}
-            <div className="bg-emerald-950/20 p-3.5 rounded-lg border border-emerald-500/30 space-y-2">
-              <div className="flex items-center justify-between text-emerald-400 font-bold">
-                <span className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                  WORLD AGENTKIT & SELFIE CHECK
-                </span>
-                <span className="text-[10px] bg-emerald-500/20 px-1.5 py-0.5 rounded text-emerald-300">$7,000 TRACK</span>
-              </div>
-              <div className="text-white text-xs space-y-1">
-                <div className="flex justify-between">
-                  <span className="text-muted">AgentBook Identity:</span>
-                  <span className="text-emerald-300 font-bold">AgentBook #004912</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted">Human Supervision:</span>
-                  <span className="text-white font-medium">HUMAN-BACKED</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted">Selfie Check Credential:</span>
-                  <span className="text-emerald-400 font-medium">Active for &gt; 0.5 ETH</span>
-                </div>
-                <div className="flex justify-between border-t border-emerald-500/20 pt-1">
-                  <span className="text-muted">Proof Status:</span>
-                  <span className="text-emerald-400 font-bold">Verified Zero-Knowledge</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Arc Circle */}
-            <div className="bg-cyan-950/20 p-3.5 rounded-lg border border-cyan-500/30 space-y-2">
-              <div className="flex items-center justify-between text-cyan-400 font-bold">
-                <span>ARC L1 (CIRCLE USDC NATIVE)</span>
-                <span className="text-[10px] bg-cyan-500/20 px-1.5 py-0.5 rounded text-cyan-300">$10,000 TRACK</span>
-              </div>
-              <div className="text-white text-xs space-y-1">
-                <div className="flex justify-between">
-                  <span className="text-muted">Chain ID:</span>
-                  <span className="text-white font-medium">5040 (Arc Testnet)</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted">Native Gas:</span>
-                  <span className="text-cyan-300 font-bold">Circle USDC</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted">Agent Wallet:</span>
-                  <span className="text-white font-medium">Circle Developer Wallet</span>
-                </div>
-              </div>
-            </div>
-
-            {/* ENSv2 */}
-            <div className="bg-blue-950/20 p-3.5 rounded-lg border border-blue-500/30 space-y-2">
-              <div className="flex items-center justify-between text-blue-400 font-bold">
-                <span>ENSv2 AGENT NAMESPACE</span>
-                <span className="text-[10px] bg-blue-500/20 px-1.5 py-0.5 rounded text-blue-300">$5,000 TRACK</span>
-              </div>
-              <div className="text-white text-xs space-y-1">
-                <div className="flex justify-between">
-                  <span className="text-muted">Agent Subname:</span>
-                  <span className="text-blue-300 font-bold">alpha.atlas.eth</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted">ENSIP-26 Metadata:</span>
-                  <span className="text-white font-medium">agent.strategy / maxSpend</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted">Access Control:</span>
-                  <span className="text-emerald-400 font-medium">Role-Based Delegated</span>
-                </div>
-              </div>
-            </div>
-
-            {/* 1inch Aqua */}
-            <div className="bg-rose-950/20 p-3.5 rounded-lg border border-rose-500/30 space-y-2">
-              <div className="flex items-center justify-between text-rose-400 font-bold">
-                <span>1INCH AQUA & SWAPVM</span>
-                <span className="text-[10px] bg-rose-500/20 px-1.5 py-0.5 rounded text-rose-300">$7,000 TRACK</span>
-              </div>
-              <div className="text-white text-xs space-y-1">
-                <div className="flex justify-between">
-                  <span className="text-muted">Idle Escrow Yield:</span>
-                  <span className="text-emerald-400 font-bold">+4.82% APY</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted">Custody Mode:</span>
-                  <span className="text-white font-medium">100% Self-Custodial</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted">SwapVM Opcodes:</span>
-                  <span className="text-rose-300 font-mono text-[10px]">OP_VERIFY_GUARDRAIL</span>
-                </div>
-              </div>
             </div>
           </div>
         )}
