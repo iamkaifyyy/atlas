@@ -14,9 +14,11 @@ export const Navbar: React.FC = () => {
         {/* Brand Logo */}
         <div className="flex items-center gap-4">
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-7 h-7 rounded-lg bg-white text-[#0b0c0e] flex items-center justify-center font-bold text-sm tracking-tighter transition group-hover:scale-105 shadow-md">
-              ▲
-            </div>
+            <img
+              src="/globe.svg"
+              alt="Atlas Protocol Logo"
+              className="w-7 h-7 object-contain transition group-hover:scale-110"
+            />
             <div className="flex items-center gap-2">
               <span className="font-semibold text-white tracking-[-0.03em] text-base">
                 Atlas
