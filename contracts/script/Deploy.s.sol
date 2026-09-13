@@ -23,7 +23,7 @@ contract DeployScript is Script {
         priceFeed = new MockPriceFeed(3000 * 1e8, 8);
 
         // 2. Deploy AgentVault with 10 ETH escrow, 5 ETH max total cap, 2 ETH max per trade, 0.5 ETH approval threshold
-        vault = new AgentVault{value: 5 ether}(
+        vault = new AgentVault{value: 0.1 ether}(
             agentAddress,
             5 ether,      // Max Total Spend
             1.5 ether,    // Max Per Trade Spend
