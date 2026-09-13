@@ -635,7 +635,7 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
                     : 'text-muted hover:text-white'
                 }`}
               >
-                {source === 'backpack' ? 'Backpack' : source === '1inch' ? '1inch Aqua' : 'Atlas'}
+                {source === 'backpack' ? 'Backpack' : source === '1inch' ? '1inch DEX' : 'Atlas'}
               </button>
             ))}
           </div>
