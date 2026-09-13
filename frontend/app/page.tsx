@@ -4,456 +4,228 @@ import React from 'react';
 import Link from 'next/link';
 import {
   LineChart,
-  SlidersHorizontal,
-  Lock,
   ArrowRight,
   TrendingUp,
-  Wallet,
-  Zap,
   BarChart3,
   ShieldCheck,
-  Cpu,
+  Activity,
   Layers,
   ArrowUpRight,
-  CheckCircle2,
+  Lock,
+  Cpu,
   Terminal,
-  Activity,
-  ShieldAlert,
-  Sparkles
+  ChevronRight
 } from 'lucide-react';
-import { useWallet } from '../hooks/useWallet';
 import { useBackpackTicker } from '../hooks/useBackpackTicker';
-import { WatermarkShape } from '../components/WatermarkShape';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 export default function HomePage() {
-  const { address, balance, isConnected, isConnecting, connect, connectDemoWallet, disconnect } = useWallet();
   const backpack = useBackpackTicker('ETH_USDC');
 
   return (
-    <div className="relative pt-1 pb-8 space-y-20 max-w-6xl mx-auto">
+    <div className="relative space-y-20 max-w-6xl mx-auto font-sans pt-4 pb-16">
       {/* 
-        1. Stretched Background Hero Canvas: 
-        Extends to the very top behind the navbar with animated ambient gradients & cybernetic grid
+        1. Expo.dev Soft Sky Atmospheric Wash (No pulsing glowing balls or fake dot matrix)
       */}
-      <div className="fixed inset-x-0 top-0 h-[920px] pointer-events-none overflow-hidden -z-20">
-        {/* Glowing radial gradient orbs */}
-        <div className="absolute -top-[140px] left-1/2 -translate-x-1/2 w-[1300px] h-[720px] bg-gradient-to-b from-coral/20 via-emerald-500/10 to-transparent blur-[140px] opacity-75 animate-pulse-glow" />
-        <div className="absolute top-[60px] -left-[240px] w-[650px] h-[650px] bg-action-blue/20 blur-[150px] rounded-full animate-float" />
-        <div className="absolute top-[40px] -right-[240px] w-[650px] h-[650px] bg-coral/15 blur-[150px] rounded-full animate-float animation-delay-200" />
-        
-        {/* Cybernetic High-Tech Dot Matrix Grid */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#2a2a351f_1px,transparent_1px),linear-gradient(to_bottom,#2a2a351f_1px,transparent_1px)] bg-[size:42px_42px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_20%,#000_70%,transparent_100%)] opacity-70" />
-      </div>
+      <div className="absolute inset-x-0 top-0 h-[600px] pointer-events-none -z-10 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(13,116,206,0.18),rgba(11,12,14,0))]" />
 
-      {/* 2. Hero section with Watermark Graphic Shape behind text */}
-      <motion.section
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        className="relative text-center space-y-5 pt-1 sm:pt-2 pb-6"
-      >
-        {/* Holographic Watermark Graphic Shape centered behind the hero title */}
-        <WatermarkShape className="opacity-90" />
-
+      {/* 2. Expo Hero Section */}
+      <section className="text-center space-y-6 pt-6 sm:pt-10 pb-4">
+        {/* Soft Category Badge */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.1, duration: 0.5 }}
-          className="inline-flex items-center gap-2"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#16171b] border border-[#23252c] text-xs font-mono text-zinc-300"
         >
-          <span className="cohere-chip-coral shadow-lg shadow-coral/10 backdrop-blur-md">
-            QUANTITATIVE AI PROTOCOL 2026
-          </span>
-          <span className="font-mono text-[11px] text-muted hidden sm:inline">
-            // CONTROLLED ENTERPRISE EXECUTION
-          </span>
+          <span className="w-2 h-2 rounded-full bg-blue-500" />
+          <span>ON-CHAIN QUANTITATIVE TRADING PROTOCOL</span>
         </motion.div>
 
+        {/* Display Headline (Expo Display Mega style: Inter 600, tight tracking) */}
         <motion.h1
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          className="text-5xl sm:text-7xl lg:text-8xl font-normal tracking-[-0.04em] text-white leading-[0.98] max-w-5xl mx-auto"
+          transition={{ delay: 0.1, duration: 0.5 }}
+          className="text-4xl sm:text-6xl lg:text-7xl font-semibold tracking-[-0.035em] text-white leading-[1.08] max-w-4xl mx-auto"
         >
-          Autonomous Crypto Intelligence. <br />
-          <span className="text-zinc-400">Bounded by Smart Contracts.</span>
+          Build automated trading rules. <br />
+          <span className="text-zinc-400">Enforce caps on-chain.</span>
         </motion.h1>
 
+        {/* Subtitle */}
         <motion.p
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.6 }}
-          className="text-base sm:text-xl text-zinc-400 max-w-2xl mx-auto leading-relaxed font-normal"
+          transition={{ delay: 0.2, duration: 0.5 }}
+          className="text-base sm:text-lg text-zinc-400 max-w-2xl mx-auto leading-relaxed font-normal"
         >
-          Direct Level 2 orderbook feeds from Backpack Exchange, sub-millisecond execution, and non-custodial EVM escrow limits that no algorithm can bypass.
+          Real-time Level 2 orderbooks from Backpack Exchange, non-custodial EVM spending caps, and immutable Hedera HCS audit logging in a 60-second No-Code studio.
         </motion.p>
 
-        {/* Primary and secondary actions */}
+        {/* Expo Dual Action Buttons */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.5 }}
-          className="flex flex-wrap items-center justify-center gap-4 pt-4"
+          transition={{ delay: 0.3, duration: 0.5 }}
+          className="flex flex-wrap items-center justify-center gap-4 pt-2"
         >
-          <motion.div whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.96 }}>
-            <Link
-              href="/terminal"
-              className="cohere-btn-primary shadow-xl hover:shadow-white/20 transition-all duration-200"
-            >
-              <LineChart className="w-4 h-4" />
-              <span>Launch Trading Console</span>
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </motion.div>
+          <Link
+            href="/terminal"
+            className="px-6 py-3 rounded-full bg-white text-[#0b0c0e] font-medium text-sm hover:bg-zinc-200 transition-all duration-200 flex items-center gap-2 shadow-lg"
+          >
+            <span>Launch Trading Console</span>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
 
-          <motion.div whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.96 }}>
-            <Link
-              href="/markets"
-              className="cohere-btn-outline transition-all duration-200 backdrop-blur-md"
-            >
-              <BarChart3 className="w-4 h-4 text-muted" />
-              <span>Live Asset Screener</span>
-            </Link>
-          </motion.div>
+          <Link
+            href="/automation"
+            className="px-6 py-3 rounded-full bg-[#121316] border border-[#23252c] text-white font-medium text-sm hover:bg-[#1a1b20] hover:border-zinc-700 transition-all duration-200 flex items-center gap-2"
+          >
+            <span>Open Strategy Studio</span>
+          </Link>
 
-          <motion.div whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.96 }}>
-            <Link
-              href="/vault"
-              className="cohere-btn-secondary transition-all duration-200"
-            >
-              <span>Inspect Escrow Architecture</span>
-              <ArrowUpRight className="w-3.5 h-3.5" />
-            </Link>
-          </motion.div>
+          <Link
+            href="/vault"
+            className="text-[#0d74ce] hover:underline font-medium text-sm flex items-center gap-1 px-3 py-2 transition"
+          >
+            <span>Inspect Escrow Architecture</span>
+            <ArrowUpRight className="w-4 h-4" />
+          </Link>
         </motion.div>
+      </section>
+
+      {/* 3. Expo Centered Terminal Composite Device Mockup */}
+      <motion.section
+        initial={{ opacity: 0, y: 25 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4, duration: 0.6 }}
+        className="relative"
+      >
+        <div className="bg-[#121316] border border-[#23252c] rounded-2xl shadow-2xl overflow-hidden p-1 sm:p-2">
+          {/* Top Window Bar */}
+          <div className="bg-[#0b0c0e] px-4 py-2.5 rounded-t-xl border-b border-[#23252c] flex items-center justify-between font-mono text-xs text-zinc-400">
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-full bg-rose-500/80" />
+                <div className="w-3 h-3 rounded-full bg-amber-500/80" />
+                <div className="w-3 h-3 rounded-full bg-emerald-500/80" />
+              </div>
+              <span className="pl-3 text-zinc-400 font-medium">atlas-terminal // eth_usdc.backpack</span>
+            </div>
+
+            <div className="flex items-center gap-3 text-[11px]">
+              <span className="flex items-center gap-1.5 text-emerald-400">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                Backpack WS Live
+              </span>
+              <span>•</span>
+              <span>Matching Engine: &lt; 0.9 ms</span>
+            </div>
+          </div>
+
+          {/* Embedded Terminal Screen Preview */}
+          <div className="bg-[#0b0c0e] p-4 sm:p-6 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 font-mono text-xs">
+              <div className="bg-[#121316] p-4 rounded-xl border border-[#23252c]">
+                <div className="text-zinc-500 text-[10px] uppercase">ETH/USDC Mark Price</div>
+                <div className="text-2xl font-bold text-white mt-1">
+                  ${backpack.lastPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </div>
+                <div className="text-emerald-400 text-xs mt-0.5">+{backpack.priceChangePercent.toFixed(2)}% (24h)</div>
+              </div>
+
+              <div className="bg-[#121316] p-4 rounded-xl border border-[#23252c]">
+                <div className="text-zinc-500 text-[10px] uppercase">EVM Escrow Collateral</div>
+                <div className="text-2xl font-bold text-white mt-1">0.20 ETH</div>
+                <div className="text-zinc-400 text-xs mt-0.5">5.00 ETH Budget Ceiling</div>
+              </div>
+
+              <div className="bg-[#121316] p-4 rounded-xl border border-[#23252c]">
+                <div className="text-zinc-500 text-[10px] uppercase">24h Backpack Volume</div>
+                <div className="text-2xl font-bold text-white mt-1">
+                  ${(backpack.quoteVolume24h / 1e6).toFixed(2)}M
+                </div>
+                <div className="text-zinc-400 text-xs mt-0.5">{backpack.volume24h.toFixed(1)} ETH</div>
+              </div>
+
+              <div className="bg-[#121316] p-4 rounded-xl border border-[#23252c]">
+                <div className="text-zinc-500 text-[10px] uppercase">Hedera HCS Audit Log</div>
+                <div className="text-2xl font-bold text-emerald-400 mt-1">Topic #0.0.48912</div>
+                <div className="text-zinc-400 text-xs mt-0.5">100% Immutable Trail</div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between p-4 rounded-xl bg-[#121316] border border-[#23252c] font-mono text-xs">
+              <div className="flex items-center gap-3">
+                <Terminal className="w-4 h-4 text-emerald-400" />
+                <span className="text-zinc-300">Active Rule: <strong className="text-white">ETH Momentum Guard (Dip Buyer)</strong></span>
+              </div>
+              <Link href="/terminal" className="text-blue-400 hover:underline flex items-center gap-1 font-sans">
+                <span>View Full Terminal</span>
+                <ChevronRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
+        </div>
       </motion.section>
 
-      {/* 3. Protocol infrastructure strip (Animated) */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.45, duration: 0.6 }}
-        className="text-center space-y-4 py-6 border-y border-console-border/40 relative backdrop-blur-sm"
-      >
-        <div className="font-mono text-[11px] uppercase tracking-[0.28px] text-muted flex items-center justify-center gap-2">
-          <Sparkles className="w-3.5 h-3.5 text-coral animate-pulse" />
-          <span>INTEGRATED PROTOCOL STANDARDS & INFRASTRUCTURE</span>
+      {/* 4. Protocol Ecosystem Banner */}
+      <section className="border-y border-[#23252c] py-6 text-center space-y-3 font-mono text-xs text-zinc-400">
+        <div className="uppercase text-[10px] tracking-wider text-zinc-500">INTEGRATED PROTOCOL STANDARDS</div>
+        <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-12 font-medium text-white">
+          <span className="hover:text-blue-400 transition cursor-default">BACKPACK L2</span>
+          <span className="hover:text-blue-400 transition cursor-default">ETHEREUM EVM</span>
+          <span className="hover:text-emerald-400 transition cursor-default">HEDERA HCS</span>
+          <span className="hover:text-blue-400 transition cursor-default">1INCH AQUA</span>
+          <span className="hover:text-blue-400 transition cursor-default">THE GRAPH</span>
+          <span className="hover:text-blue-400 transition cursor-default">ENSv2 RESOLUTION</span>
         </div>
-        <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-16 opacity-80 hover:opacity-100 transition-opacity font-mono text-xs text-white">
-          <span className="flex items-center gap-2 hover:text-emerald-400 transition cursor-default">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-            BACKPACK L2 API
-          </span>
-          <span className="hover:text-action-blue transition cursor-default">ETHEREUM EVM</span>
-          <span className="hover:text-emerald-400 transition cursor-default">ANVIL LOCALNET 31337</span>
-          <span className="hover:text-coral transition cursor-default">NON-CUSTODIAL ESCROW</span>
-          <span className="hover:text-zinc-200 transition cursor-default">LIGHTWEIGHT CHARTS PRO</span>
+      </section>
+
+      {/* 5. Expo Bento Feature Grid (Clean, Flat, Hairline Borders) */}
+      <section className="space-y-6">
+        <div className="text-center space-y-2">
+          <h2 className="text-3xl font-semibold text-white tracking-tight">
+            Institutional Infrastructure for Autonomous Agents
+          </h2>
+          <p className="text-sm text-zinc-400 max-w-xl mx-auto">
+            Combining visual rule compilation with hard EVM smart contract guardrails.
+          </p>
         </div>
-      </motion.div>
 
-      {/* 4. Live market metrics (Framer Motion Staggered Hover Cards) */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 font-mono">
-        <motion.div
-          whileHover={{ y: -6, scale: 1.02, borderColor: 'rgba(255, 119, 89, 0.5)' }}
-          transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-          className="cohere-card-console p-5 space-y-1.5 shadow-md group cursor-pointer"
-        >
-          <div className="text-[11px] text-muted flex items-center justify-between">
-            <span className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              ETH / USDC (BACKPACK)
-            </span>
-            <span className="text-coral text-[10px] font-bold">LIVE</span>
-          </div>
-          <div className="text-3xl font-semibold text-white tracking-tight group-hover:text-emerald-400 transition-colors">
-            ${backpack.lastPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </div>
-          <div className="text-xs text-emerald-400 flex items-center">
-            <TrendingUp className="w-3.5 h-3.5 mr-1" />
-            +{backpack.priceChangePercent.toFixed(2)}% (24h)
-          </div>
-        </motion.div>
-
-        <motion.div
-          whileHover={{ y: -6, scale: 1.02, borderColor: 'rgba(16, 185, 129, 0.5)' }}
-          transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-          className="cohere-card-console p-5 space-y-1.5 shadow-md group cursor-pointer"
-        >
-          <div className="text-[11px] text-muted">COLLATERAL ESCROW</div>
-          <div className="text-3xl font-semibold text-white tracking-tight group-hover:text-emerald-400 transition-colors">
-            0.20 ETH
-          </div>
-          <div className="text-xs text-muted">
-            5.00 ETH Hard Cap
-          </div>
-        </motion.div>
-
-        <motion.div
-          whileHover={{ y: -6, scale: 1.02, borderColor: 'rgba(24, 99, 220, 0.5)' }}
-          transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-          className="cohere-card-console p-5 space-y-1.5 shadow-md group cursor-pointer"
-        >
-          <div className="text-[11px] text-muted">24H BACKPACK VOLUME</div>
-          <div className="text-3xl font-semibold text-white tracking-tight group-hover:text-blue-400 transition-colors">
-            ${(backpack.quoteVolume24h / 1000000).toFixed(2)}M
-          </div>
-          <div className="text-xs text-muted">
-            {backpack.volume24h.toFixed(1)} ETH Volume
-          </div>
-        </motion.div>
-
-        <motion.div
-          whileHover={{ y: -6, scale: 1.02, borderColor: 'rgba(52, 211, 153, 0.5)' }}
-          transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-          className="cohere-card-console p-5 space-y-1.5 shadow-md group cursor-pointer"
-        >
-          <div className="text-[11px] text-muted">MATCHING LATENCY</div>
-          <div className="text-3xl font-semibold text-emerald-400 tracking-tight">
-            &lt; 1.2 ms
-          </div>
-          <div className="text-xs text-muted">
-            In-Memory FIFO Engine
-          </div>
-        </motion.div>
-      </div>
-
-      {/* 5. Feature Focus Bands (Framer Motion Animated Hover) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Liquidity feed band */}
-        <motion.div
-          whileHover={{ y: -6, scale: 1.01 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-          className="cohere-band-green p-8 sm:p-10 flex flex-col justify-between space-y-8 shadow-xl"
-        >
-          <div className="space-y-4">
-            <div className="inline-flex items-center gap-2">
-              <span className="cohere-chip-coral !bg-white/10 !text-white !border-white/20">
-                LIQUIDITY PIPELINE
-              </span>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-[#121316] border border-[#23252c] hover:border-zinc-700 rounded-2xl p-6 space-y-3 transition-all">
+            <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center">
+              <LineChart className="w-5 h-5" />
             </div>
-            <h3 className="text-3xl font-normal tracking-[-0.03em] text-white">
-              Backpack Exchange High-Frequency Feed
-            </h3>
-            <p className="text-sm text-emerald-100/80 leading-relaxed font-normal">
-              Direct Level 2 orderbook depth, historical candlestick klines, and sub-second price streaming integrated with a full TradingView-style studio and technical indicators.
+            <h3 className="text-lg font-semibold text-white">TradingView Pro UI</h3>
+            <p className="text-xs text-zinc-400 leading-relaxed">
+              Real-time candlestick charts with custom drawing tools palette, technical indicators, and execution markers.
             </p>
           </div>
 
-          <div className="pt-4 border-t border-emerald-400/20 flex items-center justify-between">
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }}>
-              <Link
-                href="/terminal"
-                className="cohere-btn-primary !bg-white !text-[#003c33] transition-transform"
-              >
-                <span>Open Pro Desk</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            </motion.div>
-            <span className="font-mono text-xs text-emerald-200">REST & WS v1</span>
-          </div>
-        </motion.div>
-
-        {/* Security vault band */}
-        <motion.div
-          whileHover={{ y: -6, scale: 1.01 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-          className="cohere-band-navy p-8 sm:p-10 flex flex-col justify-between space-y-8 shadow-xl"
-        >
-          <div className="space-y-4">
-            <div className="inline-flex items-center gap-2">
-              <span className="cohere-chip-coral !bg-white/10 !text-white !border-white/20">
-                PROGRAMMATIC RISK
-              </span>
+          <div className="bg-[#121316] border border-[#23252c] hover:border-zinc-700 rounded-2xl p-6 space-y-3 transition-all">
+            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center">
+              <ShieldCheck className="w-5 h-5" />
             </div>
-            <h3 className="text-3xl font-normal tracking-[-0.03em] text-white">
-              Smart Contract Escrow & Safety Ceilings
-            </h3>
-            <p className="text-sm text-slate-300 leading-relaxed font-normal">
-              EVM-enforced spending limits, single-order size constraints, and human-in-the-loop approval thresholds for high-volume transactions with emergency on-chain refund switch.
+            <h3 className="text-lg font-semibold text-white">Guarded EVM Escrow</h3>
+            <p className="text-xs text-zinc-400 leading-relaxed">
+              On-chain spending ceilings (`AgentVault.sol`), single-trade caps, human-in-the-loop gating, and 1-click refund kill-switch.
             </p>
           </div>
 
-          <div className="pt-4 border-t border-slate-700 flex items-center justify-between">
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }}>
-              <Link
-                href="/vault"
-                className="cohere-btn-primary !bg-white !text-[#071829] transition-transform"
-              >
-                <span>Inspect Security Vault</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            </motion.div>
-            <span className="font-mono text-xs text-slate-300">EVM Anvil Verified</span>
-          </div>
-        </motion.div>
-      </div>
-
-      {/* 6. Account Onboarding Card (Framer Motion Animated) */}
-      <motion.div
-        layout
-        className="max-w-2xl mx-auto cohere-card-console p-8 space-y-6 shadow-2xl border border-console-border"
-      >
-        <div className="flex items-center justify-between pb-4 border-b border-console-border">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-console-elevated flex items-center justify-center text-white border border-console-border">
-              <Wallet className="w-4 h-4" />
+          <div className="bg-[#121316] border border-[#23252c] hover:border-zinc-700 rounded-2xl p-6 space-y-3 transition-all">
+            <div className="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center">
+              <Activity className="w-5 h-5" />
             </div>
-            <div>
-              <h3 className="text-sm font-semibold text-white">Collateral & Account Access</h3>
-              <p className="text-xs text-muted">Connect browser Web3 wallet or instant pre-funded sandbox</p>
-            </div>
-          </div>
-          {isConnected && (
-            <motion.span
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="flex items-center gap-1.5 text-xs text-emerald-400 font-mono font-medium"
-            >
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              Connected
-            </motion.span>
-          )}
-        </div>
-
-        <AnimatePresence mode="wait">
-          {isConnected ? (
-            <motion.div
-              key="connected-view"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="space-y-4 font-mono text-xs"
-            >
-              <div className="bg-console-elevated rounded-xl p-4 border border-console-border space-y-1.5">
-                <div className="text-muted text-[11px]">Authorized Signer Account</div>
-                <div className="text-white truncate font-medium">{address}</div>
-                <div className="text-muted text-[11px] pt-1">
-                  Vault Collateral: <strong className="text-emerald-400">{balance} ETH</strong>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 pt-2">
-                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                  <Link
-                    href="/terminal"
-                    className="cohere-btn-primary !w-full justify-center text-xs shadow-lg"
-                  >
-                    Launch Terminal
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
-                </motion.div>
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  type="button"
-                  onClick={disconnect}
-                  className="cohere-btn-outline !w-full justify-center text-xs hover:border-rose-500/50 hover:text-rose-400 transition"
-                >
-                  Disconnect
-                </motion.button>
-              </div>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="disconnected-view"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="space-y-3"
-            >
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                type="button"
-                onClick={connectDemoWallet}
-                className="w-full cohere-btn-primary justify-center text-xs !py-3 shadow-lg"
-              >
-                <Zap className="w-4 h-4 text-console-surface" />
-                <span>Launch with Pre-Funded Demo Account (100 ETH)</span>
-              </motion.button>
-
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                type="button"
-                onClick={connect}
-                disabled={isConnecting}
-                className="w-full cohere-btn-outline justify-center text-xs !py-3 disabled:opacity-50"
-              >
-                <Wallet className="w-4 h-4 text-muted" />
-                <span>{isConnecting ? 'Connecting...' : 'Connect MetaMask / Hardware Wallet'}</span>
-              </motion.button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
-
-      {/* 7. Execution Pipeline (4-Stage Animated Architecture Cards) */}
-      <div className="cohere-card-console p-8 space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-console-border">
-          <div>
-            <h3 className="text-lg font-normal text-white tracking-tight">
-              Guarded Execution Pipeline
-            </h3>
-            <p className="text-xs text-muted">
-              Atomic verification flow from Backpack market feeds to EVM smart contract settlement
+            <h3 className="text-lg font-semibold text-white">Hedera HCS Audit Trail</h3>
+            <p className="text-xs text-zinc-400 leading-relaxed">
+              Every trade signal, guardrail block, and emergency kill-switch event is logged immutably onto Hedera Consensus Service.
             </p>
           </div>
-          <span className="cohere-chip-coral self-start sm:self-auto text-[10px]">
-            EVM VERIFIED
-          </span>
         </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 font-mono text-xs">
-          {[
-            {
-              num: '01. INGESTION',
-              title: 'Backpack L2 Feed',
-              desc: 'Real-time tick data streaming over low-latency WebSockets.',
-              accent: 'text-coral',
-              borderHover: 'rgba(255, 119, 89, 0.4)'
-            },
-            {
-              num: '02. VERIFICATION',
-              title: 'Escrow Caps',
-              desc: 'Verifies order does not breach per-trade ceiling or total spend limit.',
-              accent: 'text-emerald-400',
-              borderHover: 'rgba(16, 185, 129, 0.4)'
-            },
-            {
-              num: '03. HUMAN GATE',
-              title: 'Approval Check',
-              desc: 'Trades exceeding 0.5 ETH pause for cryptographic owner sign-off.',
-              accent: 'text-amber-400',
-              borderHover: 'rgba(245, 158, 11, 0.4)'
-            },
-            {
-              num: '04. SETTLEMENT',
-              title: 'Matching Engine',
-              desc: 'Atomic fill on orderbook with verified on-chain event emission.',
-              accent: 'text-white',
-              borderHover: 'rgba(255, 255, 255, 0.4)'
-            }
-          ].map((stage, idx) => (
-            <motion.div
-              key={stage.num}
-              initial={{ opacity: 0, y: 15 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: idx * 0.1, duration: 0.5 }}
-              whileHover={{ y: -6, borderColor: stage.borderHover }}
-              className="bg-console-elevated p-5 rounded-xl border border-console-border space-y-2 cursor-pointer transition-colors"
-            >
-              <div className={`${stage.accent} font-semibold`}>{stage.num}</div>
-              <div className="text-white text-sm font-medium">{stage.title}</div>
-              <p className="text-muted text-[11px] leading-relaxed">
-                {stage.desc}
-              </p>
-            </motion.div>
-          ))}
-        </div>
-      </div>
+      </section>
     </div>
   );
 }
