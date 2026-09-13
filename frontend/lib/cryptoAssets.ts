@@ -61,6 +61,16 @@ export const CRYPTO_ASSETS: CryptoAsset[] = [
     badge: 'L1 SUBNET',
     defaultPrice: 24.8
   },
+  {
+    id: 'HBAR',
+    name: 'Hedera Hashgraph',
+    category: 'Layer 1',
+    tvSymbol: 'BINANCE:HBARUSDT',
+    bpSymbol: 'HBAR_USDC',
+    unit: 'HBAR',
+    badge: 'L1 HASHGRAPH',
+    defaultPrice: 0.058
+  },
 
   // Layer 2
   {
