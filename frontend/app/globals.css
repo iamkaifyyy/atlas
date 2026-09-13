@@ -11,19 +11,19 @@
   body {
     @apply antialiased selection:bg-coral/20 selection:text-coral min-h-screen;
     font-family: var(--font-sans);
-    background-color: #0e0e12;
+    background-color: #09090b;
     color: #ffffff;
   }
 }
 
-/* Custom scrollbar matching Cohere dark console */
+/* Custom scrollbar matching dark console */
 ::-webkit-scrollbar {
   width: 4px;
   height: 4px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0e0e12;
+  background: #09090b;
 }
 
 ::-webkit-scrollbar-thumb {
