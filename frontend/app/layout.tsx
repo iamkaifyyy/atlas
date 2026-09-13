@@ -10,11 +10,16 @@ import {
 import { WalletProvider } from '../context/WalletContext';
 import { LiveTickerBar } from '../components/LiveTickerBar';
 import { ConditionalFooter } from '../components/ConditionalFooter';
-import { Navbar } from '../components/Navbar';
+import { ConditionalNavbar } from '../components/ConditionalNavbar';
 
 export const metadata: Metadata = {
   title: 'Atlas | Enterprise Quantitative Crypto Protocol & Guarded Escrow',
   description: 'Controlled enterprise AI trading infrastructure with on-chain hard caps, live Backpack Exchange orderbook, and non-custodial EVM escrow.',
+  icons: {
+    icon: '/globe.svg',
+    shortcut: '/globe.svg',
+    apple: '/globe.svg',
+  },
 };
 
 export default function RootLayout({
@@ -30,8 +35,8 @@ export default function RootLayout({
         {/* Top live dynamic ticker marquee bar */}
         <LiveTickerBar />
 
-        {/* Responsive Navbar */}
-        <Navbar />
+        {/* Conditional Navbar (Shown ONLY on homepage http://localhost:3000/) */}
+        <ConditionalNavbar />
 
         {/* Main Content Workspace */}
         <main className="flex-1 max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-12 relative z-10">
