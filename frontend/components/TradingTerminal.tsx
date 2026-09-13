@@ -818,30 +818,38 @@ export const TradingTerminal: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md overflow-y-auto"
+            onClick={() => setIsRulesModalOpen(false)}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl overflow-y-auto"
           >
             <motion.div
-              initial={{ scale: 0.95, y: 15 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.95, y: 15 }}
-              className="cohere-card-console border border-console-border p-6 max-w-5xl w-full my-auto shadow-2xl space-y-4 relative bg-[#09090b]"
+              initial={{ scale: 0.94, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.94, opacity: 0, y: 20 }}
+              transition={{ type: 'spring', stiffness: 320, damping: 28 }}
+              onClick={(e) => e.stopPropagation()}
+              className="border border-zinc-800 p-6 max-w-5xl w-full my-auto shadow-2xl space-y-4 relative bg-[#0d0e12] rounded-2xl overflow-hidden"
             >
-              <div className="flex items-center justify-between pb-3 border-b border-console-border">
-                <div className="flex items-center gap-2">
-                  <div className="px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono text-xs font-bold">
-                    STRATEGY STUDIO
+              {/* Top ambient glowing accent line */}
+              <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-emerald-500 via-blue-500 to-purple-500" />
+
+              <div className="flex items-center justify-between pb-3 border-b border-zinc-800/80">
+                <div className="flex items-center gap-3">
+                  <div className="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono text-xs font-bold tracking-wide flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                    STRATEGY STUDIO • LIVE EVM COMPILER
                   </div>
-                  <h2 className="text-base font-bold text-white font-mono">
+                  <h2 className="text-sm font-bold text-white font-mono hidden sm:inline">
                     Agent Strategy Rules & Escrow Caps
                   </h2>
                 </div>
                 <button
                   type="button"
                   onClick={() => setIsRulesModalOpen(false)}
-                  className="text-zinc-400 hover:text-white p-1 rounded-lg hover:bg-zinc-800 transition font-mono text-sm font-bold"
+                  className="text-zinc-400 hover:text-white p-1.5 rounded-lg hover:bg-zinc-800/80 transition font-mono text-xs font-bold flex items-center gap-1 border border-zinc-800"
                   title="Close Modal"
                 >
-                  ✕
+                  <span className="text-muted">ESC</span>
+                  <span>✕</span>
                 </button>
               </div>
 
