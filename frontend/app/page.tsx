@@ -8,7 +8,6 @@ import {
   ShieldCheck,
   Activity,
   ArrowUpRight,
-  Terminal,
   ChevronRight
 } from 'lucide-react';
 import { useBackpackTicker } from '../hooks/useBackpackTicker';
@@ -24,11 +23,11 @@ export default function HomePage() {
     offset: ['start end', 'center center']
   });
 
-  // Dynamic 3D transform values driven by scroll progression
-  const rotateX = useTransform(scrollYProgress, [0, 1], [26, 0]);
-  const scale = useTransform(scrollYProgress, [0, 1], [0.85, 1]);
-  const translateY = useTransform(scrollYProgress, [0, 1], [80, 0]);
-  const opacity = useTransform(scrollYProgress, [0, 0.3, 1], [0.3, 0.8, 1]);
+  // Dynamic 3D transform values driven by scroll progression ("comes out of the screen")
+  const rotateX = useTransform(scrollYProgress, [0, 1], [28, 0]);
+  const scale = useTransform(scrollYProgress, [0, 1], [0.82, 1]);
+  const translateY = useTransform(scrollYProgress, [0, 1], [100, 0]);
+  const opacity = useTransform(scrollYProgress, [0, 0.3, 1], [0.2, 0.8, 1]);
 
   return (
     <div className="relative space-y-20 max-w-6xl mx-auto font-sans pt-4 pb-16">
@@ -103,8 +102,8 @@ export default function HomePage() {
         </motion.div>
       </section>
 
-      {/* 3. Expo 3D Scroll Perspective Terminal Composite Device Mockup */}
-      <div ref={containerRef} className="relative py-6 [perspective:1200px]">
+      {/* 3. 3D Perspective Scroll Terminal Image (Comes out of screen as you scroll) */}
+      <div ref={containerRef} className="relative py-4 [perspective:1200px]">
         <motion.div
           style={{
             rotateX,
@@ -112,19 +111,19 @@ export default function HomePage() {
             translateY,
             opacity,
             transformStyle: 'preserve-3d',
-            boxShadow: '0 30px 80px -20px rgba(0, 0, 0, 0.8), 0 0 50px rgba(13, 116, 206, 0.2)'
+            boxShadow: '0 35px 90px -20px rgba(0, 0, 0, 0.95), 0 0 60px rgba(13, 116, 206, 0.25)'
           }}
-          className="bg-[#121316] border border-[#23252c] rounded-2xl overflow-hidden p-1 sm:p-2 transition-shadow duration-500"
+          className="bg-[#121316] border border-[#23252c] rounded-2xl overflow-hidden p-1.5 sm:p-2.5 transition-shadow duration-500 group"
         >
-          {/* Top Window Bar */}
-          <div className="bg-[#0b0c0e] px-4 py-2.5 rounded-t-xl border-b border-[#23252c] flex items-center justify-between font-mono text-xs text-zinc-400">
+          {/* Top Window Header Bar */}
+          <div className="bg-[#0b0c0e] px-4 py-3 rounded-t-xl border-b border-[#23252c] flex items-center justify-between font-mono text-xs text-zinc-400">
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1.5">
                 <div className="w-3 h-3 rounded-full bg-rose-500/80" />
                 <div className="w-3 h-3 rounded-full bg-amber-500/80" />
                 <div className="w-3 h-3 rounded-full bg-emerald-500/80" />
               </div>
-              <span className="pl-3 text-zinc-400 font-medium">atlas-terminal // eth_usdc.backpack</span>
+              <span className="pl-3 text-zinc-300 font-medium">atlas-terminal // eth_usdc.backpack</span>
             </div>
 
             <div className="flex items-center gap-3 text-[11px]">
@@ -137,48 +136,20 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Embedded Terminal Screen Preview */}
-          <div className="bg-[#0b0c0e] p-4 sm:p-6 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 font-mono text-xs">
-              <div className="bg-[#121316] p-4 rounded-xl border border-[#23252c]">
-                <div className="text-zinc-500 text-[10px] uppercase">ETH/USDC Mark Price</div>
-                <div className="text-2xl font-bold text-white mt-1">
-                  ${backpack.lastPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </div>
-                <div className="text-emerald-400 text-xs mt-0.5">+{backpack.priceChangePercent.toFixed(2)}% (24h)</div>
+          {/* High-Resolution Terminal Screen Image Showcase */}
+          <div className="relative overflow-hidden rounded-b-xl border border-[#23252c]/80 bg-[#0b0c0e]">
+            <Link href="/terminal" className="block relative group">
+              <img
+                src="/hero-terminal-preview.png"
+                alt="Atlas High-Frequency Trading Desk & Agent Execution Vault"
+                className="w-full h-auto rounded-b-xl object-cover transition-transform duration-500 group-hover:scale-[1.01]"
+              />
+              {/* Interactive Hover Overlay Tag */}
+              <div className="absolute bottom-4 right-4 bg-black/80 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/20 text-white font-mono text-xs flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow-xl">
+                <span>Launch Interactive Desk</span>
+                <ChevronRight className="w-3.5 h-3.5 text-[#0d74ce]" />
               </div>
-
-              <div className="bg-[#121316] p-4 rounded-xl border border-[#23252c]">
-                <div className="text-zinc-500 text-[10px] uppercase">EVM Escrow Collateral</div>
-                <div className="text-2xl font-bold text-white mt-1">0.20 ETH</div>
-                <div className="text-zinc-400 text-xs mt-0.5">5.00 ETH Budget Ceiling</div>
-              </div>
-
-              <div className="bg-[#121316] p-4 rounded-xl border border-[#23252c]">
-                <div className="text-zinc-500 text-[10px] uppercase">24h Backpack Volume</div>
-                <div className="text-2xl font-bold text-white mt-1">
-                  ${(backpack.quoteVolume24h / 1e6).toFixed(2)}M
-                </div>
-                <div className="text-zinc-400 text-xs mt-0.5">{backpack.volume24h.toFixed(1)} ETH</div>
-              </div>
-
-              <div className="bg-[#121316] p-4 rounded-xl border border-[#23252c]">
-                <div className="text-zinc-500 text-[10px] uppercase">Hedera HCS Audit Log</div>
-                <div className="text-2xl font-bold text-emerald-400 mt-1">Topic #0.0.48912</div>
-                <div className="text-zinc-400 text-xs mt-0.5">100% Immutable Trail</div>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between p-4 rounded-xl bg-[#121316] border border-[#23252c] font-mono text-xs">
-              <div className="flex items-center gap-3">
-                <Terminal className="w-4 h-4 text-emerald-400" />
-                <span className="text-zinc-300">Active Rule: <strong className="text-white">ETH Momentum Guard (Dip Buyer)</strong></span>
-              </div>
-              <Link href="/terminal" className="text-blue-400 hover:underline flex items-center gap-1 font-sans">
-                <span>View Full Terminal</span>
-                <ChevronRight className="w-4 h-4" />
-              </Link>
-            </div>
+            </Link>
           </div>
         </motion.div>
       </div>
