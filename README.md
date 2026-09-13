@@ -1,8 +1,42 @@
 # Atlas: Enterprise Quantitative AI Protocol & Guarded Escrow
 
+<p align="center">
+  <img src="./docs/images/atlas_logo_banner.png" alt="Atlas Protocol Logo" width="360"/>
+</p>
+
 Atlas is an enterprise-grade autonomous quantitative trading agent platform. Users configure algorithmic trading logic through a **No-Code Visual Rule Builder**, enforce strict **programmatic spending ceilings and human-in-the-loop approval gates on-chain**, and monitor trade execution against a **TradingView Pro live orderbook and chart**.
 
 Every strategy execution, guardrail block, and emergency kill-switch event is logged immutably onto **Hedera Consensus Service (HCS)** with full EVM smart contract enforcement on **AgentVault.sol**.
+
+---
+
+## 📸 Interface & Product Walkthrough
+
+### Landing Hero & Core Engine
+Build automated trading rules and enforce non-custodial EVM spending caps with real-time Level 2 orderbook feeds from Backpack Exchange.
+
+![Atlas Landing Hero](./docs/images/atlas_hero_section.png)
+
+---
+
+### Pro Trading Terminal (TradingView & Backpack Orderbook)
+Features real-time WebSocket orderbook depth ladder streaming (`wss://ws.backpack.exchange`), customizable TradingView charting, active strategy monitors, and quick wallet activation.
+
+![Atlas Trading Terminal](./docs/images/atlas_trading_terminal.png)
+
+---
+
+### No-Code Strategy Studio
+Visually configure rule trigger conditions, target asset price levels, cumulative budget ceilings, per-trade spending caps, and human-in-the-loop sign-off thresholds.
+
+![Atlas Strategy Studio](./docs/images/atlas_strategy_studio.png)
+
+---
+
+### Non-Custodial AgentVault & Safety Controls
+On-chain contract security dashboard enforcing hard programmatic limits that neither AI agents nor backend services can bypass, complete with instant Emergency Kill-Switch and deposit/withdrawal escrow controls.
+
+![Atlas Escrow Vault](./docs/images/atlas_escrow_vault.png)
 
 ---
 
@@ -89,6 +123,8 @@ Open [http://localhost:3000/terminal](http://localhost:3000/terminal) in your br
 atlas/
 ├── agent-runner/        # Node.js TypeScript autonomous execution engine & HCS publisher
 ├── contracts/           # Solidity smart contracts (AgentVault.sol) & Foundry test suite
+├── docs/                # Architecture documentation & screenshots
+│   └── images/          # Screenshots for README and documentation
 ├── frontend/            # Next.js 14 app, TradingView UI, Backpack orderbook, Viem integration
 │   ├── app/             # App router pages (/terminal, /vault, /markets, /automation)
 │   ├── components/      # UI components (TradingTerminal, RuleBuilder, LiveTickerBar, etc.)
