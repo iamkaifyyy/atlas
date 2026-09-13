@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { createWalletClient, createPublicClient, custom, http, formatEther, type Address } from 'viem';
-import { localhost } from 'viem/chains';
+import { formatEther, type Address } from 'viem';
 
 export interface WalletState {
   address: Address | null;
@@ -15,8 +14,6 @@ export interface WalletState {
   disconnect: () => void;
 }
 
-const DEMO_OWNER_ADDRESS: Address = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266'; // Anvil Account 0
-
 export function useWallet(): WalletState {
   const [address, setAddress] = useState<Address | null>(null);
   const [balance, setBalance] = useState<string>('0.00');
@@ -25,15 +22,18 @@ export function useWallet(): WalletState {
 
   const fetchBalance = useCallback(async (addr: Address) => {
     try {
-      const publicClient = createPublicClient({
-        chain: localhost,
-        transport: http('http://127.0.0.1:8545')
-      });
-      const bal = await publicClient.getBalance({ address: addr });
-      setBalance(Number(formatEther(bal)).toFixed(3));
+      if (typeof window !== 'undefined' && (window as any).ethereum) {
+        const hexBal: string = await (window as any).ethereum.request({
+          method: 'eth_getBalance',
+          params: [addr, 'latest']
+        });
+        const wei = BigInt(hexBal);
+        const eth = Number(formatEther(wei));
+        setBalance(eth.toFixed(eth < 0.001 && eth > 0 ? 5 : 3));
+        return;
+      }
     } catch {
-      // Fallback demo balance
-      setBalance('100.00');
+      // Ignore
     }
   }, []);
 
@@ -41,27 +41,40 @@ export function useWallet(): WalletState {
     setIsConnecting(true);
     try {
       if (typeof window !== 'undefined' && (window as any).ethereum) {
-        const walletClient = createWalletClient({
-          chain: localhost,
-          transport: custom((window as any).ethereum)
+        const provider = (window as any).ethereum;
+
+        // Directly invoke eth_requestAccounts on the user's installed browser wallet (MetaMask, Coinbase, Rabby, etc.)
+        const accounts: string[] = await provider.request({
+          method: 'eth_requestAccounts'
         });
-        const [account] = await walletClient.requestAddresses();
-        setAddress(account);
-        setIsDemoWallet(false);
-        await fetchBalance(account);
+
+        if (accounts && accounts.length > 0) {
+          const userAddr = accounts[0] as Address;
+          setAddress(userAddr);
+          setIsDemoWallet(false);
+          localStorage.setItem('atlas_user_wallet_connected', 'true');
+          localStorage.removeItem('demo_wallet_connected');
+          await fetchBalance(userAddr);
+        }
       } else {
-        // Automatically fallback to Instant Demo Wallet if no browser extension is detected
-        connectDemoWallet();
+        alert('No Web3 wallet extension detected! Please install or unlock MetaMask, Rabby, Coinbase Wallet, or any browser extension.');
       }
-    } catch (err) {
-      console.warn('Wallet connection fallback to demo:', err);
-      connectDemoWallet();
+    } catch (err: any) {
+      console.error('Wallet connection error:', err);
+      if (err?.code === 4001) {
+        // User rejected the connection request
+        console.log('User cancelled wallet connection request');
+      } else {
+        alert(`Could not connect wallet: ${err?.message || 'Check your wallet extension'}`);
+      }
     } finally {
       setIsConnecting(false);
     }
   }, [fetchBalance]);
 
   const connectDemoWallet = useCallback(() => {
+    // If user explicitly asks for demo account
+    const DEMO_OWNER_ADDRESS: Address = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266';
     setAddress(DEMO_OWNER_ADDRESS);
     setIsDemoWallet(true);
     fetchBalance(DEMO_OWNER_ADDRESS);
@@ -71,15 +84,54 @@ export function useWallet(): WalletState {
     setAddress(null);
     setBalance('0.00');
     setIsDemoWallet(false);
+    localStorage.removeItem('atlas_user_wallet_connected');
+    localStorage.removeItem('demo_wallet_connected');
   }, []);
 
   useEffect(() => {
-    // Check if demo wallet or existing connection is persisted
-    const saved = localStorage.getItem('demo_wallet_connected');
-    if (saved === 'true') {
-      connectDemoWallet();
+    if (typeof window === 'undefined' || !(window as any).ethereum) return;
+    const provider = (window as any).ethereum;
+
+    // Only auto-reconnect if the user previously connected their real wallet
+    const wasConnected = localStorage.getItem('atlas_user_wallet_connected');
+    if (wasConnected === 'true') {
+      provider
+        .request({ method: 'eth_accounts' })
+        .then((accounts: string[]) => {
+          if (accounts && accounts.length > 0) {
+            const userAddr = accounts[0] as Address;
+            setAddress(userAddr);
+            setIsDemoWallet(false);
+            fetchBalance(userAddr);
+          }
+        })
+        .catch(() => {});
     }
-  }, [connectDemoWallet]);
+
+    // Listen to account changes in wallet extension
+    const handleAccountsChanged = (accounts: string[]) => {
+      if (accounts && accounts.length > 0) {
+        const userAddr = accounts[0] as Address;
+        setAddress(userAddr);
+        setIsDemoWallet(false);
+        fetchBalance(userAddr);
+      } else {
+        disconnect();
+      }
+    };
+
+    const handleChainChanged = () => {
+      if (address) fetchBalance(address);
+    };
+
+    provider.on?.('accountsChanged', handleAccountsChanged);
+    provider.on?.('chainChanged', handleChainChanged);
+
+    return () => {
+      provider.removeListener?.('accountsChanged', handleAccountsChanged);
+      provider.removeListener?.('chainChanged', handleChainChanged);
+    };
+  }, [address, fetchBalance, disconnect]);
 
   return {
     address,

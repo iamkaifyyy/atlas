@@ -81,8 +81,8 @@ export const ConnectWalletButton: React.FC = () => {
         <div className="absolute right-0 mt-2 w-64 rounded-xl bg-zinc-950/95 border border-zinc-800 shadow-2xl p-3 z-50 text-xs font-mono backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-150">
           <div className="flex items-center justify-between pb-2 mb-2 border-b border-zinc-800 text-[11px] text-zinc-400">
             <span className="flex items-center gap-1.5">
-              <Activity className="w-3 h-3 text-emerald-400" />
-              <span>{isDemoWallet ? 'Localnet Anvil 31337' : 'Connected Web3 EVM'}</span>
+              <Activity className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Connected Web3 EVM</span>
             </span>
             <span className="px-1.5 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
               Active

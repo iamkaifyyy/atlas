@@ -317,16 +317,40 @@ export const TradingTerminal: React.FC = () => {
 
         {/* Right: Wallet, Rules, Kill Switch */}
         <div className="flex items-center gap-2.5 ml-auto">
-          {/* Wallet */}
-          <div className="hidden sm:flex items-center gap-2 bg-console-elevated px-2.5 py-1 rounded-lg border border-console-border text-xs font-mono">
-            <Wallet className="w-3.5 h-3.5 text-muted" />
-            <span className="text-white text-[11px] truncate max-w-[100px]">
-              {wallet.isConnected ? truncateAddress(wallet.address || '') : '0xf39F...2266'}
-            </span>
-            <span className="text-emerald-400 text-[10px] font-medium pl-1 border-l border-console-border">
-              {wallet.isConnected ? wallet.balance : '1,000'} ETH
-            </span>
-          </div>
+          {/* Wallet Connection */}
+          {wallet.isConnected ? (
+            <div className="hidden sm:flex items-center gap-2 bg-console-elevated px-2.5 py-1 rounded-lg border border-console-border text-xs font-mono">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-white text-[11px] truncate max-w-[100px]" title={wallet.address || ''}>
+                {truncateAddress(wallet.address || '')}
+              </span>
+              <span className="text-emerald-400 text-[10px] font-medium pl-1 border-l border-console-border">
+                {wallet.balance} ETH
+              </span>
+              <button
+                type="button"
+                onClick={wallet.disconnect}
+                className="text-zinc-500 hover:text-rose-400 text-[11px] pl-1 font-sans transition"
+                title="Disconnect Wallet"
+              >
+                ✕
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={wallet.connect}
+              disabled={wallet.isConnecting}
+              className="hidden sm:flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-mono px-3 py-1 rounded-lg border border-emerald-500/40 text-xs font-medium transition shadow-sm"
+            >
+              {wallet.isConnecting ? (
+                <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Wallet className="w-3.5 h-3.5" />
+              )}
+              <span>{wallet.isConnecting ? 'Opening Wallet...' : 'Connect Wallet'}</span>
+            </button>
+          )}
 
           <Link
             href="/automation"

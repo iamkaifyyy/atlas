@@ -72,7 +72,7 @@ export default function RootLayout({
             <div className="flex items-center gap-3">
               <div className="hidden md:flex items-center gap-2 text-xs text-muted px-3 py-1.5 rounded-full bg-console-surface/60 border border-console-border/60 font-mono backdrop-blur-md">
                 <Activity className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-                <span>Anvil Localnet 31337</span>
+                <span>Web3 EVM Live</span>
               </div>
 
               {/* Connect Wallet using viem */}
