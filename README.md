@@ -1,17 +1,34 @@
-# Atlas: No-Code AI Trading Agent with Live Order Book & On-Chain Caps
+# ▲ Atlas: Enterprise Quantitative AI Protocol & Guarded Escrow
 
-autonomous trading agent platform where users configure trading rules through a **no-code visual builder**, enforce strict **spending caps and human approval thresholds on-chain**, and watch the agent trade against a **real-time order book and price chart**.
+Atlas is an enterprise-grade autonomous quantitative trading agent platform. Users configure algorithmic trading logic through a **No-Code Visual Rule Builder**, enforce strict **programmatic spending ceilings and human-in-the-loop approval gates on-chain**, and monitor trade execution against a **TradingView Pro live orderbook and chart**.
+
+Every strategy execution, guardrail block, and emergency kill-switch event is logged immutably onto **Hedera Consensus Service (HCS)** with full EVM smart contract enforcement on **AgentVault.sol**.
 
 ---
 
-## System Architecture
+## 🌟 Key Features & Architecture
+
+- 📈 **TradingView Pro Trading Console**: Real-time order book depth ladder streaming live via WebSocket (`wss://ws.backpack.exchange`), custom drawing palette, and interactive trade execution markers.
+- ⚙️ **No-Code Strategy Studio**: Visually configure execution conditions (Dip Buyer, Momentum, Strict Guard), per-trade caps, lifetime ceilings, and human-in-the-loop threshold sign-offs.
+- 🛡️ **Guarded Non-Custodial EVM Escrow (`AgentVault.sol`)**:
+  - `maxPerTradeCap`: Hard limit on single-trade size on-chain.
+  - `maxLifetimeBudget`: Cumulative spending ceiling enforced on-chain.
+  - `requireApprovalOver`: Automatically pauses high-value trades for human signature.
+  - `triggerKillSwitch`: Emergency 100% instant refund of escrowed assets to vault owner.
+- 📜 **Hedera HCS Immutable Audit Trail**: Every trade execution, guardrail block, and kill-switch activation generates a tamper-proof Hedera Consensus Topic message linked to HashScan.
+- 🌐 **ENSv2 Resolution (`alpha.atlas.eth`)**: Resolves protocol vaults, agent nodes, and owner identities using ENSv2 client resolution.
+- ⚡ **x402 Micro-Fee AI Inference**: Agent pays micro-fees in USDC/HBAR per AI signal request via HTTP 402 payment headers.
+
+---
+
+## 🏗️ System Architecture
 
 ```text
 ┌────────────────────────────────────────────────────────┐
 │               Next.js Trading Terminal                 │
-│  - 60-Sec No-Code Builder (Trigger, Cap, Approval)    │
-│  - TradingView Lightweight Charts with Trade Markers  │
-│  - Real-Time Order Book Depth Ladder                   │
+│  - No-Code Visual Rule Builder & TradingView Pro UI    │
+│  - Real-Time Backpack Exchange Orderbook Depth Ladder │
+│  - Live Ticker Bar & Interactive Execution Markers     │
 │  - Human Approval Modal & Emergency Kill-Switch       │
 └───────────────────▲───────────────┬────────────────────┘
                     │ WebSocket /   │ Deploy /
@@ -19,10 +36,10 @@ autonomous trading agent platform where users configure trading rules through a 
                     │               ▼
 ┌───────────────────┴───────────────┐   ┌───────────────────────────────┐
 │     Autonomous Agent Runner       │   │       AgentVault.sol          │
-│  - Binance ETH/USDC Feed + Mock   ├───►  - Escrow Fund Storage        │
-│  - JSON Schema Rule Engine        │   │  - Max Lifetime Total Cap     │
-│  - Viem On-Chain Trade Dispatcher │   │  - Max Per-Trade Cap          │
-│  - Event Broadcaster              │   │  - Approval Threshold Gating  │
+│  - Binance & Backpack WS Feed     ├───►  - Non-Custodial Escrow Storage│
+│  - JSON Schema Execution Engine   │   │  - Max Lifetime Total Ceiling │
+│  - Viem On-Chain Trade Dispatcher │   │  - Max Single-Trade Cap       │
+│  - Hedera HCS Audit Log Publisher │   │  - Human Approval Threshold   │
 └───────────────────────────────────┘   │  - Instant Refund Kill-Switch │
                                         └───────────────────────────────┘
 ```
@@ -45,36 +62,43 @@ cd agent-runner && npm install && npm run build && cd ..
 cd frontend && npm install && cd ..
 ```
 
-### 3. Run Smart Contract Tests
-Run the comprehensive Foundry test suite (16 tests verifying caps, approvals, and kill switch):
+### 3. Run Smart Contract Test Suite
+Run the Foundry test suite (verifying caps, threshold approvals, and instant refund kill-switch):
 ```bash
 cd contracts
 forge test -vvv
 ```
 
-### 4. Start the Full Stack
+### 4. Start Full Stack
 
-**Option A: One-Command Boot (Mock / Testnet Mode)**
 ```bash
 # Terminal 1: Start Agent Runner Backend (Port 3001)
 cd agent-runner && npm run dev
 
-# Terminal 2: Start Next.js Frontend (Port 3000)
+# Terminal 2: Start Next.js Trading Terminal (Port 3000)
 cd frontend && npm run dev
 ```
 
-**Option B: With Local Anvil Node & Contract Deployment**
-```bash
-# Terminal 1: Run local Anvil node
-anvil
+Open [http://localhost:3000/terminal](http://localhost:3000/terminal) in your browser.
 
-# Terminal 2: Deploy Contracts
-cd contracts
-forge script script/Deploy.s.sol:DeployScript --rpc-url http://127.0.0.1:8545 --broadcast
+---
 
-# Terminal 3: Start Agent Runner & Frontend
-npm run dev
+## 📁 Repository Structure
+
+```text
+atlas/
+├── agent-runner/        # Node.js TypeScript autonomous execution engine & HCS publisher
+├── contracts/           # Solidity smart contracts (AgentVault.sol) & Foundry test suite
+├── frontend/            # Next.js 14 app, TradingView UI, Backpack orderbook, Viem integration
+│   ├── app/             # App router pages (/terminal, /vault, /markets, /automation)
+│   ├── components/      # UI components (TradingTerminal, RuleBuilder, LiveTickerBar, etc.)
+│   ├── context/         # Unified WalletProvider React context
+│   ├── hooks/           # Real-time WebSocket and contract event hooks
+│   └── lib/             # Crypto assets registry, ENSv2 client, Hedera HCS client
+└── orderBook.md         # Protocol orderbook specifications & architecture notes
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+---
 
+## 📜 License
+MIT © 2026 Atlas Protocol
