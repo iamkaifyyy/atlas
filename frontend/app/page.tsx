@@ -1,26 +1,34 @@
 'use client';
 
-import React from 'react';
+import React, { useRef } from 'react';
 import Link from 'next/link';
 import {
   LineChart,
   ArrowRight,
-  TrendingUp,
-  BarChart3,
   ShieldCheck,
   Activity,
-  Layers,
   ArrowUpRight,
-  Lock,
-  Cpu,
   Terminal,
   ChevronRight
 } from 'lucide-react';
 import { useBackpackTicker } from '../hooks/useBackpackTicker';
-import { motion } from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
 
 export default function HomePage() {
   const backpack = useBackpackTicker('ETH_USDC');
+
+  // 3D Perspective Scroll Motion effect reference
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ['start end', 'center center']
+  });
+
+  // Dynamic 3D transform values driven by scroll progression
+  const rotateX = useTransform(scrollYProgress, [0, 1], [26, 0]);
+  const scale = useTransform(scrollYProgress, [0, 1], [0.85, 1]);
+  const translateY = useTransform(scrollYProgress, [0, 1], [80, 0]);
+  const opacity = useTransform(scrollYProgress, [0, 0.3, 1], [0.3, 0.8, 1]);
 
   return (
     <div className="relative space-y-20 max-w-6xl mx-auto font-sans pt-4 pb-16">
@@ -72,7 +80,7 @@ export default function HomePage() {
         >
           <Link
             href="/terminal"
-            className="px-6 py-3 rounded-full bg-white text-[#0b0c0e] font-medium text-sm hover:bg-zinc-200 transition-all duration-200 flex items-center gap-2 shadow-lg"
+            className="px-6 py-3 rounded-full bg-white text-[#0b0c0e] font-medium text-sm hover:bg-zinc-200 transition-all duration-200 flex items-center gap-2 shadow-lg hover:scale-105"
           >
             <span>Launch Trading Console</span>
             <ArrowRight className="w-4 h-4" />
@@ -95,14 +103,19 @@ export default function HomePage() {
         </motion.div>
       </section>
 
-      {/* 3. Expo Centered Terminal Composite Device Mockup */}
-      <motion.section
-        initial={{ opacity: 0, y: 25 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4, duration: 0.6 }}
-        className="relative"
-      >
-        <div className="bg-[#121316] border border-[#23252c] rounded-2xl shadow-2xl overflow-hidden p-1 sm:p-2">
+      {/* 3. Expo 3D Scroll Perspective Terminal Composite Device Mockup */}
+      <div ref={containerRef} className="relative py-6 [perspective:1200px]">
+        <motion.div
+          style={{
+            rotateX,
+            scale,
+            translateY,
+            opacity,
+            transformStyle: 'preserve-3d',
+            boxShadow: '0 30px 80px -20px rgba(0, 0, 0, 0.8), 0 0 50px rgba(13, 116, 206, 0.2)'
+          }}
+          className="bg-[#121316] border border-[#23252c] rounded-2xl overflow-hidden p-1 sm:p-2 transition-shadow duration-500"
+        >
           {/* Top Window Bar */}
           <div className="bg-[#0b0c0e] px-4 py-2.5 rounded-t-xl border-b border-[#23252c] flex items-center justify-between font-mono text-xs text-zinc-400">
             <div className="flex items-center gap-2">
@@ -167,8 +180,8 @@ export default function HomePage() {
               </Link>
             </div>
           </div>
-        </div>
-      </motion.section>
+        </motion.div>
+      </div>
 
       {/* 4. Protocol Ecosystem Banner */}
       <section className="border-y border-[#23252c] py-6 text-center space-y-3 font-mono text-xs text-zinc-400">
