@@ -9,29 +9,29 @@ export default function AutomationPage() {
   const { currentPrice, agentConfig } = useContractEvents();
 
   return (
-    <div className="py-2 space-y-6 max-w-6xl mx-auto font-sans">
-      {/* Header Banner */}
-      <div className="cohere-card-console p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-        <div className="space-y-2">
+    <div className="space-y-4 max-w-6xl mx-auto font-sans">
+      {/* Streamlined Expo Header Banner */}
+      <div className="bg-[#121316] border border-[#23252c] p-5 sm:p-6 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="space-y-1.5">
           <div className="inline-flex items-center gap-2">
-            <span className="cohere-chip-coral">
+            <span className="px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-mono text-[10px] uppercase font-bold tracking-wider">
               POLICY COMPILATION ENGINE
             </span>
-            <span className="font-mono text-[11px] text-muted hidden sm:inline">
+            <span className="font-mono text-[11px] text-zinc-500 hidden sm:inline">
               // NO-CODE RULE BUILDER
             </span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-normal tracking-[-0.03em] text-white">
+          <h1 className="text-2xl sm:text-3xl font-semibold tracking-[-0.03em] text-white">
             Autonomous Agent Strategy Studio
           </h1>
-          <p className="text-xs sm:text-sm text-muted max-w-xl leading-relaxed">
+          <p className="text-xs text-zinc-400 max-w-xl leading-relaxed">
             Visually configure algorithmic execution logic, programmatic spending ceilings, single-trade caps, and human-in-the-loop approval thresholds enforced on EVM.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 text-xs font-mono text-muted bg-console-elevated px-3.5 py-2 rounded-lg border border-console-border self-start sm:self-auto">
-          <SlidersHorizontal className="w-4 h-4 text-coral" />
-          <span className="text-white">Active Asset: ETH / USDC</span>
+        <div className="flex items-center gap-2 text-xs font-mono text-zinc-300 bg-[#1a1b20] px-3.5 py-2 rounded-xl border border-[#23252c] self-start sm:self-auto shrink-0">
+          <SlidersHorizontal className="w-4 h-4 text-emerald-400" />
+          <span>Active Asset: <strong className="text-white">ETH / USDC</strong></span>
         </div>
       </div>
 
