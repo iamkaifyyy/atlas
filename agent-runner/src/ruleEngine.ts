@@ -95,6 +95,22 @@ export class RuleEngine {
 
       console.log(`[rule-engine] trade executed in matching engine: ${fills.length} fill(s)`);
 
+      // Log to Hedera Consensus Service audit trail in the background
+      try {
+        const { logTradeToHederaHCS } = await import('./hederaClient.js');
+        await logTradeToHederaHCS({
+          tradeId: Date.now(),
+          symbol: this.config.assetPair,
+          side: this.config.action,
+          amount: this.config.tradeAmount,
+          price: tick.price,
+          status: 'EXECUTED',
+          timestamp: Date.now()
+        });
+      } catch (hcsErr) {
+        console.warn('[rule-engine] Hedera HCS background log warning:', (hcsErr as Error).message);
+      }
+
       return {
         triggered: true,
         reason: txHash ? 'submitted on-chain and matched in orderbook' : 'matched in orderbook',

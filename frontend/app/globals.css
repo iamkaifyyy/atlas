@@ -132,7 +132,7 @@
 
 /* announcement-bar: 36px tall, black #000000 with microcopy (DESIGN.md) */
 .cohere-announcement-bar {
-  background-color: #000000;
+  background-color: rgba(0, 0, 0, 0.45);
   color: #ffffff;
   height: 36px;
   font-size: 12px;
@@ -140,7 +140,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 16px;
-  border-bottom: 1px solid #1f1f26;
+  backdrop-filter: blur(8px);
 }
 
 /* agent-console-card: Deep console card (DESIGN.md) */
@@ -248,3 +248,90 @@
   border: 1px solid rgba(255, 119, 89, 0.35);
   border-radius: 22px;
 }
+
+/* Custom Web3 & Quantum Hero Animations */
+@keyframes spinSlow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spinReverseSlow {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 0.45;
+    transform: scale(0.98);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.03);
+  }
+}
+
+@keyframes floatGentle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-spin-ultra-slow {
+  animation: spinSlow 50s linear infinite;
+}
+
+.animate-spin-reverse-slow {
+  animation: spinReverseSlow 60s linear infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 5s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: floatGentle 4s ease-in-out infinite;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animation-delay-100 {
+  animation-delay: 100ms;
+}
+
+.animation-delay-200 {
+  animation-delay: 200ms;
+}
+
+.animation-delay-300 {
+  animation-delay: 300ms;
+}
+
+.animation-delay-400 {
+  animation-delay: 400ms;
+}
+

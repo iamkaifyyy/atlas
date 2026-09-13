@@ -28,15 +28,19 @@ interface OrderBookTableProps {
   isLoading?: boolean;
   onPlaceOrder?: (params: PlaceOrderParams) => Promise<{ success: boolean; error?: string }>;
   isSubmitting?: boolean;
+  selectedMarket?: string;
+  onSelectMarket?: (market: string) => void;
+  assetUnit?: string;
 }
 
-type BookSource = 'backpack' | 'local';
+type BookSource = 'backpack' | 'local' | '1inch';
 type ActiveTab = 'depth' | 'trades' | 'orders' | 'order';
 type OrderSide = 'BUY' | 'SELL';
 type OrderType = 'LIMIT' | 'MARKET';
 type LayoutMode = 'both' | 'bids' | 'asks';
 type Precision = 0.01 | 0.1 | 1.0 | 5.0;
 type DepthViewMode = 'ladder' | 'chart';
+
 
 interface RecentTrade {
   id: number | string;
@@ -60,10 +64,17 @@ interface OpenOrder {
 }
 
 const MARKET_PAIRS = [
-  { symbol: 'ETH_USDC', label: 'ETH/USDC', base: 'ETH', quote: 'USDC' },
-  { symbol: 'BTC_USDC', label: 'BTC/USDC', base: 'BTC', quote: 'USDC' },
-  { symbol: 'SOL_USDC', label: 'SOL/USDC', base: 'SOL', quote: 'USDC' },
-  { symbol: 'RENDER_USDC', label: 'RENDER/USDC', base: 'RENDER', quote: 'USDC' }
+  { symbol: 'ETH_USDC', label: 'ETH / USDC (Ethereum L1)', base: 'ETH', quote: 'USDC' },
+  { symbol: 'BTC_USDC', label: 'BTC / USDC (Bitcoin L1)', base: 'BTC', quote: 'USDC' },
+  { symbol: 'SOL_USDC', label: 'SOL / USDC (Solana L1)', base: 'SOL', quote: 'USDC' },
+  { symbol: 'ARB_USDC', label: 'ARB / USDC (Arbitrum L2)', base: 'ARB', quote: 'USDC' },
+  { symbol: 'OP_USDC', label: 'OP / USDC (Optimism L2)', base: 'OP', quote: 'USDC' },
+  { symbol: 'STRK_USDC', label: 'STRK / USDC (Starknet L2)', base: 'STRK', quote: 'USDC' },
+  { symbol: 'POL_USDC', label: 'POL / USDC (Polygon L2)', base: 'POL', quote: 'USDC' },
+  { symbol: 'SUI_USDC', label: 'SUI / USDC (Sui L1)', base: 'SUI', quote: 'USDC' },
+  { symbol: 'AVAX_USDC', label: 'AVAX / USDC (Avalanche L1)', base: 'AVAX', quote: 'USDC' },
+  { symbol: 'RENDER_USDC', label: 'RENDER / USDC (Render AI)', base: 'RENDER', quote: 'USDC' },
+  { symbol: 'LINK_USDC', label: 'LINK / USDC (Chainlink DeFi)', base: 'LINK', quote: 'USDC' }
 ];
 
 interface DepthRowProps {
@@ -113,15 +124,29 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
   lastPrice: localLastPrice,
   isLoading: localLoading,
   onPlaceOrder,
-  isSubmitting
+  isSubmitting,
+  selectedMarket,
+  onSelectMarket,
+  assetUnit
 }) => {
   // Navigation & configuration
-  const [selectedPair, setSelectedPair] = useState('ETH_USDC');
+  const [selectedPair, setSelectedPair] = useState(selectedMarket || 'ETH_USDC');
   const [activeTab, setActiveTab] = useState<ActiveTab>('depth');
   const [depthViewMode, setDepthViewMode] = useState<DepthViewMode>('ladder');
   const [bookSource, setBookSource] = useState<BookSource>('backpack');
   const [layoutMode, setLayoutMode] = useState<LayoutMode>('both');
   const [precision, setPrecision] = useState<Precision>(0.1);
+
+  // Sync external selectedMarket prop
+  useEffect(() => {
+    if (selectedMarket && selectedMarket !== selectedPair) {
+      setSelectedPair(selectedMarket);
+      setIsBackpackLoading(true);
+      setIsTradesLoading(true);
+    }
+  }, [selectedMarket]);
+
+  const currentBaseAsset = assetUnit || selectedPair.split('_')[0] || 'ETH';
 
   // Order ticket state
   const [orderSide, setOrderSide] = useState<OrderSide>('BUY');
@@ -139,6 +164,8 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
   const [backpackAsks, setBackpackAsks] = useState<OrderBookEntry[]>([]);
   const [backpackLastPrice, setBackpackLastPrice] = useState(2525.0);
   const [isBackpackLoading, setIsBackpackLoading] = useState(true);
+  const [isWsStreaming, setIsWsStreaming] = useState(false);
+  const [wsPackets, setWsPackets] = useState(0);
 
   // Recent public trades tape
   const [recentTrades, setRecentTrades] = useState<RecentTrade[]>([]);
@@ -148,20 +175,58 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
   const [openOrders, setOpenOrders] = useState<OpenOrder[]>([]);
   const [cancellingOrderId, setCancellingOrderId] = useState<string | null>(null);
 
-  // Poll live depth for selected market pair
+  // Helper to merge incremental depth deltas over WebSocket
+  const applyDepthDelta = (
+    current: OrderBookEntry[],
+    delta: [string, string][],
+    isAsk: boolean
+  ): OrderBookEntry[] => {
+    const map = new Map<number, number>();
+    for (const entry of current) {
+      map.set(entry.price, entry.amount);
+    }
+    for (const [pStr, qStr] of delta) {
+      const price = parseFloat(pStr);
+      const amount = parseFloat(qStr);
+      if (isNaN(price)) continue;
+      if (amount <= 0.000001) {
+        map.delete(price);
+      } else {
+        map.set(price, amount);
+      }
+    }
+    const result: OrderBookEntry[] = [];
+    map.forEach((amount, price) => {
+      result.push({ price, amount, total: price * amount });
+    });
+    result.sort((a, b) => (isAsk ? a.price - b.price : b.price - a.price));
+    return result.slice(0, 15);
+  };
+
+  // Real-time WebSocket connection to Backpack Exchange + Binance Stream fallback
   useEffect(() => {
     let isMounted = true;
+    let wsBackpack: WebSocket | null = null;
+    let wsBinance: WebSocket | null = null;
+    let pollInterval: NodeJS.Timeout | null = null;
 
-    async function fetchBackpackDepth() {
+    // 1. Initial snapshot fetch
+    async function fetchInitialSnapshot() {
       try {
-        let res = await fetch(`https://api.backpack.exchange/api/v1/depth?symbol=${selectedPair}`);
+        let res = await fetch(`/api/backpack/depth?symbol=${selectedPair}`);
         if (!res.ok) {
           res = await fetch(`${BACKEND_HTTP_URL}/api/backpack/depth?symbol=${selectedPair}`);
         }
-        if (!res.ok || !isMounted) return;
+        if (!res.ok || !isMounted) {
+          if (isMounted) setIsBackpackLoading(false);
+          return;
+        }
 
         const json = await res.json();
-        if (!json.asks || !json.bids) return;
+        if (!json.asks || !json.bids) {
+          if (isMounted) setIsBackpackLoading(false);
+          return;
+        }
 
         const parseEntries = (raw: [string, string][]): OrderBookEntry[] =>
           raw.slice(0, 15).map(([pStr, qStr]) => {
@@ -180,50 +245,192 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
         }
         setIsBackpackLoading(false);
       } catch {
-        // Fallback gracefully
+        if (isMounted) setIsBackpackLoading(false);
       }
     }
 
-    fetchBackpackDepth();
-    const interval = setInterval(fetchBackpackDepth, 2500);
+    async function fetchInitialTrades() {
+      try {
+        let res = await fetch(`/api/backpack/trades?symbol=${selectedPair}&limit=25`);
+        if (!res.ok) {
+          res = await fetch(`${BACKEND_HTTP_URL}/api/backpack/trades?symbol=${selectedPair}&limit=25`);
+        }
+        if (!res.ok || !isMounted) {
+          if (isMounted) setIsTradesLoading(false);
+          return;
+        }
+
+        const json = await res.json();
+        if (Array.isArray(json)) {
+          const parsed: RecentTrade[] = json.map((t) => ({
+            id: t.id,
+            price: parseFloat(t.price),
+            amount: parseFloat(t.quantity),
+            side: t.isBuyerMaker ? 'SELL' : 'BUY',
+            timestamp: t.timestamp || Date.now()
+          }));
+          setRecentTrades(parsed);
+          setIsTradesLoading(false);
+        } else {
+          setIsTradesLoading(false);
+        }
+      } catch {
+        if (isMounted) setIsTradesLoading(false);
+      }
+    }
+
+    fetchInitialSnapshot();
+    fetchInitialTrades();
+
+    // 2. Connect Backpack Exchange WebSocket
+    try {
+      wsBackpack = new WebSocket('wss://ws.backpack.exchange');
+
+      wsBackpack.onopen = () => {
+        if (!isMounted) return;
+        setIsWsStreaming(true);
+        setIsBackpackLoading(false);
+
+        wsBackpack?.send(
+          JSON.stringify({
+            method: 'SUBSCRIBE',
+            params: [`depth.${selectedPair}`, `trade.${selectedPair}`]
+          })
+        );
+      };
+
+      wsBackpack.onmessage = (event) => {
+        if (!isMounted) return;
+        try {
+          const msg = JSON.parse(event.data);
+
+          // Real-time incremental depth updates
+          if (msg.stream === `depth.${selectedPair}` && msg.data) {
+            const asksDelta = msg.data.a || [];
+            const bidsDelta = msg.data.b || [];
+
+            if (asksDelta.length > 0) {
+              setBackpackAsks((prev) => {
+                const next = applyDepthDelta(prev, asksDelta, true);
+                if (next.length > 0) setBackpackLastPrice(next[0].price);
+                return next;
+              });
+            }
+
+            if (bidsDelta.length > 0) {
+              setBackpackBids((prev) => applyDepthDelta(prev, bidsDelta, false));
+            }
+
+            setIsWsStreaming(true);
+            setIsBackpackLoading(false);
+            setWsPackets((c) => c + 1);
+          }
+
+          // Real-time executed trade events
+          if (msg.stream === `trade.${selectedPair}` && msg.data) {
+            const t = msg.data;
+            const newTrade: RecentTrade = {
+              id: t.t || t.id || Date.now(),
+              price: parseFloat(t.p || t.price),
+              amount: parseFloat(t.q || t.quantity),
+              side: t.m || t.isBuyerMaker ? 'SELL' : 'BUY',
+              timestamp: t.T || t.timestamp || Date.now()
+            };
+            setRecentTrades((prev) => [newTrade, ...prev.slice(0, 39)]);
+            setIsTradesLoading(false);
+            setIsWsStreaming(true);
+            setWsPackets((c) => c + 1);
+          }
+        } catch {
+          // Handled silently
+        }
+      };
+
+      wsBackpack.onclose = () => {
+        // Will fallback to Binance or HTTP
+      };
+    } catch {
+      // Browser WS exception handled
+    }
+
+    // 3. Fallback to Binance WebSocket for Layer 2 rollups (ARB, OP, STRK, POL, etc.)
+    try {
+      const baseToken = selectedPair.split('_')[0].toLowerCase();
+      wsBinance = new WebSocket(
+        `wss://stream.binance.com:9443/ws/${baseToken}usdt@depth20@100ms/${baseToken}usdt@trade`
+      );
+
+      wsBinance.onopen = () => {
+        if (!isMounted) return;
+        setIsWsStreaming(true);
+        setIsBackpackLoading(false);
+      };
+
+      wsBinance.onmessage = (event) => {
+        if (!isMounted) return;
+        try {
+          const d = JSON.parse(event.data);
+
+          // Binance depth snapshot stream
+          if (d.bids && d.asks) {
+            const parsedBids = d.bids.slice(0, 15).map(([p, q]: [string, string]) => ({
+              price: parseFloat(p),
+              amount: parseFloat(q),
+              total: parseFloat(p) * parseFloat(q)
+            }));
+            const parsedAsks = d.asks.slice(0, 15).map(([p, q]: [string, string]) => ({
+              price: parseFloat(p),
+              amount: parseFloat(q),
+              total: parseFloat(p) * parseFloat(q)
+            }));
+            setBackpackBids(parsedBids);
+            setBackpackAsks(parsedAsks);
+            if (parsedAsks.length > 0) setBackpackLastPrice(parsedAsks[0].price);
+            setIsWsStreaming(true);
+            setIsBackpackLoading(false);
+            setWsPackets((c) => c + 1);
+          }
+
+          // Binance trade stream
+          if (d.e === 'trade') {
+            const newTrade: RecentTrade = {
+              id: d.t,
+              price: parseFloat(d.p),
+              amount: parseFloat(d.q),
+              side: d.m ? 'SELL' : 'BUY',
+              timestamp: d.T
+            };
+            setRecentTrades((prev) => [newTrade, ...prev.slice(0, 39)]);
+            setIsTradesLoading(false);
+            setIsWsStreaming(true);
+            setWsPackets((c) => c + 1);
+          }
+        } catch {
+          // Handled silently
+        }
+      };
+    } catch {
+      // Handled silently
+    }
+
+    // Fallback polling interval
+    pollInterval = setInterval(() => {
+      fetchInitialSnapshot();
+    }, 4500);
 
     return () => {
       isMounted = false;
-      clearInterval(interval);
+      if (wsBackpack) {
+        try { wsBackpack.close(); } catch {}
+      }
+      if (wsBinance) {
+        try { wsBinance.close(); } catch {}
+      }
+      if (pollInterval) {
+        clearInterval(pollInterval);
+      }
     };
   }, [selectedPair]);
-
-  // Poll recent market trades
-  const fetchRecentTrades = useCallback(async () => {
-    try {
-      let res = await fetch(`https://api.backpack.exchange/api/v1/trades?symbol=${selectedPair}&limit=25`);
-      if (!res.ok) {
-        res = await fetch(`${BACKEND_HTTP_URL}/api/backpack/trades?symbol=${selectedPair}&limit=25`);
-      }
-      if (!res.ok) return;
-
-      const json = await res.json();
-      if (Array.isArray(json)) {
-        const parsed: RecentTrade[] = json.map((t) => ({
-          id: t.id,
-          price: parseFloat(t.price),
-          amount: parseFloat(t.quantity),
-          side: t.isBuyerMaker ? 'SELL' : 'BUY',
-          timestamp: t.timestamp || Date.now()
-        }));
-        setRecentTrades(parsed);
-        setIsTradesLoading(false);
-      }
-    } catch {
-      // Fallback
-    }
-  }, [selectedPair]);
-
-  useEffect(() => {
-    fetchRecentTrades();
-    const interval = setInterval(fetchRecentTrades, 3000);
-    return () => clearInterval(interval);
-  }, [fetchRecentTrades]);
 
   // Poll open orders from matching engine
   const fetchOpenOrders = useCallback(async () => {
@@ -402,7 +609,10 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
           {/* Market Pair Dropdown */}
           <select
             value={selectedPair}
-            onChange={(e) => setSelectedPair(e.target.value)}
+            onChange={(e) => {
+              setSelectedPair(e.target.value);
+              onSelectMarket?.(e.target.value);
+            }}
             className="bg-console-elevated border border-console-border rounded px-2 py-0.5 text-xs text-white font-semibold focus:outline-none focus:border-coral cursor-pointer"
           >
             {MARKET_PAIRS.map((p) => (
@@ -414,7 +624,7 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
 
           {/* Engine Source Selector */}
           <div className="flex items-center gap-0.5 bg-console-elevated p-0.5 rounded border border-console-border text-[10px]">
-            {(['backpack', 'local'] as const).map((source) => (
+            {(['backpack', '1inch', 'local'] as const).map((source) => (
               <button
                 key={source}
                 type="button"
@@ -425,9 +635,29 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
                     : 'text-muted hover:text-white'
                 }`}
               >
-                {source === 'backpack' ? 'Backpack' : 'Atlas'}
+                {source === 'backpack' ? 'Backpack' : source === '1inch' ? '1inch DEX' : 'Atlas'}
               </button>
             ))}
+          </div>
+
+          {/* Real-time WS Stream Live Indicator */}
+          <div
+            title={`WebSocket stream active: ${wsPackets} packets received`}
+            className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30 text-[10px] text-emerald-400 font-mono font-semibold select-none"
+          >
+            <span
+              className={`w-1.5 h-1.5 rounded-full ${
+                isWsStreaming ? 'bg-emerald-400 animate-ping' : 'bg-amber-400 animate-pulse'
+              }`}
+            />
+            <span className="hidden sm:inline">
+              {isWsStreaming ? 'WS STREAM' : 'SYNCING'}
+            </span>
+            {wsPackets > 0 && (
+              <span className="text-[9px] text-emerald-300/80 font-normal">
+                {wsPackets}
+              </span>
+            )}
           </div>
         </div>
 
@@ -604,7 +834,7 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
                         ${order.price.toFixed(2)}
                       </div>
                       <div className="text-[10px] text-muted">
-                        {order.remainingQuantity} / {order.quantity} ETH
+                        {order.remainingQuantity} / {order.quantity} {currentBaseAsset}
                       </div>
                     </div>
 
@@ -708,7 +938,7 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
             <div>
               <div className="flex justify-between items-center mb-1">
                 <label className="text-[11px] text-muted uppercase tracking-[0.28px]">
-                  Order Size (ETH)
+                  Order Size ({currentBaseAsset})
                 </label>
                 <span className="text-[10px] text-muted font-mono">
                   ~${orderValueUsdc.toFixed(2)} USDC
@@ -736,7 +966,7 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
                         : 'bg-console-elevated border-console-border text-muted hover:text-white'
                     }`}
                   >
-                    {val} ETH
+                    {val} {currentBaseAsset}
                   </button>
                 ))}
               </div>
@@ -848,7 +1078,7 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
             ) : isSubmitting ? (
               'Submitting On-Chain...'
             ) : (
-              `Submit ${orderSide} ${orderType} (${numericQty} ETH)`
+              `Submit ${orderSide} ${orderType} (${numericQty} ${currentBaseAsset})`
             )}
           </button>
         </form>
@@ -971,10 +1201,10 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
 
               <div className="grid grid-cols-2 gap-2 text-[10px] text-muted">
                 <div className="bg-console-elevated p-2 rounded border border-console-border">
-                  <div>Total Bid Depth: <strong className="text-white">{totalBidVolume.toFixed(2)} ETH</strong></div>
+                  <div>Total Bid Depth: <strong className="text-white">{totalBidVolume.toFixed(2)} {currentBaseAsset}</strong></div>
                 </div>
                 <div className="bg-console-elevated p-2 rounded border border-console-border text-right">
-                  <div>Total Ask Depth: <strong className="text-white">{totalAskVolume.toFixed(2)} ETH</strong></div>
+                  <div>Total Ask Depth: <strong className="text-white">{totalAskVolume.toFixed(2)} {currentBaseAsset}</strong></div>
                 </div>
               </div>
             </div>

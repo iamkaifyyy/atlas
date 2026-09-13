@@ -18,7 +18,9 @@ import {
   Wallet,
   Copy,
   Check,
-  Radio
+  Radio,
+  Layers,
+  BarChart2
 } from 'lucide-react';
 import { useContractEvents } from '../hooks/useContractEvents';
 import { useOrderBook } from '../hooks/useOrderBook';
@@ -27,7 +29,15 @@ import { useBackpackTicker } from '../hooks/useBackpackTicker';
 import { OrderBookTable } from './OrderBook/OrderBookTable';
 import { ApprovalModal } from './ApprovalModal';
 import { KillSwitchButton } from './KillSwitchButton';
+import { ConnectWalletButton } from './ConnectWalletButton';
 import type { TradeEventPayload } from '../../shared/types/agentConfig';
+import { motion, AnimatePresence } from 'framer-motion';
+
+import {
+  CRYPTO_ASSETS,
+  DEFAULT_CRYPTO_ASSET,
+  findCryptoAsset
+} from '../lib/cryptoAssets';
 
 // Dynamic chart loaders with custom fallbacks
 const createChartLoader = (label: string, minHeight = 480) => {
@@ -35,7 +45,7 @@ const createChartLoader = (label: string, minHeight = 480) => {
     return (
       <div
         style={{ minHeight }}
-        className="bg-console-surface rounded-xl border border-console-border flex flex-col items-center justify-center gap-2.5 text-xs text-muted font-mono"
+        className="w-full h-full bg-[#09090b] flex flex-col items-center justify-center gap-2.5 text-xs text-muted font-mono"
       >
         <Activity className="w-5 h-5 text-coral animate-spin" />
         <span>{label}</span>
@@ -44,48 +54,19 @@ const createChartLoader = (label: string, minHeight = 480) => {
   };
 };
 
-const PriceChart = dynamic(
-  () => import('./Chart/PriceChart').then((mod) => mod.PriceChart),
-  { ssr: false, loading: createChartLoader('Connecting price feed...', 370) }
-);
-
 const TradingViewChart = dynamic(
   () => import('./Chart/TradingViewChart').then((mod) => mod.TradingViewChart),
-  { ssr: false, loading: createChartLoader('Loading TradingView feed...', 480) }
+  { ssr: false, loading: createChartLoader('Loading TradingView widget...', 580) }
 );
 
-const BackpackChart = dynamic(
-  () => import('./Chart/BackpackChart').then((mod) => mod.BackpackChart),
-  { ssr: false, loading: createChartLoader('Streaming Backpack order flow...', 480) }
-);
-
-const TradingViewStyleUI = dynamic(
-  () => import('./Chart/TradingViewStyleUI'),
-  { ssr: false, loading: createChartLoader('Initializing candlestick studio...', 520) }
-);
-
-type ChartTab = 'STUDIO' | 'BACKPACK' | 'TRADINGVIEW' | 'AGENT_VAULT';
+type BottomConsoleTab = 'LEDGER' | 'SIMULATION' | 'GUARDRAILS';
 type EventFilter = 'ALL' | 'EXECUTED' | 'APPROVAL' | 'REJECTED';
-
-const CHART_TABS: { id: ChartTab; label: string }[] = [
-  { id: 'STUDIO', label: 'Studio Pro (Backpack)' },
-  { id: 'BACKPACK', label: 'Backpack Feed' },
-  { id: 'TRADINGVIEW', label: 'TradingView' },
-  { id: 'AGENT_VAULT', label: 'Agent Vault Flow' }
-];
 
 const FILTER_TABS: { id: EventFilter; label: string; activeColor: string }[] = [
   { id: 'ALL', label: 'All', activeColor: 'bg-white text-console-surface font-semibold' },
   { id: 'EXECUTED', label: 'Executed', activeColor: 'bg-emerald-600 text-white font-medium' },
   { id: 'APPROVAL', label: 'Pending Approval', activeColor: 'bg-amber-600 text-white font-medium' },
   { id: 'REJECTED', label: 'Blocked', activeColor: 'bg-rose-600 text-white font-medium' }
-];
-
-const TV_SYMBOLS = [
-  { value: 'COINBASE:ETHUSD', label: 'ETH / USD (Coinbase)' },
-  { value: 'BINANCE:ETHUSDT', label: 'ETH / USDT (Binance)' },
-  { value: 'BINANCE:BTCUSDT', label: 'BTC / USDT (Binance)' },
-  { value: 'AAPL', label: 'AAPL (Demo Feed)' }
 ];
 
 const truncateAddress = (addr: string) =>
@@ -123,16 +104,38 @@ export const TradingTerminal: React.FC = () => {
 
   const orderBook = useOrderBook();
   const wallet = useWallet();
-  const backpack = useBackpackTicker('ETH_USDC');
 
   const [isKilled, setIsKilled] = useState(false);
   const [activeFilter, setActiveFilter] = useState<EventFilter>('ALL');
+  const [bottomTab, setBottomTab] = useState<BottomConsoleTab>('LEDGER');
   const [copiedVault, setCopiedVault] = useState(false);
-  const [chartType, setChartType] = useState<ChartTab>('STUDIO');
-  const [tvSymbol, setTvSymbol] = useState('COINBASE:ETHUSD');
+  const [tvSymbol, setTvSymbol] = useState(DEFAULT_CRYPTO_ASSET.tvSymbol);
+  const [toastMessage, setToastMessage] = useState<{ text: string; type: 'success' | 'warn' | 'error' | 'info' } | null>(null);
 
-  // Price & stats calculations
-  const displayPrice = backpack.isLoading ? currentPrice : backpack.lastPrice;
+  const showToast = (text: string, type: 'success' | 'warn' | 'error' | 'info' = 'info') => {
+    setToastMessage({ text, type });
+    setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  // Find current active crypto asset (Layer 1, Layer 2, AI or DeFi)
+  const currentAsset = useMemo(() => {
+    return findCryptoAsset(tvSymbol);
+  }, [tvSymbol]);
+
+  const selectedBpSymbol = currentAsset.bpSymbol;
+  const assetUnit = currentAsset.unit;
+
+  const handleMarketSelect = (marketSymbol: string) => {
+    const asset = findCryptoAsset(marketSymbol);
+    if (asset) {
+      setTvSymbol(asset.tvSymbol);
+    }
+  };
+
+  const backpack = useBackpackTicker(selectedBpSymbol);
+
+  // Real-time price & stats calculations
+  const displayPrice = backpack.lastPrice;
   const isPricePositive = backpack.priceChangePercent >= 0;
   const TrendIcon = isPricePositive ? TrendingUp : TrendingDown;
   const vaultAddress = agentConfig?.vaultAddress || '0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9';
@@ -162,50 +165,106 @@ export const TradingTerminal: React.FC = () => {
 
   const handleKill = async () => {
     const ok = await triggerKillSwitch();
-    if (ok) setIsKilled(true);
+    if (ok) {
+      setIsKilled(true);
+      showToast('EMERGENCY KILL-SWITCH TRIGGERED: 100% Escrow refunded to owner', 'error');
+    }
     return ok;
   };
 
   const handleCopyVault = () => {
     navigator.clipboard.writeText(vaultAddress);
     setCopiedVault(true);
+    showToast('Vault address copied to clipboard', 'info');
     setTimeout(() => setCopiedVault(false), 1500);
   };
 
   return (
-    <div className="space-y-4 max-w-[1600px] mx-auto font-sans">
-      {/* 1. Header Ticker Bar */}
-      <header className="cohere-card-console p-3 sm:p-4 flex flex-wrap items-center justify-between gap-3">
+    <div className="space-y-3 max-w-[1720px] mx-auto font-sans">
+      {/* 1. Unified Pro Terminal Header */}
+      <header className="cohere-card-console px-4 py-3 flex flex-wrap items-center justify-between gap-3 border border-console-border">
+        {/* Left: Asset Identity, Symbol Picker, Backpack Live Ticker */}
         <div className="flex items-center gap-4 flex-wrap">
-          {/* Pair Identity */}
+          {/* Pair & Symbol Dropdown */}
           <div className="flex items-center gap-2.5 pr-4 border-r border-console-border">
             <div className="w-8 h-8 rounded-lg bg-console-elevated border border-console-border flex items-center justify-center text-white font-bold text-xs font-mono">
-              ETH
+              {assetUnit}
             </div>
+
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-semibold text-white text-sm tracking-tight">ETH / USDC</span>
-                <span className="cohere-chip-coral !py-0.5 !px-2 !text-[10px]">
-                  BACKPACK LIVE
+                <select
+                  value={tvSymbol}
+                  onChange={(e) => setTvSymbol(e.target.value)}
+                  className="bg-transparent text-white font-bold text-sm tracking-tight cursor-pointer focus:outline-none hover:text-emerald-400 transition"
+                >
+                  <optgroup label="⚡ Layer 1 Blockchains" className="bg-zinc-950 text-emerald-400 font-semibold">
+                    {CRYPTO_ASSETS.filter((a) => a.category === 'Layer 1').map((a) => (
+                      <option key={a.tvSymbol} value={a.tvSymbol} className="bg-zinc-950 text-white font-mono">
+                        {a.name} ({a.unit}) • {a.badge}
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="🚀 Layer 2 Rollups & Scaling" className="bg-zinc-950 text-cyan-400 font-semibold">
+                    {CRYPTO_ASSETS.filter((a) => a.category === 'Layer 2').map((a) => (
+                      <option key={a.tvSymbol} value={a.tvSymbol} className="bg-zinc-950 text-white font-mono">
+                        {a.name} ({a.unit}) • {a.badge}
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="🧠 Decentralized AI & DeFi" className="bg-zinc-950 text-purple-400 font-semibold">
+                    {CRYPTO_ASSETS.filter((a) => a.category === 'AI' || a.category === 'DeFi').map((a) => (
+                      <option key={a.tvSymbol} value={a.tvSymbol} className="bg-zinc-950 text-white font-mono">
+                        {a.name} ({a.unit}) • {a.badge}
+                      </option>
+                    ))}
+                  </optgroup>
+                </select>
+                <span className="cohere-chip-coral !py-0.5 !px-2 !text-[9px] flex items-center gap-1 font-semibold">
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full ${
+                      backpack.isWsConnected ? 'bg-emerald-400 animate-ping' : 'bg-emerald-400 animate-pulse'
+                    }`}
+                  />
+                  {currentAsset.badge} • {backpack.isWsConnected ? 'BACKPACK WS LIVE' : 'BACKPACK L2 LIVE'}
                 </span>
               </div>
-              <div className="text-[11px] text-muted font-mono flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span>api.backpack.exchange</span>
+              <div className="text-[10px] text-muted font-mono flex items-center gap-1.5">
+                <span>{backpack.isWsConnected ? 'wss://ws.backpack.exchange' : 'api.backpack.exchange'}</span>
+                <span className="text-zinc-600">•</span>
+                <span className="text-emerald-400 font-medium">{selectedBpSymbol}</span>
+                <span className="text-zinc-600">•</span>
+                <span className="text-zinc-300">{currentAsset.name}</span>
+                {backpack.wsMessageCount > 0 && (
+                  <>
+                    <span className="text-zinc-600">•</span>
+                    <span className="text-emerald-400 font-mono text-[9px]">{backpack.wsMessageCount} ticks</span>
+                  </>
+                )}
               </div>
             </div>
           </div>
 
-          {/* Mark Price & Trend */}
+          {/* Real-Time Mark Price & 24h Delta with dynamic live tick flash */}
           <div className="pr-4 border-r border-console-border">
-            <div className="text-[10px] text-muted font-mono uppercase tracking-[0.28px]">Mark Price (USDC)</div>
+            <div className="text-[9px] text-muted font-mono uppercase tracking-[0.28px]">
+              {currentAsset.name} Mark Price
+            </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-xl font-mono font-bold text-white tracking-tight">
+              <span
+                className={`text-xl font-mono font-bold tracking-tight transition-all duration-300 ${
+                  backpack.tickDirection === 'up'
+                    ? 'text-emerald-400 bg-emerald-500/25 px-1 rounded scale-105'
+                    : backpack.tickDirection === 'down'
+                    ? 'text-rose-400 bg-rose-500/25 px-1 rounded scale-105'
+                    : 'text-white'
+                }`}
+              >
                 {formatUsd(displayPrice)}
               </span>
               <span
-                className={`inline-flex items-center text-xs font-mono font-semibold ${
-                  isPricePositive ? 'text-emerald-400' : 'text-rose-400'
+                className={`inline-flex items-center text-xs font-mono font-semibold px-1.5 py-0.5 rounded ${
+                  isPricePositive ? 'text-emerald-400 bg-emerald-500/10' : 'text-rose-400 bg-rose-500/10'
                 }`}
               >
                 <TrendIcon className="w-3 h-3 mr-0.5" />
@@ -214,394 +273,478 @@ export const TradingTerminal: React.FC = () => {
             </div>
           </div>
 
-          {/* 24h Stats */}
-          <div className="hidden md:flex items-center gap-6 pr-4 border-r border-console-border text-xs font-mono">
+          {/* Compact 24h Stats */}
+          <div className="hidden lg:flex items-center gap-5 pr-4 border-r border-console-border text-xs font-mono">
             <div>
-              <div className="text-[10px] text-muted uppercase tracking-[0.28px]">24H High</div>
+              <div className="text-[9px] text-muted uppercase tracking-[0.28px]">24H High</div>
               <div className="text-white font-medium">{formatUsd(backpack.high24h)}</div>
             </div>
             <div>
-              <div className="text-[10px] text-muted uppercase tracking-[0.28px]">24H Low</div>
+              <div className="text-[9px] text-muted uppercase tracking-[0.28px]">24H Low</div>
               <div className="text-white font-medium">{formatUsd(backpack.low24h)}</div>
             </div>
             <div>
-              <div className="text-[10px] text-muted uppercase tracking-[0.28px]">24H Volume</div>
+              <div className="text-[9px] text-muted uppercase tracking-[0.28px]">24H Volume</div>
               <div className="text-white font-medium">
-                {backpack.volume24h.toFixed(1)} ETH (${(backpack.quoteVolume24h / 1e6).toFixed(2)}M)
+                {backpack.volume24h > 1000000
+                  ? `${(backpack.volume24h / 1e6).toFixed(1)}M ${assetUnit}`
+                  : `${backpack.volume24h.toLocaleString(undefined, { maximumFractionDigits: 1 })} ${assetUnit}`}
+                {' '}(${(backpack.quoteVolume24h / 1e6).toFixed(2)}M)
               </div>
             </div>
             <div>
-              <div className="text-[10px] text-muted uppercase tracking-[0.28px]">24H Trades</div>
+              <div className="text-[9px] text-muted uppercase tracking-[0.28px]">24H Trades</div>
               <div className="text-white font-medium">{backpack.trades.toLocaleString()}</div>
             </div>
           </div>
 
-          {/* Vault Contract Address */}
-          <div className="hidden xl:flex items-center gap-2 bg-console-elevated px-3 py-1.5 rounded-lg border border-console-border text-xs font-mono">
-            <Shield className="w-3.5 h-3.5 text-muted" />
-            <span className="text-muted text-[11px]">Vault:</span>
-            <span className="text-white text-[11px]">{truncateAddress(vaultAddress)}</span>
-            <button
-              type="button"
-              onClick={handleCopyVault}
-              className="text-muted hover:text-white transition ml-1"
-              title="Copy Vault Address"
-            >
-              {copiedVault ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-            </button>
+          {/* Quick Guardrail Badges */}
+          <div className="hidden 2xl:flex items-center gap-2 text-xs font-mono">
+            <div className="flex items-center gap-1.5 bg-console-elevated px-2.5 py-1 rounded-lg border border-console-border">
+              <Shield className="w-3 h-3 text-emerald-400" />
+              <span className="text-muted text-[10px]">Escrow:</span>
+              <span className="text-white text-[11px] font-medium">
+                {currentTotalSpend.toFixed(2)} / {maxTotalCap.toFixed(1)} ETH ({capPercentage}%)
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 bg-console-elevated px-2.5 py-1 rounded-lg border border-console-border">
+              <span className="text-amber-400 text-[10px] font-bold">GATED:</span>
+              <span className="text-white text-[11px] font-medium">
+                &gt; {agentConfig?.approvalThreshold?.thresholdAmount ?? 0.5} ETH
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* Global Strategy Actions */}
-        <div className="flex items-center gap-2.5">
+        {/* Right: Wallet, Rules, Kill Switch */}
+        <div className="flex items-center gap-2.5 ml-auto">
+          {/* Wallet Connection */}
+          <ConnectWalletButton />
+
           <Link
             href="/automation"
-            className="cohere-btn-outline !py-1.5 !px-3 text-xs"
+            className="cohere-btn-outline !py-1 !px-2.5 text-xs flex items-center gap-1.5"
+            title="Configure Strategy & Hard Caps"
           >
             <SlidersHorizontal className="w-3.5 h-3.5 text-muted" />
-            <span>Configure Strategy</span>
+            <span className="hidden md:inline">Rules</span>
           </Link>
+
           <KillSwitchButton onTrigger={handleKill} isKilled={isKilled} />
         </div>
       </header>
 
-      {/* 2. Key Guardrail Metrics */}
-      <section className="grid grid-cols-1 md:grid-cols-4 gap-3">
-        {/* Active Strategy */}
-        <div className="cohere-card-console p-4 space-y-2">
-          <div className="flex items-center justify-between text-xs text-muted">
-            <span className="flex items-center gap-1.5 text-white font-medium">
-              <Radio className="w-3.5 h-3.5 text-emerald-400" />
-              Active Strategy
-            </span>
-            <span className="cohere-chip-coral !py-0.5 !px-2 !text-[9px]">
-              GUARDED
-            </span>
-          </div>
-          <div className="font-semibold text-white text-sm">
-            {agentConfig?.name || 'ETH Momentum Guard'}
-          </div>
-          <div className="text-xs text-muted font-mono">
-            Trigger: {agentConfig?.trigger?.type === 'PRICE_BELOW' ? '<' : '>'} ${agentConfig?.trigger?.targetPrice ?? 3050} USDC
-          </div>
-        </div>
+      {/* Floating Animated Toast Feedback */}
+      <AnimatePresence>
+        {toastMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            className={`fixed top-16 right-6 z-50 px-4 py-3 rounded-xl shadow-2xl border font-mono text-xs flex items-center gap-2.5 backdrop-blur-md ${
+              toastMessage.type === 'error'
+                ? 'bg-rose-950/90 text-rose-200 border-rose-500/40'
+                : toastMessage.type === 'warn'
+                ? 'bg-amber-950/90 text-amber-200 border-amber-500/40'
+                : toastMessage.type === 'success'
+                ? 'bg-emerald-950/90 text-emerald-200 border-emerald-500/40'
+                : 'bg-zinc-900/90 text-white border-zinc-700'
+            }`}
+          >
+            <Zap className="w-4 h-4 text-coral shrink-0 animate-pulse" />
+            <span>{toastMessage.text}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-        {/* Escrow Cap */}
-        <div className="cohere-card-console p-4 space-y-2">
-          <div className="flex items-center justify-between text-xs text-muted">
-            <span className="text-white font-medium">Escrow Total Cap</span>
-            <span className="font-mono text-emerald-400 text-xs font-semibold">
-              {currentTotalSpend.toFixed(2)} / {maxTotalCap.toFixed(1)} ETH
-            </span>
-          </div>
-          <div className="w-full bg-console-elevated rounded-full h-2 overflow-hidden border border-console-border">
-            <div
-              className={`h-full transition-all duration-500 rounded-full ${
-                capPercentage > 90 ? 'bg-rose-500' : capPercentage > 75 ? 'bg-amber-500' : 'bg-white'
-              }`}
-              style={{ width: `${capPercentage}%` }}
+      {/* Live On-Chain Gated Pending Approvals Banner */}
+      <AnimatePresence>
+        {pendingTrades.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="bg-amber-500/10 border border-amber-500/40 rounded-xl p-3.5 flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
+              <div className="flex items-center gap-2.5">
+                <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 animate-bounce" />
+                <div>
+                  <span className="text-amber-300 font-bold">ACTION REQUIRED:</span>
+                  <span className="text-white ml-1.5">
+                    {pendingTrades.length} trade order(s) exceed the 0.5 ETH approval threshold and require cryptographic sign-off.
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {pendingTrades.slice(0, 1).map((t) => (
+                  <div key={t.tradeId} className="flex items-center gap-2">
+                    <span className="text-amber-200 font-semibold">#{t.tradeId} ({t.amount} ETH @ ${t.price.toFixed(2)})</span>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={async () => {
+                        const ok = await approveTrade(t.tradeId);
+                        if (ok) showToast(`Approved trade #${t.tradeId} on-chain!`, 'success');
+                      }}
+                      className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-3 py-1 rounded text-xs transition shadow"
+                    >
+                      Approve & Execute
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={async () => {
+                        const ok = await rejectTrade(t.tradeId);
+                        if (ok) showToast(`Rejected trade #${t.tradeId}`, 'warn');
+                      }}
+                      className="bg-rose-600/80 hover:bg-rose-600 text-white font-semibold px-3 py-1 rounded text-xs transition"
+                    >
+                      Reject
+                    </motion.button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 2. Main Workspace: Side-by-Side Seamless Grid */}
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-3 items-stretch">
+        {/* Left: Live Terminal Chart Panel */}
+        <div className="xl:col-span-8 flex flex-col">
+          <div className="cohere-card-console !p-0 overflow-hidden flex flex-col flex-1 border border-console-border rounded-xl min-h-[580px] h-[580px] bg-[#09090b]">
+            <TradingViewChart
+              symbol={tvSymbol}
+              interval="1D"
+              range="12m"
+              theme="Dark"
+              height="100%"
+              embedded={true}
+              onSymbolChange={(s) => setTvSymbol(s)}
             />
           </div>
-          <div className="flex justify-between text-[10px] text-muted font-mono">
-            <span>Utilization: {capPercentage}%</span>
-            <span>Hard Cap On-Chain</span>
-          </div>
         </div>
 
-        {/* Approval Threshold */}
-        <div className="cohere-card-console p-4 space-y-2">
-          <div className="flex items-center justify-between text-xs text-muted">
-            <span className="text-white font-medium">Approval Threshold</span>
-            <span className="font-mono text-[9px] px-2 py-0.5 rounded border border-amber-500/30 bg-amber-500/10 text-amber-400">
-              GATED
-            </span>
-          </div>
-          <div className="font-mono text-sm font-semibold text-white">
-            &gt; {agentConfig?.approvalThreshold?.thresholdAmount ?? 0.5} ETH
-          </div>
-          <div className="text-xs text-muted font-mono">
-            Single Trade Max: {agentConfig?.spendingCap?.maxPerTradeSpend ?? 1.5} ETH
-          </div>
-        </div>
-
-        {/* Connected Wallet */}
-        <div className="cohere-card-console p-4 space-y-2">
-          <div className="flex items-center justify-between text-xs text-muted">
-            <span className="flex items-center gap-1.5 text-white font-medium">
-              <Wallet className="w-3.5 h-3.5 text-muted" />
-              Connected Wallet
-            </span>
-            {wallet.isConnected && (
-              <span className="text-[10px] font-mono text-emerald-400 flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                Active
-              </span>
-            )}
-          </div>
-          {wallet.isConnected ? (
-            <div>
-              <div className="font-mono text-xs text-white truncate" title={wallet.address ?? undefined}>
-                {wallet.address}
-              </div>
-              <div className="text-xs text-emerald-400 font-mono font-medium pt-0.5">
-                Balance: {wallet.balance} ETH
-              </div>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={wallet.connectDemoWallet}
-              className="w-full cohere-btn-primary !py-1.5 text-xs font-bold mt-1"
-            >
-              Connect Demo Account
-            </button>
-          )}
-        </div>
-      </section>
-
-      {/* 3. Main Workspace: Charts & Order Book */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        {/* Left: Charts & Simulation */}
-        <div className="lg:col-span-8 space-y-4">
-          <div className="cohere-card-console p-4 space-y-3">
-            {/* Chart Engine Switcher */}
-            <div className="flex flex-wrap items-center justify-between pb-3 border-b border-console-border gap-2">
-              <div className="flex items-center gap-1 bg-console-elevated p-1 rounded-lg border border-console-border text-xs font-mono">
-                {CHART_TABS.map((tab) => {
-                  const isActive = chartType === tab.id;
-                  return (
-                    <button
-                      key={tab.id}
-                      type="button"
-                      onClick={() => setChartType(tab.id)}
-                      className={`px-3 py-1 rounded-md transition ${
-                        isActive
-                          ? 'bg-white text-console-surface font-bold shadow-sm'
-                          : 'text-muted hover:text-white'
-                      }`}
-                    >
-                      {tab.label}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {chartType === 'TRADINGVIEW' && (
-                <div className="flex items-center gap-2 text-xs font-mono">
-                  <span className="text-muted text-[11px]">Symbol:</span>
-                  <select
-                    value={tvSymbol}
-                    onChange={(e) => setTvSymbol(e.target.value)}
-                    className="bg-console-elevated border border-console-border rounded-lg px-2.5 py-1 text-white text-xs focus:outline-none focus:ring-1 focus:ring-coral"
-                  >
-                    {TV_SYMBOLS.map((s) => (
-                      <option key={s.value} value={s.value}>
-                        {s.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-            </div>
-
-            {/* Selected Chart Component */}
-            {chartType === 'STUDIO' && <TradingViewStyleUI initialSymbol="ETH_USDC" />}
-            {chartType === 'BACKPACK' && <BackpackChart initialSymbol="ETH_USDC" height={480} />}
-            {chartType === 'TRADINGVIEW' && (
-              <TradingViewChart symbol={tvSymbol} interval="1D" height={480} />
-            )}
-            {chartType === 'AGENT_VAULT' && (
-              <PriceChart currentPrice={currentPrice} events={events} />
-            )}
-          </div>
-
-          {/* Interactive Simulation Dock */}
-          <div className="cohere-card-console p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Zap className="w-4 h-4 text-coral" />
-                <h3 className="text-xs font-semibold text-white uppercase tracking-[0.28px]">
-                  Interactive Simulation Dock
-                </h3>
-              </div>
-              <span className="text-[11px] text-muted font-mono">
-                Simulate market triggers & on-chain cap enforcement
-              </span>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 font-mono">
-              <button
-                type="button"
-                onClick={() => nudgePrice(-25)}
-                className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-console-elevated hover:bg-zinc-800 text-xs font-medium text-emerald-400 border border-console-border transition"
-              >
-                <TrendingDown className="w-3.5 h-3.5" />
-                <span>Drop -$25</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => nudgePrice(+25)}
-                className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-console-elevated hover:bg-zinc-800 text-xs font-medium text-rose-400 border border-console-border transition"
-              >
-                <TrendingUp className="w-3.5 h-3.5" />
-                <span>Raise +$25</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() =>
-                  simulateTrade({
-                    amount: 0.4,
-                    price: currentPrice,
-                    status: 'EXECUTED'
-                  })
-                }
-                className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-xs font-medium text-emerald-300 border border-emerald-500/30 transition"
-              >
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                <span>0.4 ETH Safe</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() =>
-                  simulateTrade({
-                    amount: 0.8,
-                    price: currentPrice,
-                    status: 'PENDING_APPROVAL'
-                  })
-                }
-                className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-amber-600/10 hover:bg-amber-600/20 text-xs font-medium text-amber-300 border border-amber-500/30 transition"
-              >
-                <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
-                <span>0.8 ETH Gated</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() =>
-                  simulateTrade({
-                    amount: 3.5,
-                    price: currentPrice,
-                    status: 'REJECTED',
-                    reason: 'Exceeds single trade cap (1.5 ETH)'
-                  })
-                }
-                className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-rose-600/10 hover:bg-rose-600/20 text-xs font-medium text-rose-300 border border-rose-500/30 transition"
-              >
-                <ShieldAlert className="w-3.5 h-3.5 text-rose-400" />
-                <span>3.5 ETH Over-Cap</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Right: Live Order Book Depth */}
-        <div className="lg:col-span-4 flex flex-col">
-          <div className="cohere-card-console p-3 sm:p-4 flex-1 flex flex-col min-h-[460px]">
+        {/* Right: Order Book & Execution Tape */}
+        <div className="xl:col-span-4 flex flex-col">
+          <div className="cohere-card-console !p-3 overflow-hidden flex flex-col flex-1 border border-console-border rounded-xl min-h-[580px]">
             <OrderBookTable
               bids={orderBook.bids}
               asks={orderBook.asks}
-              lastPrice={currentPrice}
+              lastPrice={displayPrice}
               isLoading={orderBook.isLoading}
               onPlaceOrder={orderBook.placeOrder}
               isSubmitting={orderBook.isSubmitting}
+              selectedMarket={selectedBpSymbol}
+              onSelectMarket={handleMarketSelect}
+              assetUnit={assetUnit}
             />
           </div>
         </div>
       </div>
 
-      {/* 4. On-Chain Execution Ledger */}
-      <section className="cohere-card-console p-5 space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-console-border">
-          <div className="flex items-center gap-3">
-            <h3 className="text-xs font-semibold text-white uppercase tracking-[0.28px] flex items-center gap-2">
-              <Clock className="w-3.5 h-3.5 text-coral" />
-              On-Chain Execution Ledger & Safety Trail
-            </h3>
-            <span className="text-[11px] font-mono text-muted">
-              ({filteredEvents.length} events logged)
-            </span>
+      {/* 3. Bottom Pro Console: Multi-Tab Tray (Ledger, Simulation, Risk Guardrails) */}
+      <section className="cohere-card-console p-4 border border-console-border rounded-xl space-y-3">
+        {/* Navigation Tabs for Bottom Console */}
+        <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-console-border">
+          <div className="flex items-center gap-1 bg-console-elevated p-1 rounded-lg border border-console-border text-xs font-mono">
+            <button
+              type="button"
+              onClick={() => setBottomTab('LEDGER')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md transition ${
+                bottomTab === 'LEDGER'
+                  ? 'bg-white text-console-surface font-bold shadow-sm'
+                  : 'text-muted hover:text-white'
+              }`}
+            >
+              <Clock className="w-3.5 h-3.5" />
+              <span>Execution Ledger ({filteredEvents.length})</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setBottomTab('SIMULATION')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md transition ${
+                bottomTab === 'SIMULATION'
+                  ? 'bg-white text-console-surface font-bold shadow-sm'
+                  : 'text-muted hover:text-white'
+              }`}
+            >
+              <Zap className="w-3.5 h-3.5 text-coral" />
+              <span>Simulation Dock</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setBottomTab('GUARDRAILS')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md transition ${
+                bottomTab === 'GUARDRAILS'
+                  ? 'bg-white text-console-surface font-bold shadow-sm'
+                  : 'text-muted hover:text-white'
+              }`}
+            >
+              <Shield className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Vault Guardrails & Hard Caps</span>
+            </button>
           </div>
 
-          {/* Filter Tabs */}
-          <div className="flex items-center gap-1 bg-console-elevated p-1 rounded-lg border border-console-border text-[11px] font-mono">
-            {FILTER_TABS.map((tab) => {
-              const isActive = activeFilter === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActiveFilter(tab.id)}
-                  className={`px-3 py-1 rounded transition ${
-                    isActive ? tab.activeColor : 'text-muted hover:text-white'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              );
-            })}
-          </div>
+          {/* Ledger-specific Filter Chips */}
+          {bottomTab === 'LEDGER' && (
+            <div className="flex items-center gap-1 bg-console-elevated p-1 rounded-lg border border-console-border text-[11px] font-mono">
+              {FILTER_TABS.map((tab) => {
+                const isActive = activeFilter === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setActiveFilter(tab.id)}
+                    className={`px-2.5 py-1 rounded transition ${
+                      isActive ? tab.activeColor : 'text-muted hover:text-white'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
-        {filteredEvents.length === 0 ? (
-          <div className="text-center py-8 text-xs text-muted font-mono">
-            No events match current filter.
+        {/* TAB CONTENT 1: On-Chain Execution Ledger */}
+        {bottomTab === 'LEDGER' && (
+          <div>
+            {filteredEvents.length === 0 ? (
+              <div className="text-center py-8 text-xs text-muted font-mono">
+                No execution events logged yet. Trigger an order or run a simulation.
+              </div>
+            ) : (
+              <div className="overflow-x-auto max-h-[300px]">
+                <table className="w-full text-left text-xs font-mono">
+                  <thead className="text-muted border-b border-console-border text-[10px] uppercase tracking-[0.28px] sticky top-0 bg-console-surface">
+                    <tr>
+                      <th className="pb-2.5 font-normal">Timestamp</th>
+                      <th className="pb-2.5 font-normal">ID</th>
+                      <th className="pb-2.5 font-normal">Side</th>
+                      <th className="pb-2.5 font-normal">Amount</th>
+                      <th className="pb-2.5 font-normal">Price (USDC)</th>
+                      <th className="pb-2.5 font-normal">Status</th>
+                      <th className="pb-2.5 font-normal">On-Chain Audit / Tx</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-console-border/70">
+                    <AnimatePresence initial={false}>
+                      {filteredEvents.map((e, idx) => (
+                        <motion.tr
+                          key={`${e.tradeId}-${idx}`}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: 10 }}
+                          transition={{ duration: 0.2 }}
+                          className="hover:bg-console-elevated/70 transition"
+                        >
+                          <td className="py-2.5 text-muted">
+                            {new Date(e.timestamp).toLocaleTimeString()}
+                          </td>
+                          <td className="py-2.5 text-white font-semibold">#{e.tradeId}</td>
+                          <td className="py-2.5">
+                            <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold text-[10px]">
+                              {e.action}
+                            </span>
+                          </td>
+                          <td className="py-2.5 text-white font-medium">{e.amount} ETH</td>
+                          <td className="py-2.5 text-muted">{formatUsd(e.price)}</td>
+                          <td className="py-2.5">
+                            <span
+                              className={`px-2 py-0.5 rounded border text-[10px] font-semibold tracking-wide ${getStatusBadgeClass(
+                                e.status
+                              )}`}
+                            >
+                              {e.status}
+                            </span>
+                          </td>
+                          <td className="py-2.5 text-muted text-[11px] truncate max-w-sm">
+                            {e.reason ? (
+                              <span className="text-rose-300">{e.reason}</span>
+                            ) : e.txHash ? (
+                              <span className="text-white hover:underline flex items-center gap-1">
+                                <span>{truncateAddress(e.txHash)}</span>
+                                <ArrowUpRight className="w-3 h-3 text-muted" />
+                              </span>
+                            ) : (
+                              <span className="text-emerald-400/90 flex items-center gap-1">
+                                <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                                Vault Verified
+                              </span>
+                            )}
+                          </td>
+                        </motion.tr>
+                      ))}
+                    </AnimatePresence>
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs font-mono">
-              <thead className="text-muted border-b border-console-border text-[11px] uppercase tracking-[0.28px]">
-                <tr>
-                  <th className="pb-3 font-normal">Timestamp</th>
-                  <th className="pb-3 font-normal">ID</th>
-                  <th className="pb-3 font-normal">Side</th>
-                  <th className="pb-3 font-normal">Amount</th>
-                  <th className="pb-3 font-normal">Price (USDC)</th>
-                  <th className="pb-3 font-normal">Status</th>
-                  <th className="pb-3 font-normal">Verification / On-Chain Audit</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-console-border">
-                {filteredEvents.map((e, idx) => (
-                  <tr key={`${e.tradeId}-${idx}`} className="hover:bg-console-elevated/70 transition">
-                    <td className="py-3 text-muted">
-                      {new Date(e.timestamp).toLocaleTimeString()}
-                    </td>
-                    <td className="py-3 text-white font-semibold">#{e.tradeId}</td>
-                    <td className="py-3">
-                      <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold text-[10px]">
-                        {e.action}
-                      </span>
-                    </td>
-                    <td className="py-3 text-white font-medium">{e.amount} ETH</td>
-                    <td className="py-3 text-muted">{formatUsd(e.price)}</td>
-                    <td className="py-3">
-                      <span
-                        className={`px-2 py-0.5 rounded border text-[10px] font-semibold tracking-wide ${getStatusBadgeClass(
-                          e.status
-                        )}`}
-                      >
-                        {e.status}
-                      </span>
-                    </td>
-                    <td className="py-3 text-muted text-[11px] truncate max-w-sm">
-                      {e.reason ? (
-                        <span className="text-rose-300">{e.reason}</span>
-                      ) : e.txHash ? (
-                        <span className="text-white hover:underline flex items-center gap-1">
-                          <span>{truncateAddress(e.txHash)}</span>
-                          <ArrowUpRight className="w-3 h-3 text-muted" />
-                        </span>
-                      ) : (
-                        <span className="text-emerald-400/90">On-Chain Vault Verified</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        )}
+
+        {/* TAB CONTENT 2: Interactive Simulation Dock */}
+        {bottomTab === 'SIMULATION' && (
+          <div className="space-y-3 py-1">
+            <div className="flex items-center justify-between text-xs font-mono text-muted">
+              <span>Simulate instant market price nudges and verify on-chain spending guardrails:</span>
+              <span className="text-emerald-400">Current Reference Price: {formatUsd(currentPrice)}</span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 font-mono">
+              <motion.button
+                whileHover={{ scale: 1.04, y: -2 }}
+                whileTap={{ scale: 0.96 }}
+                type="button"
+                onClick={async () => {
+                  await nudgePrice(-25);
+                  showToast('Price nudged -$25.00 in feed engine', 'info');
+                }}
+                className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg bg-console-elevated hover:bg-zinc-800 text-xs font-medium text-emerald-400 border border-console-border transition shadow-sm"
+              >
+                <TrendingDown className="w-3.5 h-3.5" />
+                <span>Drop -$25</span>
+              </motion.button>
+
+              <motion.button
+                whileHover={{ scale: 1.04, y: -2 }}
+                whileTap={{ scale: 0.96 }}
+                type="button"
+                onClick={async () => {
+                  await nudgePrice(+25);
+                  showToast('Price nudged +$25.00 in feed engine', 'info');
+                }}
+                className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg bg-console-elevated hover:bg-zinc-800 text-xs font-medium text-rose-400 border border-console-border transition shadow-sm"
+              >
+                <TrendingUp className="w-3.5 h-3.5" />
+                <span>Raise +$25</span>
+              </motion.button>
+
+              <motion.button
+                whileHover={{ scale: 1.04, y: -2 }}
+                whileTap={{ scale: 0.96 }}
+                type="button"
+                onClick={async () => {
+                  await simulateTrade({
+                    amount: 0.4,
+                    price: currentPrice,
+                    status: 'EXECUTED'
+                  });
+                  showToast('0.4 ETH Safe Trade executed & audited on-chain', 'success');
+                }}
+                className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-xs font-medium text-emerald-300 border border-emerald-500/30 transition shadow-sm"
+              >
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                <span>0.4 ETH Safe</span>
+              </motion.button>
+
+              <motion.button
+                whileHover={{ scale: 1.04, y: -2 }}
+                whileTap={{ scale: 0.96 }}
+                type="button"
+                onClick={async () => {
+                  await simulateTrade({
+                    amount: 0.8,
+                    price: currentPrice,
+                    status: 'PENDING_APPROVAL'
+                  });
+                  showToast('0.8 ETH Trade exceeds 0.5 ETH cap — queued for approval', 'warn');
+                }}
+                className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg bg-amber-600/10 hover:bg-amber-600/20 text-xs font-medium text-amber-300 border border-amber-500/30 transition shadow-sm"
+              >
+                <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+                <span>0.8 ETH Gated</span>
+              </motion.button>
+
+              <motion.button
+                whileHover={{ scale: 1.04, y: -2 }}
+                whileTap={{ scale: 0.96 }}
+                type="button"
+                onClick={async () => {
+                  await simulateTrade({
+                    amount: 3.5,
+                    price: currentPrice,
+                    status: 'REJECTED',
+                    reason: 'Exceeds single trade cap (1.5 ETH)'
+                  });
+                  showToast('3.5 ETH Order blocked by EVM: exceeds 1.5 ETH trade ceiling', 'error');
+                }}
+                className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg bg-rose-600/10 hover:bg-rose-600/20 text-xs font-medium text-rose-300 border border-rose-500/30 transition shadow-sm"
+              >
+                <ShieldAlert className="w-3.5 h-3.5 text-rose-400" />
+                <span>3.5 ETH Over-Cap</span>
+              </motion.button>
+            </div>
+          </div>
+        )}
+
+        {/* TAB CONTENT 3: Vault Risk & Guardrail Details */}
+        {bottomTab === 'GUARDRAILS' && (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3 py-1 font-mono text-xs">
+            {/* Strategy */}
+            <div className="bg-console-elevated p-3.5 rounded-lg border border-console-border space-y-1.5">
+              <div className="flex items-center justify-between text-muted">
+                <span className="text-white font-medium">Strategy Policy</span>
+                <span className="cohere-chip-coral !py-0.5 !px-1.5 !text-[9px]">ACTIVE</span>
+              </div>
+              <div className="font-bold text-white text-sm">{agentConfig?.name || 'ETH Momentum Guard'}</div>
+              <div className="text-muted text-[11px]">
+                Target: {agentConfig?.trigger?.type === 'PRICE_BELOW' ? '<' : '>'} ${agentConfig?.trigger?.targetPrice ?? 3050} USDC
+              </div>
+            </div>
+
+            {/* Escrow Cap */}
+            <div className="bg-console-elevated p-3.5 rounded-lg border border-console-border space-y-1.5">
+              <div className="flex items-center justify-between text-muted">
+                <span className="text-white font-medium">Total Escrow Cap</span>
+                <span className="text-emerald-400 font-bold">{currentTotalSpend.toFixed(2)} / {maxTotalCap.toFixed(1)} ETH</span>
+              </div>
+              <div className="w-full bg-zinc-900 rounded-full h-1.5 overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-300 ${
+                    capPercentage > 90 ? 'bg-rose-500' : capPercentage > 75 ? 'bg-amber-500' : 'bg-emerald-400'
+                  }`}
+                  style={{ width: `${capPercentage}%` }}
+                />
+              </div>
+              <div className="text-muted text-[10px]">Utilization: {capPercentage}% (Enforced on Anvil/EVM)</div>
+            </div>
+
+            {/* Human Gate */}
+            <div className="bg-console-elevated p-3.5 rounded-lg border border-console-border space-y-1.5">
+              <div className="flex items-center justify-between text-muted">
+                <span className="text-white font-medium">Human-in-the-Loop</span>
+                <span className="text-amber-400 text-[10px] font-bold">GATED</span>
+              </div>
+              <div className="font-bold text-white text-sm">&gt; {agentConfig?.approvalThreshold?.thresholdAmount ?? 0.5} ETH</div>
+              <div className="text-muted text-[11px]">Trades exceeding threshold require signature</div>
+            </div>
+
+            {/* Smart Contract Vault */}
+            <div className="bg-console-elevated p-3.5 rounded-lg border border-console-border space-y-1.5">
+              <div className="flex items-center justify-between text-muted">
+                <span className="text-white font-medium">Non-Custodial Escrow</span>
+                <button
+                  type="button"
+                  onClick={handleCopyVault}
+                  className="text-muted hover:text-white transition"
+                  title="Copy Vault Address"
+                >
+                  {copiedVault ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                </button>
+              </div>
+              <div className="text-white font-medium truncate" title={vaultAddress}>
+                {truncateAddress(vaultAddress)}
+              </div>
+              <div className="text-emerald-400 text-[10px]">Hard Capped Smart Contract Settlement</div>
+            </div>
           </div>
         )}
       </section>
@@ -615,6 +758,3 @@ export const TradingTerminal: React.FC = () => {
     </div>
   );
 };
-
-
-
