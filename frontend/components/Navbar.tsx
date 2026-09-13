@@ -9,7 +9,7 @@ export const Navbar: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 bg-[#0b0c0e]/90 backdrop-blur-xl border-b border-[#23252c] transition-colors duration-200">
+    <header className="sticky top-0 z-40 bg-[#0b0c0e]/30 backdrop-blur-md transition-colors duration-200">
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Brand Logo */}
         <div className="flex items-center gap-4">
