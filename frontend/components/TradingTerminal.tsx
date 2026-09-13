@@ -220,16 +220,26 @@ export const TradingTerminal: React.FC = () => {
                   </optgroup>
                 </select>
                 <span className="cohere-chip-coral !py-0.5 !px-2 !text-[9px] flex items-center gap-1 font-semibold">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  {currentAsset.badge} • BACKPACK L2 LIVE
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full ${
+                      backpack.isWsConnected ? 'bg-emerald-400 animate-ping' : 'bg-emerald-400 animate-pulse'
+                    }`}
+                  />
+                  {currentAsset.badge} • {backpack.isWsConnected ? 'BACKPACK WS LIVE' : 'BACKPACK L2 LIVE'}
                 </span>
               </div>
               <div className="text-[10px] text-muted font-mono flex items-center gap-1.5">
-                <span>api.backpack.exchange</span>
+                <span>{backpack.isWsConnected ? 'wss://ws.backpack.exchange' : 'api.backpack.exchange'}</span>
                 <span className="text-zinc-600">•</span>
                 <span className="text-emerald-400 font-medium">{selectedBpSymbol}</span>
                 <span className="text-zinc-600">•</span>
                 <span className="text-zinc-300">{currentAsset.name}</span>
+                {backpack.wsMessageCount > 0 && (
+                  <>
+                    <span className="text-zinc-600">•</span>
+                    <span className="text-emerald-400 font-mono text-[9px]">{backpack.wsMessageCount} ticks</span>
+                  </>
+                )}
               </div>
             </div>
           </div>

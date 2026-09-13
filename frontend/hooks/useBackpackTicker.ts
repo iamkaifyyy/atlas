@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { BACKEND_HTTP_URL } from '../lib/contractAddress';
+import { findCryptoAsset } from '../lib/cryptoAssets';
 
 export interface BackpackTickerData {
   symbol: string;
@@ -15,130 +15,229 @@ export interface BackpackTickerData {
   trades: number;
   isLoading: boolean;
   tickDirection: 'up' | 'down' | null;
+  isWsConnected: boolean;
+  wsMessageCount: number;
 }
 
 export function useBackpackTicker(symbol: string = 'ETH_USDC'): BackpackTickerData {
-  const getBaseline = (sym: string) => {
-    if (sym.includes('AAPL')) {
-      return { price: 224.23, high: 226.50, low: 222.10, vol: 48250000, qVol: 10817650000, trades: 382450 };
-    }
-    if (sym.includes('BTC')) {
-      return { price: 77206.0, high: 77900.0, low: 76500.0, vol: 1840.0, qVol: 142000000, trades: 12500 };
-    }
-    if (sym.includes('SOL')) {
-      return { price: 101.55, high: 103.50, low: 99.80, vol: 12500.0, qVol: 1269000, trades: 4200 };
-    }
-    return { price: 2526.20, high: 2544.28, low: 2506.93, vol: 780.0, qVol: 1970000, trades: 4500 };
-  };
-
-  const initial = getBaseline(symbol);
+  const asset = findCryptoAsset(symbol);
+  const prevPriceRef = useRef<number>(asset.defaultPrice);
 
   const [data, setData] = useState<BackpackTickerData>({
-    symbol,
-    lastPrice: initial.price,
-    high24h: initial.high,
-    low24h: initial.low,
-    volume24h: initial.vol,
-    quoteVolume24h: initial.qVol,
+    symbol: asset.bpSymbol,
+    lastPrice: asset.defaultPrice,
+    high24h: asset.defaultPrice * 1.02,
+    low24h: asset.defaultPrice * 0.98,
+    volume24h: 150000,
+    quoteVolume24h: 150000 * asset.defaultPrice,
     priceChange: 0,
     priceChangePercent: 0,
-    trades: initial.trades,
+    trades: 8500,
     isLoading: true,
-    tickDirection: null
+    tickDirection: null,
+    isWsConnected: false,
+    wsMessageCount: 0
   });
-
-  const prevPriceRef = useRef<number>(initial.price);
 
   useEffect(() => {
     let isMounted = true;
-    const base = getBaseline(symbol);
-    prevPriceRef.current = base.price;
+    let wsBackpack: WebSocket | null = null;
+    let wsBinance: WebSocket | null = null;
+    let fallbackInterval: NodeJS.Timeout | null = null;
 
-    setData((prev) => ({
-      ...prev,
-      symbol,
-      lastPrice: base.price,
-      high24h: base.high,
-      low24h: base.low,
-      volume24h: base.vol,
-      quoteVolume24h: base.qVol,
-      isLoading: true,
-      tickDirection: null
-    }));
+    const currentAsset = findCryptoAsset(symbol);
+    prevPriceRef.current = currentAsset.defaultPrice;
 
-    async function fetchTicker() {
+    // Fast initial HTTP fetch to guarantee instantaneous initial render
+    async function fetchInitial() {
       try {
-        let res: Response | null = null;
-
-        // 1. Next.js internal API route proxy (same-origin, zero CORS issues)
-        try {
-          res = await fetch(`/api/backpack/ticker?symbol=${encodeURIComponent(symbol)}`, {
-            cache: 'no-store'
-          });
-        } catch {
-          res = null;
-        }
-
-        // 2. Fallback to local agent-runner proxy on port 3001
-        if (!res || !res.ok) {
-          try {
-            res = await fetch(`${BACKEND_HTTP_URL}/api/backpack/ticker?symbol=${encodeURIComponent(symbol)}`, {
-              cache: 'no-store'
-            });
-          } catch {
-            res = null;
-          }
-        }
-
-        // 3. Fallback direct to Backpack exchange API
-        if (!res || !res.ok) {
-          try {
-            res = await fetch(`https://api.backpack.exchange/api/v1/ticker?symbol=${encodeURIComponent(symbol)}`);
-          } catch {
-            res = null;
-          }
-        }
-
-        if (res && res.ok) {
+        const res = await fetch(`/api/backpack/ticker?symbol=${encodeURIComponent(currentAsset.bpSymbol)}`, {
+          cache: 'no-store'
+        });
+        if (res.ok && isMounted) {
           const json = await res.json();
-          if (json && isMounted) {
-            const nextPrice = parseFloat(json.lastPrice) || base.price;
+          const nextPrice = parseFloat(json.lastPrice) || currentAsset.defaultPrice;
+          const rawPct = parseFloat(json.priceChangePercent) || 0;
+          const pct = Math.abs(rawPct) < 1 ? rawPct * 100 : rawPct;
+
+          setData((prev) => ({
+            ...prev,
+            symbol: json.symbol || currentAsset.bpSymbol,
+            lastPrice: nextPrice,
+            high24h: parseFloat(json.high) || nextPrice * 1.02,
+            low24h: parseFloat(json.low) || nextPrice * 0.98,
+            volume24h: parseFloat(json.volume) || prev.volume24h,
+            quoteVolume24h: parseFloat(json.quoteVolume) || prev.quoteVolume24h,
+            priceChange: parseFloat(json.priceChange) || 0,
+            priceChangePercent: pct,
+            trades: parseInt(json.trades, 10) || prev.trades,
+            isLoading: false
+          }));
+          prevPriceRef.current = nextPrice;
+        }
+      } catch {
+        // Handled silently
+      }
+    }
+    fetchInitial();
+
+    // 1. Establish Backpack Exchange WebSocket connection
+    try {
+      wsBackpack = new WebSocket('wss://ws.backpack.exchange');
+
+      wsBackpack.onopen = () => {
+        if (!isMounted) return;
+        setData((prev) => ({ ...prev, isWsConnected: true, isLoading: false }));
+
+        // Subscribe to real-time ticker and bookTicker
+        wsBackpack?.send(
+          JSON.stringify({
+            method: 'SUBSCRIBE',
+            params: [
+              `ticker.${currentAsset.bpSymbol}`,
+              `bookTicker.${currentAsset.bpSymbol}`
+            ]
+          })
+        );
+      };
+
+      wsBackpack.onmessage = (event) => {
+        if (!isMounted) return;
+        try {
+          const msg = JSON.parse(event.data);
+
+          // Handle 24h ticker updates
+          if (msg.stream === `ticker.${currentAsset.bpSymbol}` && msg.data) {
+            const d = msg.data;
+            const nextPrice = parseFloat(d.c);
+            if (!isNaN(nextPrice) && nextPrice > 0) {
+              let dir: 'up' | 'down' | null = null;
+              if (prevPriceRef.current && nextPrice !== prevPriceRef.current) {
+                dir = nextPrice > prevPriceRef.current ? 'up' : 'down';
+              }
+              prevPriceRef.current = nextPrice;
+
+              const open = parseFloat(d.o) || nextPrice;
+              const pct = open > 0 ? ((nextPrice - open) / open) * 100 : 0;
+
+              setData((prev) => ({
+                ...prev,
+                symbol: currentAsset.bpSymbol,
+                lastPrice: nextPrice,
+                high24h: parseFloat(d.h) || prev.high24h,
+                low24h: parseFloat(d.l) || prev.low24h,
+                volume24h: parseFloat(d.v) || prev.volume24h,
+                quoteVolume24h: parseFloat(d.V) || prev.quoteVolume24h,
+                priceChange: nextPrice - open,
+                priceChangePercent: pct,
+                trades: parseInt(d.n, 10) || prev.trades,
+                isLoading: false,
+                tickDirection: dir,
+                isWsConnected: true,
+                wsMessageCount: prev.wsMessageCount + 1
+              }));
+            }
+          }
+
+          // Handle bookTicker sub-second top of book ticks
+          if (msg.stream === `bookTicker.${currentAsset.bpSymbol}` && msg.data) {
+            const d = msg.data;
+            const ask = parseFloat(d.a);
+            const bid = parseFloat(d.b);
+            if (!isNaN(ask) && !isNaN(bid) && ask > 0 && bid > 0) {
+              const midPrice = (ask + bid) / 2;
+              let dir: 'up' | 'down' | null = null;
+              if (prevPriceRef.current && midPrice !== prevPriceRef.current) {
+                dir = midPrice > prevPriceRef.current ? 'up' : 'down';
+              }
+              prevPriceRef.current = midPrice;
+
+              setData((prev) => ({
+                ...prev,
+                lastPrice: midPrice,
+                tickDirection: dir,
+                isWsConnected: true,
+                wsMessageCount: prev.wsMessageCount + 1
+              }));
+            }
+          }
+        } catch {
+          // Handled silently
+        }
+      };
+
+      wsBackpack.onclose = () => {
+        if (isMounted) {
+          setData((prev) => ({ ...prev, isWsConnected: false }));
+        }
+      };
+    } catch {
+      // Browser WS error
+    }
+
+    // 2. Fallback Stream: Binance Public WebSocket for Layer 2 rollups (ARB, OP, STRK, POL, etc.)
+    try {
+      const binancePair = `${currentAsset.unit.toLowerCase()}usdt`;
+      wsBinance = new WebSocket(`wss://stream.binance.com:9443/ws/${binancePair}@ticker`);
+
+      wsBinance.onopen = () => {
+        if (!isMounted) return;
+        setData((prev) => ({ ...prev, isWsConnected: true, isLoading: false }));
+      };
+
+      wsBinance.onmessage = (event) => {
+        if (!isMounted) return;
+        try {
+          const d = JSON.parse(event.data);
+          if (d && d.c) {
+            const nextPrice = parseFloat(d.c);
             let dir: 'up' | 'down' | null = null;
             if (prevPriceRef.current && nextPrice !== prevPriceRef.current) {
               dir = nextPrice > prevPriceRef.current ? 'up' : 'down';
             }
             prevPriceRef.current = nextPrice;
 
-            const rawPct = parseFloat(json.priceChangePercent) || 0;
-            const pct = Math.abs(rawPct) < 1 ? rawPct * 100 : rawPct;
+            const pct = parseFloat(d.P) || 0;
 
-            setData({
-              symbol: json.symbol || symbol,
+            setData((prev) => ({
+              ...prev,
+              symbol: currentAsset.bpSymbol,
               lastPrice: nextPrice,
-              high24h: parseFloat(json.high) || base.high,
-              low24h: parseFloat(json.low) || base.low,
-              volume24h: parseFloat(json.volume) || base.vol,
-              quoteVolume24h: parseFloat(json.quoteVolume) || base.qVol,
-              priceChange: parseFloat(json.priceChange) || 0,
+              high24h: parseFloat(d.h) || prev.high24h,
+              low24h: parseFloat(d.l) || prev.low24h,
+              volume24h: parseFloat(d.v) || prev.volume24h,
+              quoteVolume24h: parseFloat(d.q) || prev.quoteVolume24h,
+              priceChange: parseFloat(d.p) || 0,
               priceChangePercent: pct,
-              trades: parseInt(json.trades, 10) || base.trades,
+              trades: parseInt(d.n, 10) || prev.trades,
               isLoading: false,
-              tickDirection: dir
-            });
+              tickDirection: dir,
+              isWsConnected: true,
+              wsMessageCount: prev.wsMessageCount + 1
+            }));
           }
+        } catch {
+          // Handled silently
         }
-      } catch {
-        // Handled silently
-      }
+      };
+    } catch {
+      // Handled silently
     }
 
-    fetchTicker();
-    // Fast real-time polling interval: updates every 1.5 seconds
-    const interval = setInterval(fetchTicker, 1500);
+    // 3. Fallback interval polling
+    fallbackInterval = setInterval(fetchInitial, 4000);
 
     return () => {
       isMounted = false;
-      clearInterval(interval);
+      if (wsBackpack) {
+        try { wsBackpack.close(); } catch {}
+      }
+      if (wsBinance) {
+        try { wsBinance.close(); } catch {}
+      }
+      if (fallbackInterval) {
+        clearInterval(fallbackInterval);
+      }
     };
   }, [symbol]);
 
