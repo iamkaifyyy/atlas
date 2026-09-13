@@ -13,67 +13,184 @@ export const ConditionalFooter: React.FC = () => {
   }
 
   return (
-    <footer className="border-t border-[#23252c] bg-[#0b0c0e] text-zinc-400 text-xs font-sans mt-20 relative z-10 pt-12 pb-8">
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-8 pb-12 border-b border-[#23252c]">
-          <div className="col-span-2 space-y-3">
-            <div className="flex items-center gap-2.5">
-              <div className="w-6 h-6 rounded bg-white text-[#0b0c0e] flex items-center justify-center font-bold text-xs">
-                ▲
-              </div>
-              <span className="font-semibold text-white text-base tracking-tight">Atlas Enterprise</span>
+    <footer className="border-t border-[#23252c] bg-[#0b0c0e] text-zinc-400 text-sm font-sans mt-24 relative z-10 pt-16 pb-0 overflow-hidden">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-10 pb-16">
+          {/* Brand & Copyright Column */}
+          <div className="md:col-span-1 space-y-4">
+            <div className="flex items-center gap-3">
+              <img
+                src="/globe.svg"
+                alt="Atlas Protocol"
+                className="w-6 h-6 object-contain"
+              />
+              <span className="font-semibold text-white text-lg tracking-tight">
+                Atlas
+              </span>
             </div>
-            <p className="text-zinc-400 text-xs max-w-sm leading-relaxed">
-              Autonomous quantitative trading protocol with non-custodial EVM escrow smart contracts, real-time Backpack L2 orderbooks, and Hedera HCS audit logging.
+            <p className="text-zinc-500 text-xs leading-relaxed">
+              © copyright Atlas Protocol 2026. All rights reserved.
             </p>
           </div>
 
-          <div>
-            <div className="font-semibold text-white text-xs mb-3 font-mono uppercase tracking-wider">Products</div>
-            <ul className="space-y-2 text-zinc-400">
-              <li><Link href="/terminal" className="hover:text-white transition">Trading Terminal</Link></li>
-              <li><Link href="/automation" className="hover:text-white transition">No-Code Rule Builder</Link></li>
-              <li><Link href="/markets" className="hover:text-white transition">Market Screener</Link></li>
-              <li><Link href="/vault" className="hover:text-white transition">Escrow Vault</Link></li>
+          {/* Pages Column */}
+          <div className="space-y-3">
+            <h4 className="font-semibold text-white text-sm tracking-tight">
+              Pages
+            </h4>
+            <ul className="space-y-2.5 text-xs text-zinc-400">
+              <li>
+                <Link href="/terminal" className="hover:text-white transition">
+                  Trading Terminal
+                </Link>
+              </li>
+              <li>
+                <Link href="/automation" className="hover:text-white transition">
+                  Strategy Studio
+                </Link>
+              </li>
+              <li>
+                <Link href="/markets" className="hover:text-white transition">
+                  Market Screener
+                </Link>
+              </li>
+              <li>
+                <Link href="/vault" className="hover:text-white transition">
+                  Escrow Vault
+                </Link>
+              </li>
+              <li>
+                <Link href="/dashboard" className="hover:text-white transition">
+                  Protocol Metrics
+                </Link>
+              </li>
             </ul>
           </div>
 
-          <div>
-            <div className="font-semibold text-white text-xs mb-3 font-mono uppercase tracking-wider">Protocol</div>
-            <ul className="space-y-2 text-zinc-400">
-              <li><span className="hover:text-white transition cursor-pointer">AgentVault.sol</span></li>
-              <li><span className="hover:text-white transition cursor-pointer">Hedera HCS Topic</span></li>
-              <li><span className="hover:text-white transition cursor-pointer">ENSv2 Client</span></li>
-              <li><span className="hover:text-white transition cursor-pointer">x402 AI Inference</span></li>
+          {/* Socials Column */}
+          <div className="space-y-3">
+            <h4 className="font-semibold text-white text-sm tracking-tight">
+              Socials
+            </h4>
+            <ul className="space-y-2.5 text-xs text-zinc-400">
+              <li>
+                <a
+                  href="https://twitter.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-white transition"
+                >
+                  Twitter / X
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://discord.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-white transition"
+                >
+                  Discord
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://github.com/iamkaifyyy/atlas"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-white transition"
+                >
+                  GitHub
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://telegram.org"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-white transition"
+                >
+                  Telegram
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://linkedin.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-white transition"
+                >
+                  LinkedIn
+                </a>
+              </li>
             </ul>
           </div>
 
-          <div>
-            <div className="font-semibold text-white text-xs mb-3 font-mono uppercase tracking-wider">Ecosystem</div>
-            <ul className="space-y-2 text-zinc-400">
-              <li><span className="hover:text-white transition cursor-pointer">Backpack L2</span></li>
-              <li><span className="hover:text-white transition cursor-pointer">1inch Aqua</span></li>
-              <li><span className="hover:text-white transition cursor-pointer">The Graph Subgraph</span></li>
-              <li><span className="hover:text-white transition cursor-pointer">Foundry Suite</span></li>
+          {/* Legal Column */}
+          <div className="space-y-3">
+            <h4 className="font-semibold text-white text-sm tracking-tight">
+              Legal
+            </h4>
+            <ul className="space-y-2.5 text-xs text-zinc-400">
+              <li>
+                <span className="hover:text-white cursor-pointer transition">
+                  Privacy Policy
+                </span>
+              </li>
+              <li>
+                <span className="hover:text-white cursor-pointer transition">
+                  Terms of Service
+                </span>
+              </li>
+              <li>
+                <span className="hover:text-white cursor-pointer transition">
+                  Security Audit
+                </span>
+              </li>
+              <li>
+                <span className="hover:text-white cursor-pointer transition">
+                  Cookie Policy
+                </span>
+              </li>
+            </ul>
+          </div>
+
+          {/* Protocol Column */}
+          <div className="space-y-3">
+            <h4 className="font-semibold text-white text-sm tracking-tight">
+              Protocol
+            </h4>
+            <ul className="space-y-2.5 text-xs text-zinc-400">
+              <li>
+                <span className="hover:text-white cursor-pointer transition">
+                  Backpack L2 Feed
+                </span>
+              </li>
+              <li>
+                <span className="hover:text-white cursor-pointer transition">
+                  AgentVault.sol
+                </span>
+              </li>
+              <li>
+                <span className="hover:text-white cursor-pointer transition">
+                  Hedera HCS Logger
+                </span>
+              </li>
+              <li>
+                <span className="hover:text-white cursor-pointer transition">
+                  Documentation
+                </span>
+              </li>
             </ul>
           </div>
         </div>
+      </div>
 
-        <div className="pt-6 flex flex-col md:flex-row items-center justify-between gap-4 font-mono text-[11px] text-zinc-500">
-          <div className="flex items-center gap-3">
-            <span className="text-emerald-400 flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              All Protocol Systems Operational
-            </span>
-            <span>•</span>
-            <span>© 2026 Atlas Protocol</span>
-          </div>
-          <div className="flex items-center gap-4 text-zinc-400">
-            <span className="hover:text-white cursor-pointer transition">Privacy Policy</span>
-            <span className="hover:text-white cursor-pointer transition">Terms of Service</span>
-            <span className="hover:text-white cursor-pointer transition">Security Audit</span>
-          </div>
-        </div>
+      {/* Giant Watermark Text Background at Footer Bottom */}
+      <div className="w-full text-center overflow-hidden pt-4 pb-2 pointer-events-none select-none leading-none">
+        <span className="text-[15vw] sm:text-[210px] font-extrabold tracking-tighter text-white/[0.04] uppercase block leading-none transition-all">
+          Atlas
+        </span>
       </div>
     </footer>
   );
