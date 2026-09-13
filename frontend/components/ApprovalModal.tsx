@@ -74,6 +74,16 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
           </div>
         </div>
 
+        <div className="bg-emerald-950/40 rounded-xl p-3 border border-emerald-500/30 space-y-1 text-xs">
+          <div className="flex items-center gap-1.5 text-emerald-400 font-mono text-[11px] font-semibold">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            WORLD AGENTKIT: HUMAN SUPERVISION REQUIRED
+          </div>
+          <p className="text-[11px] text-zinc-300">
+            Biometric Selfie Check credential required to release escrow capital for trades &gt; 0.5 ETH.
+          </p>
+        </div>
+
         <div className="grid grid-cols-2 gap-2 pt-1">
           <button
             type="button"
@@ -88,10 +98,10 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
             type="button"
             onClick={handleApprove}
             disabled={!!processingId}
-            className="flex items-center justify-center gap-1.5 py-2.5 px-4 rounded-full bg-white hover:bg-zinc-200 text-black font-semibold text-xs font-mono tracking-wide transition disabled:opacity-50"
+            className="flex items-center justify-center gap-1.5 py-2.5 px-4 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs font-mono tracking-wide transition disabled:opacity-50 shadow-lg shadow-emerald-500/20"
           >
-            <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
-            {processingId === currentTrade.tradeId ? 'SIGNING...' : 'AUTHORIZE'}
+            <CheckCircle className="w-3.5 h-3.5 text-black" />
+            {processingId === currentTrade.tradeId ? 'VERIFYING...' : 'WORLD SELFIE CHECK'}
           </button>
         </div>
       </div>

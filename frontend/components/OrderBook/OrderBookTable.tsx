@@ -33,7 +33,7 @@ interface OrderBookTableProps {
   assetUnit?: string;
 }
 
-type BookSource = 'backpack' | 'local';
+type BookSource = 'backpack' | 'local' | '1inch';
 type ActiveTab = 'depth' | 'trades' | 'orders' | 'order';
 type OrderSide = 'BUY' | 'SELL';
 type OrderType = 'LIMIT' | 'MARKET';
@@ -624,7 +624,7 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
 
           {/* Engine Source Selector */}
           <div className="flex items-center gap-0.5 bg-console-elevated p-0.5 rounded border border-console-border text-[10px]">
-            {(['backpack', 'local'] as const).map((source) => (
+            {(['backpack', '1inch', 'local'] as const).map((source) => (
               <button
                 key={source}
                 type="button"
@@ -635,7 +635,7 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
                     : 'text-muted hover:text-white'
                 }`}
               >
-                {source === 'backpack' ? 'Backpack' : 'Atlas'}
+                {source === 'backpack' ? 'Backpack' : source === '1inch' ? '1inch Aqua' : 'Atlas'}
               </button>
             ))}
           </div>
