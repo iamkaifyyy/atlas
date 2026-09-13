@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { ConnectWalletButton } from '../components/ConnectWalletButton';
 import { WalletProvider } from '../context/WalletContext';
+import { LiveTickerBar } from '../components/LiveTickerBar';
 
 export const metadata: Metadata = {
   title: 'Atlas | Enterprise Quantitative Crypto Protocol & Guarded Escrow',
@@ -25,31 +26,9 @@ export default function RootLayout({
       <body className="bg-console-bg min-h-screen text-white flex flex-col font-sans selection:bg-coral/20 selection:text-coral relative overflow-x-hidden">
         <WalletProvider>
 
-        {/* Top live ticker announcement bar (translucent, borderless) */}
-        <div className="cohere-announcement-bar relative z-50">
-          <div className="max-w-[1600px] w-full mx-auto flex items-center justify-between gap-4 font-mono text-[11px]">
-            <div className="flex items-center gap-3 overflow-x-auto scrollbar-none py-1">
-              <span className="cohere-chip-coral !py-0.5 !px-2 !text-[10px]">
-                BACKPACK L2 LIVE
-              </span>
-              <div className="flex items-center gap-4 text-muted">
-                <span className="text-white font-medium">ETH/USDC: <span className="text-emerald-400 font-mono">$2,525.40</span> (+1.24%)</span>
-                <span className="hidden sm:inline text-white font-medium">BTC/USDC: <span className="text-emerald-400 font-mono">$77,148.00</span> (+0.82%)</span>
-                <span className="hidden md:inline text-white font-medium">SOL/USDC: <span className="text-emerald-400 font-mono">$101.95</span> (+2.45%)</span>
-                <span className="hidden lg:inline text-white font-medium">RENDER/USDC: <span className="text-rose-400 font-mono">$1.40</span> (-0.35%)</span>
-              </div>
-            </div>
+        {/* Top live dynamic ticker marquee bar */}
+        <LiveTickerBar />
 
-            <div className="hidden lg:flex items-center gap-4 text-muted shrink-0 text-[11px]">
-              <span className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span>Matching Engine: <strong className="text-white">&lt; 1.2 ms</strong></span>
-              </span>
-              <span>•</span>
-              <span>EVM Escrow: <strong className="text-white">Active</strong></span>
-            </div>
-          </div>
-        </div>
 
         {/* Command header: Seamless, borderless, no navigation buttons, Connect Wallet at top right */}
         <header className="sticky top-0 z-40 bg-console-bg/30 backdrop-blur-md transition-colors duration-200">
