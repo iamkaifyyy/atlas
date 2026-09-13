@@ -1,4 +1,4 @@
-# ▲ Atlas: Enterprise Quantitative AI Protocol & Guarded Escrow
+# Atlas: Enterprise Quantitative AI Protocol & Guarded Escrow
 
 Atlas is an enterprise-grade autonomous quantitative trading agent platform. Users configure algorithmic trading logic through a **No-Code Visual Rule Builder**, enforce strict **programmatic spending ceilings and human-in-the-loop approval gates on-chain**, and monitor trade execution against a **TradingView Pro live orderbook and chart**.
 
@@ -6,22 +6,22 @@ Every strategy execution, guardrail block, and emergency kill-switch event is lo
 
 ---
 
-## 🌟 Key Features & Architecture
+## Key Features & Architecture
 
-- 📈 **TradingView Pro Trading Console**: Real-time order book depth ladder streaming live via WebSocket (`wss://ws.backpack.exchange`), custom drawing palette, and interactive trade execution markers.
-- ⚙️ **No-Code Strategy Studio**: Visually configure execution conditions (Dip Buyer, Momentum, Strict Guard), per-trade caps, lifetime ceilings, and human-in-the-loop threshold sign-offs.
-- 🛡️ **Guarded Non-Custodial EVM Escrow (`AgentVault.sol`)**:
+- **TradingView Pro Trading Console**: Real-time order book depth ladder streaming live via WebSocket (`wss://ws.backpack.exchange`), custom drawing palette, and interactive trade execution markers.
+- **No-Code Strategy Studio**: Visually configure execution conditions (Dip Buyer, Momentum, Strict Guard), per-trade caps, lifetime ceilings, and human-in-the-loop threshold sign-offs.
+- **Guarded Non-Custodial EVM Escrow (`AgentVault.sol`)**:
   - `maxPerTradeCap`: Hard limit on single-trade size on-chain.
   - `maxLifetimeBudget`: Cumulative spending ceiling enforced on-chain.
   - `requireApprovalOver`: Automatically pauses high-value trades for human signature.
   - `triggerKillSwitch`: Emergency 100% instant refund of escrowed assets to vault owner.
-- 📜 **Hedera HCS Immutable Audit Trail**: Every trade execution, guardrail block, and kill-switch activation generates a tamper-proof Hedera Consensus Topic message linked to HashScan.
-- 🌐 **ENSv2 Resolution (`alpha.atlas.eth`)**: Resolves protocol vaults, agent nodes, and owner identities using ENSv2 client resolution.
-- ⚡ **x402 Micro-Fee AI Inference**: Agent pays micro-fees in USDC/HBAR per AI signal request via HTTP 402 payment headers.
+- **Hedera HCS Immutable Audit Trail**: Every trade execution, guardrail block, and kill-switch activation generates a tamper-proof Hedera Consensus Topic message linked to HashScan.
+- **ENSv2 Resolution (`alpha.atlas.eth`)**: Resolves protocol vaults, agent nodes, and owner identities using ENSv2 client resolution.
+- **x402 Micro-Fee AI Inference**: Agent pays micro-fees in USDC/HBAR per AI signal request via HTTP 402 payment headers.
 
 ---
 
-## 🏗️ System Architecture
+## System Architecture
 
 ```text
 ┌────────────────────────────────────────────────────────┐
@@ -46,7 +46,7 @@ Every strategy execution, guardrail block, and emergency kill-switch event is lo
 
 ---
 
-## 🚀 Quickstart Guide
+## Quickstart Guide
 
 ### 1. Prerequisites
 - **Node.js**: `v18+` (Tested on Node 20 / 24)
@@ -83,7 +83,7 @@ Open [http://localhost:3000/terminal](http://localhost:3000/terminal) in your br
 
 ---
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```text
 atlas/
@@ -100,5 +100,5 @@ atlas/
 
 ---
 
-## 📜 License
+## License
 MIT © 2026 Atlas Protocol

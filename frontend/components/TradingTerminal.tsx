@@ -206,21 +206,21 @@ export const TradingTerminal: React.FC = () => {
                   onChange={(e) => setTvSymbol(e.target.value)}
                   className="bg-transparent text-white font-bold text-sm tracking-tight cursor-pointer focus:outline-none hover:text-emerald-400 transition"
                 >
-                  <optgroup label="⚡ Layer 1 Blockchains" className="bg-zinc-950 text-emerald-400 font-semibold">
+                  <optgroup label="Layer 1 Blockchains" className="bg-zinc-950 text-emerald-400 font-semibold">
                     {CRYPTO_ASSETS.filter((a) => a.category === 'Layer 1').map((a) => (
                       <option key={a.tvSymbol} value={a.tvSymbol} className="bg-zinc-950 text-white font-mono">
                         {a.name} ({a.unit}) • {a.badge}
                       </option>
                     ))}
                   </optgroup>
-                  <optgroup label="🚀 Layer 2 Rollups & Scaling" className="bg-zinc-950 text-cyan-400 font-semibold">
+                  <optgroup label="Layer 2 Rollups & Scaling" className="bg-zinc-950 text-cyan-400 font-semibold">
                     {CRYPTO_ASSETS.filter((a) => a.category === 'Layer 2').map((a) => (
                       <option key={a.tvSymbol} value={a.tvSymbol} className="bg-zinc-950 text-white font-mono">
                         {a.name} ({a.unit}) • {a.badge}
                       </option>
                     ))}
                   </optgroup>
-                  <optgroup label="🧠 Decentralized AI & DeFi" className="bg-zinc-950 text-purple-400 font-semibold">
+                  <optgroup label="Decentralized AI & DeFi" className="bg-zinc-950 text-purple-400 font-semibold">
                     {CRYPTO_ASSETS.filter((a) => a.category === 'AI' || a.category === 'DeFi').map((a) => (
                       <option key={a.tvSymbol} value={a.tvSymbol} className="bg-zinc-950 text-white font-mono">
                         {a.name} ({a.unit}) • {a.badge}
@@ -430,7 +430,7 @@ export const TradingTerminal: React.FC = () => {
               <div className="flex items-center gap-3 flex-wrap">
                 <div className="flex items-center gap-1.5 text-emerald-400 font-semibold text-[11px] bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                  <span>🤖 NO-CODE AGENT: ACTIVE</span>
+                  <span>NO-CODE AGENT: ACTIVE</span>
                 </div>
                 <span className="text-zinc-600 hidden sm:inline">•</span>
                 <div className="flex items-center gap-1 text-zinc-300 text-[11px]">
