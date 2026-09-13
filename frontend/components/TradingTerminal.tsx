@@ -324,11 +324,8 @@ export const TradingTerminal: React.FC = () => {
           </div>
         </div>
 
-        {/* Right: Wallet, Rules, Kill Switch */}
+        {/* Right: Strategy Rules & Emergency Kill Switch */}
         <div className="flex items-center gap-2.5 ml-auto">
-          {/* Wallet Connection */}
-          <ConnectWalletButton />
-
           <button
             type="button"
             onClick={() => setIsRulesModalOpen(true)}
@@ -336,7 +333,7 @@ export const TradingTerminal: React.FC = () => {
             title="Configure Strategy Rules & Spending Caps"
           >
             <SlidersHorizontal className="w-3.5 h-3.5 text-muted" />
-            <span className="hidden md:inline">Rules</span>
+            <span className="hidden md:inline font-mono font-medium">Strategy Rules</span>
           </button>
 
           <KillSwitchButton onTrigger={handleKill} isKilled={isKilled} />

@@ -50,23 +50,23 @@ export default function RootLayout({
               </Link>
             </div>
 
-            {/* Right Action Controls: Connect Wallet using viem + Launch Console shortcut */}
+            {/* Center Navigation Links */}
+            <nav className="hidden md:flex items-center gap-6 font-mono text-xs text-zinc-400">
+              <Link href="/terminal" className="hover:text-white transition">Terminal</Link>
+              <Link href="/markets" className="hover:text-white transition">Markets</Link>
+              <Link href="/automation" className="hover:text-white transition">Strategy Studio</Link>
+              <Link href="/vault" className="hover:text-white transition">Vault Escrow</Link>
+            </nav>
+
+            {/* Right Action Controls: Connect Wallet */}
             <div className="flex items-center gap-3">
-              <div className="hidden md:flex items-center gap-2 text-xs text-muted px-3 py-1.5 rounded-full bg-console-surface/60 border border-console-border/60 font-mono backdrop-blur-md">
+              <div className="hidden lg:flex items-center gap-2 text-xs text-muted px-3 py-1.5 rounded-full bg-zinc-900/60 border border-zinc-800/60 font-mono backdrop-blur-md">
                 <Activity className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
                 <span>Web3 EVM Live</span>
               </div>
 
-              {/* Connect Wallet using viem */}
+              {/* Connect Wallet */}
               <ConnectWalletButton />
-
-              <Link
-                href="/terminal"
-                className="cohere-btn-primary text-xs !py-2 !px-4 shadow-lg hover:shadow-white/10"
-              >
-                <span>Launch Console</span>
-                <ArrowUpRight className="w-3.5 h-3.5" />
-              </Link>
             </div>
           </div>
         </header>
