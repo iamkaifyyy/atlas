@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Wallet, Check, Copy, LogOut, ChevronDown, ExternalLink, Activity } from 'lucide-react';
+import { Wallet, Check, Copy, LogOut, ChevronDown, Activity, ShieldCheck } from 'lucide-react';
 import { useWallet } from '../hooks/useWallet';
 
 export const ConnectWalletButton: React.FC = () => {
@@ -10,9 +10,8 @@ export const ConnectWalletButton: React.FC = () => {
     balance,
     isConnected,
     isConnecting,
-    isDemoWallet,
-    connect,
-    connectDemoWallet,
+    walletType,
+    openWalletModal,
     disconnect
   } = useWallet();
 
@@ -46,16 +45,16 @@ export const ConnectWalletButton: React.FC = () => {
       <div className="flex items-center gap-2">
         <button
           type="button"
-          onClick={connect}
+          onClick={openWalletModal}
           disabled={isConnecting}
-          className="group relative inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold text-white bg-white/10 hover:bg-white/20 border border-white/20 hover:border-coral/60 transition-all duration-300 shadow-lg hover:shadow-coral/20 backdrop-blur-md"
+          className="group relative inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold text-white bg-white/10 hover:bg-white/20 border border-white/20 hover:border-[#0d74ce] transition-all duration-300 shadow-lg backdrop-blur-md"
         >
           {isConnecting ? (
             <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
           ) : (
-            <Wallet className="w-3.5 h-3.5 text-coral group-hover:scale-110 transition-transform" />
+            <Wallet className="w-3.5 h-3.5 text-[#0d74ce] group-hover:scale-110 transition-transform" />
           )}
-          <span>{isConnecting ? 'Connecting...' : 'Connect Wallet'}</span>
+          <span>{isConnecting ? 'Authorizing...' : 'Connect Wallet'}</span>
         </button>
       </div>
     );
@@ -66,7 +65,7 @@ export const ConnectWalletButton: React.FC = () => {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-mono bg-zinc-900/80 hover:bg-zinc-800/90 border border-zinc-700/70 hover:border-emerald-500/50 transition-all duration-200 shadow-md backdrop-blur-md"
+        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-mono bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-700/80 hover:border-emerald-500/50 transition-all duration-200 shadow-md backdrop-blur-md"
       >
         <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
         <span className="text-white font-medium">{truncate(address || '')}</span>
@@ -78,25 +77,25 @@ export const ConnectWalletButton: React.FC = () => {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-64 rounded-xl bg-zinc-950/95 border border-zinc-800 shadow-2xl p-3 z-50 text-xs font-mono backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-150">
-          <div className="flex items-center justify-between pb-2 mb-2 border-b border-zinc-800 text-[11px] text-zinc-400">
-            <span className="flex items-center gap-1.5">
-              <Activity className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Connected Web3 EVM</span>
+        <div className="absolute right-0 mt-2 w-64 rounded-xl bg-[#121316] border border-[#23252c] shadow-2xl p-3 z-50 text-xs font-mono backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-150">
+          <div className="flex items-center justify-between pb-2 mb-2 border-b border-[#23252c] text-[11px] text-zinc-400">
+            <span className="flex items-center gap-1.5 capitalize">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#0d74ce]" />
+              <span>{walletType || 'Web3 Wallet'}</span>
             </span>
-            <span className="px-1.5 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-              Active
+            <span className="px-1.5 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-sans">
+              Authorized
             </span>
           </div>
 
           <div className="space-y-1.5 py-1">
-            <div className="text-[10px] text-zinc-500 uppercase tracking-wider">Account Address</div>
-            <div className="flex items-center justify-between p-1.5 rounded bg-zinc-900/90 border border-zinc-800">
+            <div className="text-[10px] text-zinc-500 uppercase tracking-wider font-sans">Account Address</div>
+            <div className="flex items-center justify-between p-1.5 rounded bg-black/40 border border-[#23252c]">
               <span className="text-zinc-200 truncate pr-2 text-[11px]">{address}</span>
               <button
                 type="button"
                 onClick={handleCopy}
-                className="text-zinc-400 hover:text-white p-1 rounded hover:bg-zinc-800 transition shrink-0"
+                className="text-zinc-400 hover:text-white p-1 rounded hover:bg-white/10 transition shrink-0"
                 title="Copy Address"
               >
                 {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
@@ -104,8 +103,8 @@ export const ConnectWalletButton: React.FC = () => {
             </div>
           </div>
 
-          <div className="mt-2 pt-2 border-t border-zinc-800 flex items-center justify-between">
-            <span className="text-[11px] text-zinc-400">Balance: <strong className="text-white">{balance} ETH</strong></span>
+          <div className="mt-2 pt-2 border-t border-[#23252c] flex items-center justify-between font-sans">
+            <span className="text-[11px] text-zinc-400">Balance: <strong className="text-white font-mono">{balance} ETH</strong></span>
             <button
               type="button"
               onClick={() => {
