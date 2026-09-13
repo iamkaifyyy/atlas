@@ -4,15 +4,23 @@
 
 @layer base {
   :root {
-    --font-mono: 'Space Mono', 'JetBrains Mono', 'SF Mono', Menlo, Consolas, Monaco, monospace;
-    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+    --font-mono: 'JetBrains Mono', 'Fira Code', 'Space Mono', monospace;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --expo-canvas: #0b0c0e;
+    --expo-surface: #121316;
+    --expo-surface-elevated: #1a1b20;
+    --expo-border: #23252c;
+    --expo-blue: #0d74ce;
+    --expo-cyan: #47c2ff;
+    --expo-emerald: #16a34a;
+    --expo-rose: #e11d48;
   }
 
   body {
-    @apply antialiased selection:bg-coral/20 selection:text-coral min-h-screen;
+    @apply antialiased selection:bg-blue-500/20 selection:text-blue-400 min-h-screen;
     font-family: var(--font-sans);
-    background-color: #09090b;
-    color: #ffffff;
+    background-color: var(--expo-canvas);
+    color: #f3f4f6;
   }
 }
 
