@@ -8,6 +8,8 @@ import {
   Globe
 } from 'lucide-react';
 import { ConnectWalletButton } from '../components/ConnectWalletButton';
+import { WalletProvider } from '../context/WalletContext';
+import { LiveTickerBar } from '../components/LiveTickerBar';
 
 export const metadata: Metadata = {
   title: 'Atlas | Enterprise Quantitative Crypto Protocol & Guarded Escrow',
@@ -22,31 +24,11 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className="bg-console-bg min-h-screen text-white flex flex-col font-sans selection:bg-coral/20 selection:text-coral relative overflow-x-hidden">
-        {/* Top live ticker announcement bar (translucent, borderless) */}
-        <div className="cohere-announcement-bar relative z-50">
-          <div className="max-w-[1600px] w-full mx-auto flex items-center justify-between gap-4 font-mono text-[11px]">
-            <div className="flex items-center gap-3 overflow-x-auto scrollbar-none py-1">
-              <span className="cohere-chip-coral !py-0.5 !px-2 !text-[10px]">
-                BACKPACK L2 LIVE
-              </span>
-              <div className="flex items-center gap-4 text-muted">
-                <span className="text-white font-medium">ETH/USDC: <span className="text-emerald-400 font-mono">$2,525.40</span> (+1.24%)</span>
-                <span className="hidden sm:inline text-white font-medium">BTC/USDC: <span className="text-emerald-400 font-mono">$77,148.00</span> (+0.82%)</span>
-                <span className="hidden md:inline text-white font-medium">SOL/USDC: <span className="text-emerald-400 font-mono">$101.95</span> (+2.45%)</span>
-                <span className="hidden lg:inline text-white font-medium">RENDER/USDC: <span className="text-rose-400 font-mono">$1.40</span> (-0.35%)</span>
-              </div>
-            </div>
+        <WalletProvider>
 
-            <div className="hidden lg:flex items-center gap-4 text-muted shrink-0 text-[11px]">
-              <span className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span>Matching Engine: <strong className="text-white">&lt; 1.2 ms</strong></span>
-              </span>
-              <span>•</span>
-              <span>EVM Escrow: <strong className="text-white">Active</strong></span>
-            </div>
-          </div>
-        </div>
+        {/* Top live dynamic ticker marquee bar */}
+        <LiveTickerBar />
+
 
         {/* Command header: Seamless, borderless, no navigation buttons, Connect Wallet at top right */}
         <header className="sticky top-0 z-40 bg-console-bg/30 backdrop-blur-md transition-colors duration-200">
@@ -68,23 +50,23 @@ export default function RootLayout({
               </Link>
             </div>
 
-            {/* Right Action Controls: Connect Wallet using viem + Launch Console shortcut */}
+            {/* Center Navigation Links */}
+            <nav className="hidden md:flex items-center gap-6 font-mono text-xs text-zinc-400">
+              <Link href="/terminal" className="hover:text-white transition">Terminal</Link>
+              <Link href="/markets" className="hover:text-white transition">Markets</Link>
+              <Link href="/automation" className="hover:text-white transition">Strategy Studio</Link>
+              <Link href="/vault" className="hover:text-white transition">Vault Escrow</Link>
+            </nav>
+
+            {/* Right Action Controls: Connect Wallet */}
             <div className="flex items-center gap-3">
-              <div className="hidden md:flex items-center gap-2 text-xs text-muted px-3 py-1.5 rounded-full bg-console-surface/60 border border-console-border/60 font-mono backdrop-blur-md">
+              <div className="hidden lg:flex items-center gap-2 text-xs text-muted px-3 py-1.5 rounded-full bg-zinc-900/60 border border-zinc-800/60 font-mono backdrop-blur-md">
                 <Activity className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
                 <span>Web3 EVM Live</span>
               </div>
 
-              {/* Connect Wallet using viem */}
+              {/* Connect Wallet */}
               <ConnectWalletButton />
-
-              <Link
-                href="/terminal"
-                className="cohere-btn-primary text-xs !py-2 !px-4 shadow-lg hover:shadow-white/10"
-              >
-                <span>Launch Console</span>
-                <ArrowUpRight className="w-3.5 h-3.5" />
-              </Link>
             </div>
           </div>
         </header>
@@ -126,6 +108,7 @@ export default function RootLayout({
             </div>
           </div>
         </footer>
+        </WalletProvider>
       </body>
     </html>
   );

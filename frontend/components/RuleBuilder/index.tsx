@@ -13,9 +13,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 interface RuleBuilderProps {
   initialConfig?: Partial<AgentConfig>;
   currentPrice: number;
+  onClose?: () => void;
+  onSaveSuccess?: () => void;
 }
 
-export const RuleBuilder: React.FC<RuleBuilderProps> = ({ initialConfig, currentPrice }) => {
+export const RuleBuilder: React.FC<RuleBuilderProps> = ({
+  initialConfig,
+  currentPrice,
+  onClose,
+  onSaveSuccess
+}) => {
   const router = useRouter();
   const [copied, setCopied] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -94,6 +101,35 @@ export const RuleBuilder: React.FC<RuleBuilderProps> = ({ initialConfig, current
     setTimeout(() => setCopied(false), 1500);
   };
 
+  const handleDelete = async () => {
+    setIsSubmitting(true);
+    try {
+      const resetConfig: AgentConfig = {
+        ...config,
+        active: false,
+        name: 'Deactivated Strategy',
+        spendingCap: { maxTotalSpend: 0, maxPerTradeSpend: 0, currentTotalSpend: 0 }
+      };
+      await fetch(`${BACKEND_HTTP_URL}/api/config`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(resetConfig)
+      });
+      showToast('Strategy deactivated and rules reset');
+      if (onSaveSuccess) onSaveSuccess();
+      if (onClose) {
+        setTimeout(onClose, 800);
+      } else {
+        setTimeout(() => router.push('/terminal'), 1000);
+      }
+    } catch {
+      showToast('Strategy deactivated locally');
+      if (onClose) onClose();
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleDeploy = async () => {
     setIsSubmitting(true);
     try {
@@ -102,11 +138,20 @@ export const RuleBuilder: React.FC<RuleBuilderProps> = ({ initialConfig, current
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(config)
       });
-      showToast('Strategy successfully deployed to on-chain engine!');
-      setTimeout(() => router.push('/terminal'), 1200);
+      showToast('Strategy successfully deployed to engine!');
+      if (onSaveSuccess) onSaveSuccess();
+      if (onClose) {
+        setTimeout(onClose, 800);
+      } else {
+        setTimeout(() => router.push('/terminal'), 1000);
+      }
     } catch {
       showToast('Deployed to local agent runtime');
-      setTimeout(() => router.push('/terminal'), 1200);
+      if (onClose) {
+        setTimeout(onClose, 800);
+      } else {
+        setTimeout(() => router.push('/terminal'), 1000);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -192,17 +237,30 @@ export const RuleBuilder: React.FC<RuleBuilderProps> = ({ initialConfig, current
             onTradeAmountChange={(tradeAmount) => setConfig((prev) => ({ ...prev, tradeAmount }))}
           />
 
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            type="button"
-            onClick={handleDeploy}
-            disabled={isSubmitting}
-            className="w-full cohere-btn-primary !py-3 !px-6 text-sm font-semibold flex items-center justify-center gap-2 transition disabled:opacity-50 shadow-lg"
-          >
-            {isSubmitting ? 'Saving Configuration...' : 'Apply Rule to Vault'}
-            <ArrowRight className="w-4 h-4" />
-          </motion.button>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              type="button"
+              onClick={handleDelete}
+              disabled={isSubmitting}
+              className="py-3 px-4 rounded-xl bg-rose-950/60 hover:bg-rose-900/80 text-rose-300 border border-rose-500/30 text-xs font-semibold font-mono flex items-center justify-center gap-1.5 transition disabled:opacity-50"
+            >
+              <span>Deactivate Strategy</span>
+            </motion.button>
+
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              type="button"
+              onClick={handleDeploy}
+              disabled={isSubmitting}
+              className="sm:col-span-2 cohere-btn-primary !py-3 !px-6 text-sm font-semibold flex items-center justify-center gap-2 transition disabled:opacity-50 shadow-lg"
+            >
+              {isSubmitting ? 'Saving Configuration...' : 'Apply Rule to Vault'}
+              <ArrowRight className="w-4 h-4" />
+            </motion.button>
+          </div>
         </div>
 
         <div className="lg:col-span-5 space-y-3">
