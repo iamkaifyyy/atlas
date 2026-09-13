@@ -7,7 +7,7 @@ export async function GET(req: NextRequest) {
   const cleanSymbol = symbol.replace('BINANCE:', '').replace('USDT', '_USDC').toUpperCase();
   const asset = findCryptoAsset(cleanSymbol);
 
-  // 1. Try Backpack Exchange API first
+  // 1. Fetch authentic ticker directly from Backpack Exchange API
   try {
     const res = await fetch(`https://api.backpack.exchange/api/v1/ticker?symbol=${asset.bpSymbol}`, {
       headers: { 'User-Agent': 'Atlas-Client/1.0' },
@@ -16,24 +16,29 @@ export async function GET(req: NextRequest) {
 
     if (res.ok) {
       const data = await res.json();
-      if (data && data.lastPrice) {
+      if (data && (data.lastPrice || data.close)) {
+        const last = parseFloat(data.lastPrice || data.close);
+        const open = parseFloat(data.firstPrice || data.open) || last;
+        const change = last - open;
+        const changePct = open > 0 ? (change / open) * 100 : 0;
+
         return NextResponse.json({
           symbol: asset.bpSymbol,
-          firstPrice: data.firstPrice || (data.lastPrice * 0.99).toFixed(2),
-          lastPrice: data.lastPrice.toString(),
-          high: data.high || (data.lastPrice * 1.02).toFixed(2),
-          low: data.low || (data.lastPrice * 0.98).toFixed(2),
-          priceChange: data.priceChange || '0.00',
-          priceChangePercent: data.priceChangePercent || '0.00',
-          volume: data.volume || '1250.0',
-          quoteVolume: data.quoteVolume || '3150000',
-          trades: data.trades || '4850'
+          firstPrice: open.toString(),
+          lastPrice: last.toString(),
+          high: (data.high || last * 1.01).toString(),
+          low: (data.low || last * 0.99).toString(),
+          priceChange: change.toFixed(4),
+          priceChangePercent: changePct.toFixed(2),
+          volume: data.volume?.toString() || '0',
+          quoteVolume: data.quoteVolume?.toString() || '0',
+          trades: data.trades?.toString() || '0'
         });
       }
     }
   } catch {}
 
-  // 2. Try Binance Public API for Layer 1 & Layer 2 tokens (ARB, OP, POL, SUI, AVAX, etc.)
+  // 2. Fetch authentic ticker from Binance API for L1 & L2 tokens
   try {
     const binanceSymbol = `${asset.id}USDT`;
     const bRes = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${binanceSymbol}`, {
@@ -46,39 +51,31 @@ export async function GET(req: NextRequest) {
       if (bData && bData.lastPrice) {
         return NextResponse.json({
           symbol: asset.bpSymbol,
-          firstPrice: parseFloat(bData.openPrice).toFixed(4),
-          lastPrice: parseFloat(bData.lastPrice).toString(),
-          high: parseFloat(bData.highPrice).toFixed(4),
-          low: parseFloat(bData.lowPrice).toFixed(4),
-          priceChange: parseFloat(bData.priceChange).toFixed(4),
-          priceChangePercent: (parseFloat(bData.priceChangePercent) / 100).toFixed(4),
-          volume: parseFloat(bData.volume).toFixed(1),
-          quoteVolume: parseFloat(bData.quoteVolume).toFixed(1),
-          trades: bData.count?.toString() || '34200'
+          firstPrice: bData.openPrice,
+          lastPrice: bData.lastPrice,
+          high: bData.highPrice,
+          low: bData.lowPrice,
+          priceChange: bData.priceChange,
+          priceChangePercent: bData.priceChangePercent,
+          volume: bData.volume,
+          quoteVolume: bData.quoteVolume,
+          trades: bData.count?.toString() || '0'
         });
       }
     }
   } catch {}
 
-  // 3. Fallback to realistic live jitter around the crypto asset baseline
-  const base = asset.defaultPrice;
-  const jitterPct = (Math.random() - 0.49) * 0.004;
-  const currentPrice = +(base * (1 + jitterPct)).toFixed(base < 10 ? 4 : 2);
-  const high = +(base * 1.024).toFixed(base < 10 ? 4 : 2);
-  const low = +(base * 0.978).toFixed(base < 10 ? 4 : 2);
-  const change = +(currentPrice - base).toFixed(base < 10 ? 4 : 2);
-  const changePct = +(change / base).toFixed(4);
-
+  // Return base market fallback if network unreachable
   return NextResponse.json({
     symbol: asset.bpSymbol,
-    firstPrice: base.toString(),
-    lastPrice: currentPrice.toString(),
-    high: high.toString(),
-    low: low.toString(),
-    priceChange: change.toString(),
-    priceChangePercent: changePct.toString(),
-    volume: (Math.random() * 25000 + 5000).toFixed(1),
-    quoteVolume: (Math.random() * 8500000 + 1200000).toFixed(0),
-    trades: Math.floor(Math.random() * 12000 + 4000).toString()
+    firstPrice: asset.defaultPrice.toString(),
+    lastPrice: asset.defaultPrice.toString(),
+    high: (asset.defaultPrice * 1.01).toFixed(2),
+    low: (asset.defaultPrice * 0.99).toFixed(2),
+    priceChange: '0.00',
+    priceChangePercent: '0.00',
+    volume: '0',
+    quoteVolume: '0',
+    trades: '0'
   });
 }
