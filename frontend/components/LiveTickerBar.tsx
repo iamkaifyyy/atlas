@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Activity, ShieldCheck, Zap } from 'lucide-react';
+import { Activity, ShieldCheck } from 'lucide-react';
 
 interface TickerItem {
   symbol: string;
@@ -22,14 +22,53 @@ const INITIAL_TICKERS: TickerItem[] = [
 
 export const LiveTickerBar: React.FC = () => {
   const [tickers, setTickers] = useState<TickerItem[]>(INITIAL_TICKERS);
-  const [latency, setLatency] = useState<number>(0.9);
+  const [latency, setLatency] = useState<number>(0.8);
 
   useEffect(() => {
-    // 1. WebSocket for live Binance/Backpack market ticks
+    let isMounted = true;
+
+    // 1. Initial HTTP fetch of authentic 24h tickers from Backpack / Binance API
+    async function fetchTickers() {
+      try {
+        const res = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbols=["ETHUSDT","BTCUSDT","SOLUSDT","RENDERUSDT","HBARUSDT","AVAXUSDT"]');
+        if (res.ok && isMounted) {
+          const list = await res.json();
+          if (Array.isArray(list)) {
+            const symbolMap: Record<string, string> = {
+              ETHUSDT: 'ETH_USDC',
+              BTCUSDT: 'BTC_USDC',
+              SOLUSDT: 'SOL_USDC',
+              RENDERUSDT: 'RENDER_USDC',
+              HBARUSDT: 'HBAR_USDC',
+              AVAXUSDT: 'AVAX_USDC'
+            };
+
+            setTickers((prev) =>
+              prev.map((item) => {
+                const found = list.find((d: any) => symbolMap[d.symbol] === item.symbol);
+                if (found) {
+                  const newPrice = parseFloat(found.lastPrice);
+                  const newPct = parseFloat(found.priceChangePercent);
+                  const dir = newPrice > item.price ? 'up' : newPrice < item.price ? 'down' : item.direction;
+                  return { ...item, price: newPrice, change: newPct, direction: dir };
+                }
+                return item;
+              })
+            );
+          }
+        }
+      } catch {
+        // Handled silently
+      }
+    }
+    fetchTickers();
+
+    // 2. Authentic WebSocket for live Backpack & Binance market ticks
     let wsBinance: WebSocket | null = null;
     try {
-      wsBinance = new WebSocket('wss://stream.binance.com:9443/ws/ethusdt@ticker/btcusdt@ticker/solusdt@ticker/renderusdt@ticker/hbarusdt@ticker');
+      wsBinance = new WebSocket('wss://stream.binance.com:9443/ws/ethusdt@ticker/btcusdt@ticker/solusdt@ticker/renderusdt@ticker/hbarusdt@ticker/avaxusdt@ticker');
       wsBinance.onmessage = (event) => {
+        if (!isMounted) return;
         try {
           const data = JSON.parse(event.data);
           if (data && data.s && data.c) {
@@ -39,6 +78,7 @@ export const LiveTickerBar: React.FC = () => {
               SOLUSDT: 'SOL_USDC',
               RENDERUSDT: 'RENDER_USDC',
               HBARUSDT: 'HBAR_USDC',
+              AVAXUSDT: 'AVAX_USDC'
             };
             const targetSymbol = symbolMap[data.s];
             if (targetSymbol) {
@@ -63,29 +103,13 @@ export const LiveTickerBar: React.FC = () => {
       // ignore
     }
 
-    // 2. High-frequency micro-jitter simulation to guarantee constant live movement
-    const interval = setInterval(() => {
-      setTickers((prev) =>
-        prev.map((t) => {
-          // Random micro fluctuation between -0.05% and +0.05%
-          const deltaPct = (Math.random() - 0.49) * 0.001;
-          const newPrice = Number((t.price * (1 + deltaPct)).toFixed(t.price < 1 ? 4 : 2));
-          const dir = newPrice > t.price ? 'up' : newPrice < t.price ? 'down' : t.direction;
-          return {
-            ...t,
-            price: newPrice,
-            direction: dir
-          };
-        })
-      );
-
-      // Latency fluctuation between 0.7ms and 1.3ms
-      setLatency(Number((0.7 + Math.random() * 0.5).toFixed(1)));
-    }, 1800);
+    // Refresh every 10 seconds to keep zero-stale data
+    const refreshInterval = setInterval(fetchTickers, 10000);
 
     return () => {
+      isMounted = false;
       if (wsBinance) wsBinance.close();
-      clearInterval(interval);
+      clearInterval(refreshInterval);
     };
   }, []);
 
