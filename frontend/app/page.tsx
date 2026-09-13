@@ -25,9 +25,9 @@ export default function HomePage() {
   return (
     <div className="relative space-y-20 max-w-6xl mx-auto font-sans pt-4 pb-16">
       {/* 
-        1. Expo.dev Soft Sky Atmospheric Wash (No pulsing glowing balls or fake dot matrix)
+        1. Expo.dev Soft Sky Atmospheric Wash (Extending to top edge behind floating header)
       */}
-      <div className="absolute inset-x-0 top-0 h-[600px] pointer-events-none -z-10 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(13,116,206,0.18),rgba(11,12,14,0))]" />
+      <div className="absolute inset-x-0 -top-36 h-[750px] pointer-events-none -z-10 bg-[radial-gradient(ellipse_80%_65%_at_50%_-5%,rgba(13,116,206,0.22),rgba(11,12,14,0))]" />
 
       {/* 2. Expo Hero Section */}
       <section className="text-center space-y-6 pt-6 sm:pt-10 pb-4">

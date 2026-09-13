@@ -90,7 +90,7 @@ export const LiveTickerBar: React.FC = () => {
   }, []);
 
   return (
-    <div className="cohere-announcement-bar relative z-50 border-b border-zinc-800/80 bg-zinc-950/80 backdrop-blur-md overflow-hidden py-1">
+    <div className="cohere-announcement-bar relative z-50 bg-zinc-950/60 backdrop-blur-md overflow-hidden py-1">
       <div className="max-w-[1600px] w-full mx-auto flex items-center justify-between gap-4 font-mono text-[11px]">
         {/* Marquee / Scrollable Live Ticker Section */}
         <div className="flex items-center gap-3 overflow-x-auto scrollbar-none py-0.5">
