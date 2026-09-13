@@ -20,7 +20,13 @@ import {
   Check,
   Radio,
   Layers,
-  BarChart2
+  BarChart2,
+  Crosshair,
+  PenTool,
+  Type,
+  Maximize2,
+  Cpu,
+  Sparkles
 } from 'lucide-react';
 import { useContractEvents } from '../hooks/useContractEvents';
 import { useOrderBook } from '../hooks/useOrderBook';
@@ -414,20 +420,69 @@ export const TradingTerminal: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* 2. Main Workspace: Side-by-Side Seamless Grid */}
+      {/* 2. Main Workspace: Side-by-Side TradingView Pro Layout */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-3 items-stretch">
-        {/* Left: Live Terminal Chart Panel */}
+        {/* Left: Live TradingView Chart Panel with Tool Palette & AI Agent Execution Overlay */}
         <div className="xl:col-span-8 flex flex-col">
-          <div className="cohere-card-console !p-0 overflow-hidden flex flex-col flex-1 border border-console-border rounded-xl min-h-[580px] h-[580px] bg-[#09090b]">
-            <TradingViewChart
-              symbol={tvSymbol}
-              interval="1D"
-              range="12m"
-              theme="Dark"
-              height="100%"
-              embedded={true}
-              onSymbolChange={(s) => setTvSymbol(s)}
-            />
+          <div className="cohere-card-console !p-0 overflow-hidden flex flex-col flex-1 border border-console-border rounded-xl min-h-[600px] h-[600px] bg-[#09090b]">
+            {/* Active AI Agent Execution Bar */}
+            <div className="bg-[#131722] border-b border-console-border px-3.5 py-2 flex flex-wrap items-center justify-between gap-2 text-xs font-mono">
+              <div className="flex items-center gap-3 flex-wrap">
+                <div className="flex items-center gap-1.5 text-emerald-400 font-semibold text-[11px] bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                  <span>🤖 NO-CODE AGENT: ACTIVE</span>
+                </div>
+                <span className="text-zinc-600 hidden sm:inline">•</span>
+                <div className="flex items-center gap-1 text-zinc-300 text-[11px]">
+                  <span className="text-muted">Strategy:</span>
+                  <span className="text-white font-medium">{agentConfig?.name || 'ETH Momentum Guard'}</span>
+                </div>
+                <span className="text-zinc-600 hidden sm:inline">•</span>
+                <div className="flex items-center gap-1 text-zinc-300 text-[11px]">
+                  <span className="text-muted">Trigger:</span>
+                  <span className="text-coral font-semibold">
+                    ETH {agentConfig?.trigger?.type === 'PRICE_BELOW' ? '<' : '>'} ${agentConfig?.trigger?.targetPrice ?? 3030} USDC
+                  </span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsRulesModalOpen(true)}
+                className="flex items-center gap-1 text-[11px] text-emerald-400 hover:text-emerald-300 font-semibold hover:underline cursor-pointer"
+              >
+                <SlidersHorizontal className="w-3 h-3" />
+                <span>Configure No-Code Rules ↗</span>
+              </button>
+            </div>
+
+            {/* TradingView Chart with Left Drawing Palette */}
+            <div className="flex flex-1 overflow-hidden relative">
+              {/* TradingView Iconic Left Drawing Toolbar */}
+              <div className="w-10 bg-[#131722] border-r border-console-border flex flex-col items-center py-2 gap-3 text-zinc-400 shrink-0 select-none">
+                <button type="button" title="Crosshair Cursor" className="hover:text-white transition p-1.5 rounded hover:bg-zinc-800"><Crosshair className="w-4 h-4" /></button>
+                <button type="button" title="Trendline Draw Tool" className="hover:text-white transition p-1.5 rounded hover:bg-zinc-800"><TrendingUp className="w-4 h-4" /></button>
+                <button type="button" title="Fibonacci Channels" className="hover:text-white transition p-1.5 rounded hover:bg-zinc-800"><Layers className="w-4 h-4 text-cyan-400" /></button>
+                <button type="button" title="Brush Annotation" className="hover:text-white transition p-1.5 rounded hover:bg-zinc-800"><PenTool className="w-4 h-4" /></button>
+                <button type="button" title="Text Label" className="hover:text-white transition p-1.5 rounded hover:bg-zinc-800"><Type className="w-4 h-4" /></button>
+                <div className="w-6 h-[1px] bg-console-border my-1" />
+                <button type="button" title="No-Code Agent Node" className="text-emerald-400 hover:text-emerald-300 transition p-1.5 rounded hover:bg-emerald-500/10"><Cpu className="w-4 h-4" /></button>
+                <button type="button" title="Escrow Vault Limits" className="text-amber-400 hover:text-amber-300 transition p-1.5 rounded hover:bg-amber-500/10"><Shield className="w-4 h-4" /></button>
+              </div>
+
+              {/* Main TradingView Canvas */}
+              <div className="flex-1 h-full">
+                <TradingViewChart
+                  symbol={tvSymbol}
+                  interval="1D"
+                  range="12m"
+                  theme="Dark"
+                  height="100%"
+                  embedded={true}
+                  onSymbolChange={(s) => setTvSymbol(s)}
+                />
+              </div>
+            </div>
           </div>
         </div>
 
