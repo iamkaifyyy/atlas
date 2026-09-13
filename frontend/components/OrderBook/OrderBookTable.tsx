@@ -28,6 +28,9 @@ interface OrderBookTableProps {
   isLoading?: boolean;
   onPlaceOrder?: (params: PlaceOrderParams) => Promise<{ success: boolean; error?: string }>;
   isSubmitting?: boolean;
+  selectedMarket?: string;
+  onSelectMarket?: (market: string) => void;
+  assetUnit?: string;
 }
 
 type BookSource = 'backpack' | 'local';
@@ -61,10 +64,17 @@ interface OpenOrder {
 }
 
 const MARKET_PAIRS = [
-  { symbol: 'ETH_USDC', label: 'ETH/USDC', base: 'ETH', quote: 'USDC' },
-  { symbol: 'BTC_USDC', label: 'BTC/USDC', base: 'BTC', quote: 'USDC' },
-  { symbol: 'SOL_USDC', label: 'SOL/USDC', base: 'SOL', quote: 'USDC' },
-  { symbol: 'RENDER_USDC', label: 'RENDER/USDC', base: 'RENDER', quote: 'USDC' }
+  { symbol: 'ETH_USDC', label: 'ETH / USDC (Ethereum L1)', base: 'ETH', quote: 'USDC' },
+  { symbol: 'BTC_USDC', label: 'BTC / USDC (Bitcoin L1)', base: 'BTC', quote: 'USDC' },
+  { symbol: 'SOL_USDC', label: 'SOL / USDC (Solana L1)', base: 'SOL', quote: 'USDC' },
+  { symbol: 'ARB_USDC', label: 'ARB / USDC (Arbitrum L2)', base: 'ARB', quote: 'USDC' },
+  { symbol: 'OP_USDC', label: 'OP / USDC (Optimism L2)', base: 'OP', quote: 'USDC' },
+  { symbol: 'STRK_USDC', label: 'STRK / USDC (Starknet L2)', base: 'STRK', quote: 'USDC' },
+  { symbol: 'POL_USDC', label: 'POL / USDC (Polygon L2)', base: 'POL', quote: 'USDC' },
+  { symbol: 'SUI_USDC', label: 'SUI / USDC (Sui L1)', base: 'SUI', quote: 'USDC' },
+  { symbol: 'AVAX_USDC', label: 'AVAX / USDC (Avalanche L1)', base: 'AVAX', quote: 'USDC' },
+  { symbol: 'RENDER_USDC', label: 'RENDER / USDC (Render AI)', base: 'RENDER', quote: 'USDC' },
+  { symbol: 'LINK_USDC', label: 'LINK / USDC (Chainlink DeFi)', base: 'LINK', quote: 'USDC' }
 ];
 
 interface DepthRowProps {
@@ -114,15 +124,29 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
   lastPrice: localLastPrice,
   isLoading: localLoading,
   onPlaceOrder,
-  isSubmitting
+  isSubmitting,
+  selectedMarket,
+  onSelectMarket,
+  assetUnit
 }) => {
   // Navigation & configuration
-  const [selectedPair, setSelectedPair] = useState('ETH_USDC');
+  const [selectedPair, setSelectedPair] = useState(selectedMarket || 'ETH_USDC');
   const [activeTab, setActiveTab] = useState<ActiveTab>('depth');
   const [depthViewMode, setDepthViewMode] = useState<DepthViewMode>('ladder');
   const [bookSource, setBookSource] = useState<BookSource>('backpack');
   const [layoutMode, setLayoutMode] = useState<LayoutMode>('both');
   const [precision, setPrecision] = useState<Precision>(0.1);
+
+  // Sync external selectedMarket prop
+  useEffect(() => {
+    if (selectedMarket && selectedMarket !== selectedPair) {
+      setSelectedPair(selectedMarket);
+      setIsBackpackLoading(true);
+      setIsTradesLoading(true);
+    }
+  }, [selectedMarket]);
+
+  const currentBaseAsset = assetUnit || selectedPair.split('_')[0] || 'ETH';
 
   // Order ticket state
   const [orderSide, setOrderSide] = useState<OrderSide>('BUY');
@@ -149,20 +173,26 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
   const [openOrders, setOpenOrders] = useState<OpenOrder[]>([]);
   const [cancellingOrderId, setCancellingOrderId] = useState<string | null>(null);
 
-  // Poll live depth for selected market pair
+  // Poll live depth for selected market pair via Next.js proxy route
   useEffect(() => {
     let isMounted = true;
 
     async function fetchBackpackDepth() {
       try {
-        let res = await fetch(`https://api.backpack.exchange/api/v1/depth?symbol=${selectedPair}`);
+        let res = await fetch(`/api/backpack/depth?symbol=${selectedPair}`);
         if (!res.ok) {
           res = await fetch(`${BACKEND_HTTP_URL}/api/backpack/depth?symbol=${selectedPair}`);
         }
-        if (!res.ok || !isMounted) return;
+        if (!res.ok || !isMounted) {
+          if (isMounted) setIsBackpackLoading(false);
+          return;
+        }
 
         const json = await res.json();
-        if (!json.asks || !json.bids) return;
+        if (!json.asks || !json.bids) {
+          if (isMounted) setIsBackpackLoading(false);
+          return;
+        }
 
         const parseEntries = (raw: [string, string][]): OrderBookEntry[] =>
           raw.slice(0, 15).map(([pStr, qStr]) => {
@@ -181,7 +211,7 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
         }
         setIsBackpackLoading(false);
       } catch {
-        // Fallback gracefully
+        if (isMounted) setIsBackpackLoading(false);
       }
     }
 
@@ -194,14 +224,17 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
     };
   }, [selectedPair]);
 
-  // Poll recent market trades
+  // Poll recent market trades via Next.js proxy route
   const fetchRecentTrades = useCallback(async () => {
     try {
-      let res = await fetch(`https://api.backpack.exchange/api/v1/trades?symbol=${selectedPair}&limit=25`);
+      let res = await fetch(`/api/backpack/trades?symbol=${selectedPair}&limit=25`);
       if (!res.ok) {
         res = await fetch(`${BACKEND_HTTP_URL}/api/backpack/trades?symbol=${selectedPair}&limit=25`);
       }
-      if (!res.ok) return;
+      if (!res.ok) {
+        setIsTradesLoading(false);
+        return;
+      }
 
       const json = await res.json();
       if (Array.isArray(json)) {
@@ -214,9 +247,11 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
         }));
         setRecentTrades(parsed);
         setIsTradesLoading(false);
+      } else {
+        setIsTradesLoading(false);
       }
     } catch {
-      // Fallback
+      setIsTradesLoading(false);
     }
   }, [selectedPair]);
 
@@ -403,7 +438,10 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
           {/* Market Pair Dropdown */}
           <select
             value={selectedPair}
-            onChange={(e) => setSelectedPair(e.target.value)}
+            onChange={(e) => {
+              setSelectedPair(e.target.value);
+              onSelectMarket?.(e.target.value);
+            }}
             className="bg-console-elevated border border-console-border rounded px-2 py-0.5 text-xs text-white font-semibold focus:outline-none focus:border-coral cursor-pointer"
           >
             {MARKET_PAIRS.map((p) => (
@@ -605,7 +643,7 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
                         ${order.price.toFixed(2)}
                       </div>
                       <div className="text-[10px] text-muted">
-                        {order.remainingQuantity} / {order.quantity} ETH
+                        {order.remainingQuantity} / {order.quantity} {currentBaseAsset}
                       </div>
                     </div>
 
@@ -709,7 +747,7 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
             <div>
               <div className="flex justify-between items-center mb-1">
                 <label className="text-[11px] text-muted uppercase tracking-[0.28px]">
-                  Order Size (ETH)
+                  Order Size ({currentBaseAsset})
                 </label>
                 <span className="text-[10px] text-muted font-mono">
                   ~${orderValueUsdc.toFixed(2)} USDC
@@ -737,7 +775,7 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
                         : 'bg-console-elevated border-console-border text-muted hover:text-white'
                     }`}
                   >
-                    {val} ETH
+                    {val} {currentBaseAsset}
                   </button>
                 ))}
               </div>
@@ -849,7 +887,7 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
             ) : isSubmitting ? (
               'Submitting On-Chain...'
             ) : (
-              `Submit ${orderSide} ${orderType} (${numericQty} ETH)`
+              `Submit ${orderSide} ${orderType} (${numericQty} ${currentBaseAsset})`
             )}
           </button>
         </form>
@@ -972,10 +1010,10 @@ export const OrderBookTable: React.FC<OrderBookTableProps> = ({
 
               <div className="grid grid-cols-2 gap-2 text-[10px] text-muted">
                 <div className="bg-console-elevated p-2 rounded border border-console-border">
-                  <div>Total Bid Depth: <strong className="text-white">{totalBidVolume.toFixed(2)} ETH</strong></div>
+                  <div>Total Bid Depth: <strong className="text-white">{totalBidVolume.toFixed(2)} {currentBaseAsset}</strong></div>
                 </div>
                 <div className="bg-console-elevated p-2 rounded border border-console-border text-right">
-                  <div>Total Ask Depth: <strong className="text-white">{totalAskVolume.toFixed(2)} ETH</strong></div>
+                  <div>Total Ask Depth: <strong className="text-white">{totalAskVolume.toFixed(2)} {currentBaseAsset}</strong></div>
                 </div>
               </div>
             </div>

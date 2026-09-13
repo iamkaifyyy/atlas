@@ -36,7 +36,7 @@ export class Example extends Component<{
   render() {
     return (
       <TradingViewStockChartWidget
-        symbol={this.props.symbol || 'NASDAQ:AAPL'}
+        symbol={this.props.symbol || 'BINANCE:ETHUSDT'}
         theme={this.props.theme || 'Dark'}
         range={this.props.range || '12m'}
         autosize={true}
@@ -78,17 +78,23 @@ interface TradingViewChartProps {
 }
 
 const SYMBOL_PRESETS = [
-  { value: 'NASDAQ:AAPL', label: 'AAPL (NASDAQ:AAPL)', bpEquivalent: 'ETH_USDC', isStock: true },
-  { value: 'COINBASE:ETHUSD', label: 'ETH / USD (Coinbase)', bpEquivalent: 'ETH_USDC', isStock: false },
-  { value: 'BINANCE:BTCUSDT', label: 'BTC / USDT (Binance)', bpEquivalent: 'BTC_USDC', isStock: false },
-  { value: 'BINANCE:SOLUSDT', label: 'SOL / USDT (Binance)', bpEquivalent: 'SOL_USDC', isStock: false },
-  { value: 'BINANCE:ETHUSDT', label: 'ETH / USDT (Binance)', bpEquivalent: 'ETH_USDC', isStock: false }
+  { value: 'BINANCE:ETHUSDT', label: 'ETH / USDT (Ethereum L1)', bpEquivalent: 'ETH_USDC', isStock: false },
+  { value: 'BINANCE:BTCUSDT', label: 'BTC / USDT (Bitcoin L1)', bpEquivalent: 'BTC_USDC', isStock: false },
+  { value: 'BINANCE:SOLUSDT', label: 'SOL / USDT (Solana L1)', bpEquivalent: 'SOL_USDC', isStock: false },
+  { value: 'BINANCE:ARBUSDT', label: 'ARB / USDT (Arbitrum L2)', bpEquivalent: 'ARB_USDC', isStock: false },
+  { value: 'BINANCE:OPUSDT', label: 'OP / USDT (Optimism L2)', bpEquivalent: 'OP_USDC', isStock: false },
+  { value: 'BINANCE:STRKUSDT', label: 'STRK / USDT (Starknet L2)', bpEquivalent: 'STRK_USDC', isStock: false },
+  { value: 'BINANCE:POLUSDT', label: 'POL / USDT (Polygon L2)', bpEquivalent: 'POL_USDC', isStock: false },
+  { value: 'BINANCE:SUIUSDT', label: 'SUI / USDT (Sui L1)', bpEquivalent: 'SUI_USDC', isStock: false },
+  { value: 'BINANCE:AVAXUSDT', label: 'AVAX / USDT (Avalanche L1)', bpEquivalent: 'AVAX_USDC', isStock: false },
+  { value: 'BINANCE:RENDERUSDT', label: 'RENDER / USDT (Render AI)', bpEquivalent: 'RENDER_USDC', isStock: false },
+  { value: 'BINANCE:LINKUSDT', label: 'LINK / USDT (Chainlink)', bpEquivalent: 'LINK_USDC', isStock: false }
 ];
 
 const RANGE_PRESETS = ['1d', '5d', '1m', '3m', '6m', '12m', 'all'] as const;
 
 export const TradingViewChart: React.FC<TradingViewChartProps> = ({
-  symbol: initialSymbol = 'NASDAQ:AAPL',
+  symbol: initialSymbol = 'BINANCE:ETHUSDT',
   range: initialRange = '12m',
   theme = 'Dark',
   height = '100%',

@@ -32,6 +32,12 @@ import { KillSwitchButton } from './KillSwitchButton';
 import type { TradeEventPayload } from '../../shared/types/agentConfig';
 import { motion, AnimatePresence } from 'framer-motion';
 
+import {
+  CRYPTO_ASSETS,
+  DEFAULT_CRYPTO_ASSET,
+  findCryptoAsset
+} from '../lib/cryptoAssets';
+
 // Dynamic chart loaders with custom fallbacks
 const createChartLoader = (label: string, minHeight = 480) => {
   return function ChartLoadingFallback() {
@@ -60,14 +66,6 @@ const FILTER_TABS: { id: EventFilter; label: string; activeColor: string }[] = [
   { id: 'EXECUTED', label: 'Executed', activeColor: 'bg-emerald-600 text-white font-medium' },
   { id: 'APPROVAL', label: 'Pending Approval', activeColor: 'bg-amber-600 text-white font-medium' },
   { id: 'REJECTED', label: 'Blocked', activeColor: 'bg-rose-600 text-white font-medium' }
-];
-
-const TV_SYMBOLS = [
-  { value: 'NASDAQ:AAPL', label: 'AAPL (NASDAQ:AAPL)' },
-  { value: 'COINBASE:ETHUSD', label: 'ETH / USD (Coinbase)' },
-  { value: 'BINANCE:BTCUSDT', label: 'BTC / USDT (Binance)' },
-  { value: 'BINANCE:SOLUSDT', label: 'SOL / USDT (Binance)' },
-  { value: 'BINANCE:ETHUSDT', label: 'ETH / USDT (Binance)' }
 ];
 
 const truncateAddress = (addr: string) =>
@@ -110,7 +108,7 @@ export const TradingTerminal: React.FC = () => {
   const [activeFilter, setActiveFilter] = useState<EventFilter>('ALL');
   const [bottomTab, setBottomTab] = useState<BottomConsoleTab>('LEDGER');
   const [copiedVault, setCopiedVault] = useState(false);
-  const [tvSymbol, setTvSymbol] = useState('NASDAQ:AAPL');
+  const [tvSymbol, setTvSymbol] = useState(DEFAULT_CRYPTO_ASSET.tvSymbol);
   const [toastMessage, setToastMessage] = useState<{ text: string; type: 'success' | 'warn' | 'error' | 'info' } | null>(null);
 
   const showToast = (text: string, type: 'success' | 'warn' | 'error' | 'info' = 'info') => {
@@ -118,20 +116,20 @@ export const TradingTerminal: React.FC = () => {
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  // Dynamically map selected chart symbol to Backpack/market pair
-  const selectedBpSymbol = useMemo(() => {
-    if (tvSymbol.includes('AAPL')) return 'NASDAQ:AAPL';
-    if (tvSymbol.includes('BTC')) return 'BTC_USDC';
-    if (tvSymbol.includes('SOL')) return 'SOL_USDC';
-    return 'ETH_USDC';
+  // Find current active crypto asset (Layer 1, Layer 2, AI or DeFi)
+  const currentAsset = useMemo(() => {
+    return findCryptoAsset(tvSymbol);
   }, [tvSymbol]);
 
-  const assetUnit = useMemo(() => {
-    if (tvSymbol.includes('AAPL')) return 'AAPL';
-    if (tvSymbol.includes('BTC')) return 'BTC';
-    if (tvSymbol.includes('SOL')) return 'SOL';
-    return 'ETH';
-  }, [tvSymbol]);
+  const selectedBpSymbol = currentAsset.bpSymbol;
+  const assetUnit = currentAsset.unit;
+
+  const handleMarketSelect = (marketSymbol: string) => {
+    const asset = findCryptoAsset(marketSymbol);
+    if (asset) {
+      setTvSymbol(asset.tvSymbol);
+    }
+  };
 
   const backpack = useBackpackTicker(selectedBpSymbol);
 
@@ -199,21 +197,39 @@ export const TradingTerminal: React.FC = () => {
                   onChange={(e) => setTvSymbol(e.target.value)}
                   className="bg-transparent text-white font-bold text-sm tracking-tight cursor-pointer focus:outline-none hover:text-emerald-400 transition"
                 >
-                  {TV_SYMBOLS.map((s) => (
-                    <option key={s.value} value={s.value} className="bg-zinc-950 text-white">
-                      {s.label}
-                    </option>
-                  ))}
+                  <optgroup label="⚡ Layer 1 Blockchains" className="bg-zinc-950 text-emerald-400 font-semibold">
+                    {CRYPTO_ASSETS.filter((a) => a.category === 'Layer 1').map((a) => (
+                      <option key={a.tvSymbol} value={a.tvSymbol} className="bg-zinc-950 text-white font-mono">
+                        {a.name} ({a.unit}) • {a.badge}
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="🚀 Layer 2 Rollups & Scaling" className="bg-zinc-950 text-cyan-400 font-semibold">
+                    {CRYPTO_ASSETS.filter((a) => a.category === 'Layer 2').map((a) => (
+                      <option key={a.tvSymbol} value={a.tvSymbol} className="bg-zinc-950 text-white font-mono">
+                        {a.name} ({a.unit}) • {a.badge}
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="🧠 Decentralized AI & DeFi" className="bg-zinc-950 text-purple-400 font-semibold">
+                    {CRYPTO_ASSETS.filter((a) => a.category === 'AI' || a.category === 'DeFi').map((a) => (
+                      <option key={a.tvSymbol} value={a.tvSymbol} className="bg-zinc-950 text-white font-mono">
+                        {a.name} ({a.unit}) • {a.badge}
+                      </option>
+                    ))}
+                  </optgroup>
                 </select>
                 <span className="cohere-chip-coral !py-0.5 !px-2 !text-[9px] flex items-center gap-1 font-semibold">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  {tvSymbol.includes('AAPL') ? 'NASDAQ LIVE' : 'BACKPACK L2 LIVE'}
+                  {currentAsset.badge} • BACKPACK L2 LIVE
                 </span>
               </div>
               <div className="text-[10px] text-muted font-mono flex items-center gap-1.5">
-                <span>{tvSymbol.includes('AAPL') ? 'nasdaq.com' : 'api.backpack.exchange'}</span>
+                <span>api.backpack.exchange</span>
                 <span className="text-zinc-600">•</span>
                 <span className="text-emerald-400 font-medium">{selectedBpSymbol}</span>
+                <span className="text-zinc-600">•</span>
+                <span className="text-zinc-300">{currentAsset.name}</span>
               </div>
             </div>
           </div>
@@ -221,7 +237,7 @@ export const TradingTerminal: React.FC = () => {
           {/* Real-Time Mark Price & 24h Delta with dynamic live tick flash */}
           <div className="pr-4 border-r border-console-border">
             <div className="text-[9px] text-muted font-mono uppercase tracking-[0.28px]">
-              {tvSymbol.includes('AAPL') ? 'NASDAQ Mark Price' : 'Backpack Mark Price'}
+              {currentAsset.name} Mark Price
             </div>
             <div className="flex items-baseline gap-2">
               <span
@@ -419,6 +435,9 @@ export const TradingTerminal: React.FC = () => {
               isLoading={orderBook.isLoading}
               onPlaceOrder={orderBook.placeOrder}
               isSubmitting={orderBook.isSubmitting}
+              selectedMarket={selectedBpSymbol}
+              onSelectMarket={handleMarketSelect}
+              assetUnit={assetUnit}
             />
           </div>
         </div>
