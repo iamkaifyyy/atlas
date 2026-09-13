@@ -8,6 +8,7 @@ import {
   Globe
 } from 'lucide-react';
 import { ConnectWalletButton } from '../components/ConnectWalletButton';
+import { WalletProvider } from '../context/WalletContext';
 
 export const metadata: Metadata = {
   title: 'Atlas | Enterprise Quantitative Crypto Protocol & Guarded Escrow',
@@ -22,6 +23,8 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className="bg-console-bg min-h-screen text-white flex flex-col font-sans selection:bg-coral/20 selection:text-coral relative overflow-x-hidden">
+        <WalletProvider>
+
         {/* Top live ticker announcement bar (translucent, borderless) */}
         <div className="cohere-announcement-bar relative z-50">
           <div className="max-w-[1600px] w-full mx-auto flex items-center justify-between gap-4 font-mono text-[11px]">
@@ -126,6 +129,7 @@ export default function RootLayout({
             </div>
           </div>
         </footer>
+        </WalletProvider>
       </body>
     </html>
   );
