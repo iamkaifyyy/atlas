@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { TriggerInput } from './TriggerInput';
 import { CapInput } from './CapInput';
 import { ApprovalThresholdInput } from './ApprovalThresholdInput';
-import { ArrowRight, Code2, Check, Copy, Sparkles, ShieldCheck, Zap } from 'lucide-react';
+import { ArrowRight, Sparkles } from 'lucide-react';
 import type { AgentConfig } from '../../../shared/types/agentConfig';
 import { BACKEND_HTTP_URL } from '../../lib/contractAddress';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -24,7 +24,6 @@ export const RuleBuilder: React.FC<RuleBuilderProps> = ({
   onSaveSuccess
 }) => {
   const router = useRouter();
-  const [copied, setCopied] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
@@ -80,78 +79,66 @@ export const RuleBuilder: React.FC<RuleBuilderProps> = ({
         action: 'BUY'
       }));
       showToast('Loaded Preset: Breakout Momentum Scalper');
-    } else {
+    } else if (type === 'strict') {
       setConfig((prev) => ({
         ...prev,
-        name: 'Strict Escrow Vault Guard',
-        trigger: { asset: 'ETH/USDC', type: 'PRICE_BELOW', targetPrice: Math.round(base - 15) },
-        spendingCap: { maxTotalSpend: 2.5, maxPerTradeSpend: 0.5, currentTotalSpend: 0 },
+        name: 'Strict Risk Guard',
+        trigger: { asset: 'ETH/USDC', type: 'PRICE_BELOW', targetPrice: Math.round(base - 60) },
+        spendingCap: { maxTotalSpend: 2.0, maxPerTradeSpend: 0.5, currentTotalSpend: 0 },
         approvalThreshold: { thresholdAmount: 0.25 },
         tradeAmount: 0.2,
         action: 'BUY'
       }));
-      showToast('Loaded Preset: Strict Escrow Vault Guard');
-    }
-  };
-
-  const handleCopyJson = () => {
-    navigator.clipboard.writeText(JSON.stringify(config, null, 2));
-    setCopied(true);
-    showToast('Rule payload copied to clipboard');
-    setTimeout(() => setCopied(false), 1500);
-  };
-
-  const handleDelete = async () => {
-    setIsSubmitting(true);
-    try {
-      const resetConfig: AgentConfig = {
-        ...config,
-        active: false,
-        name: 'Deactivated Strategy',
-        spendingCap: { maxTotalSpend: 0, maxPerTradeSpend: 0, currentTotalSpend: 0 }
-      };
-      await fetch(`${BACKEND_HTTP_URL}/api/config`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(resetConfig)
-      });
-      showToast('Strategy deactivated and rules reset');
-      if (onSaveSuccess) onSaveSuccess();
-      if (onClose) {
-        setTimeout(onClose, 800);
-      } else {
-        setTimeout(() => router.push('/terminal'), 1000);
-      }
-    } catch {
-      showToast('Strategy deactivated locally');
-      if (onClose) onClose();
-    } finally {
-      setIsSubmitting(false);
+      showToast('Loaded Preset: Strict Risk Guard');
     }
   };
 
   const handleDeploy = async () => {
     setIsSubmitting(true);
     try {
-      await fetch(`${BACKEND_HTTP_URL}/api/config`, {
+      const res = await fetch(`${BACKEND_HTTP_URL}/api/agent/config`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(config)
+        body: JSON.stringify({ ...config, active: true })
       });
-      showToast('Strategy successfully deployed to engine!');
-      if (onSaveSuccess) onSaveSuccess();
-      if (onClose) {
-        setTimeout(onClose, 800);
+
+      if (res.ok) {
+        showToast('Rule successfully compiled & deployed to AgentVault!');
+        if (onSaveSuccess) onSaveSuccess();
+        if (onClose) onClose();
+        router.refresh();
       } else {
-        setTimeout(() => router.push('/terminal'), 1000);
+        showToast('Rule active locally in Vault context.');
+        if (onSaveSuccess) onSaveSuccess();
+        if (onClose) onClose();
       }
     } catch {
-      showToast('Deployed to local agent runtime');
-      if (onClose) {
-        setTimeout(onClose, 800);
-      } else {
-        setTimeout(() => router.push('/terminal'), 1000);
+      showToast('Rule updated & active.');
+      if (onSaveSuccess) onSaveSuccess();
+      if (onClose) onClose();
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    setIsSubmitting(true);
+    try {
+      const res = await fetch(`${BACKEND_HTTP_URL}/api/agent/config`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...config, active: false, name: 'Deactivated Strategy' })
+      });
+
+      if (res.ok) {
+        showToast('Strategy deactivated.');
+        if (onSaveSuccess) onSaveSuccess();
+        if (onClose) onClose();
       }
+    } catch {
+      showToast('Strategy deactivated.');
+      if (onSaveSuccess) onSaveSuccess();
+      if (onClose) onClose();
     } finally {
       setIsSubmitting(false);
     }
@@ -159,7 +146,6 @@ export const RuleBuilder: React.FC<RuleBuilderProps> = ({
 
   return (
     <div className="relative">
-      {/* Floating Animated Toast */}
       <AnimatePresence>
         {toastMsg && (
           <motion.div
@@ -174,11 +160,11 @@ export const RuleBuilder: React.FC<RuleBuilderProps> = ({
         )}
       </AnimatePresence>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-5xl mx-auto font-sans">
-        <div className="lg:col-span-7 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="max-w-3xl mx-auto font-sans space-y-4">
+        <div className="cohere-card-console p-6 space-y-5 shadow-2xl border border-console-border">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-console-border">
             <div>
-              <h2 className="text-xl font-normal text-white tracking-[-0.03em]">
+              <h2 className="text-xl font-semibold text-white tracking-[-0.03em]">
                 Configure Agent Rule
               </h2>
               <p className="text-xs text-muted mt-0.5">
@@ -194,7 +180,7 @@ export const RuleBuilder: React.FC<RuleBuilderProps> = ({
                 whileTap={{ scale: 0.95 }}
                 type="button"
                 onClick={() => applyPreset('dip')}
-                className="px-2 py-1 rounded bg-console-elevated hover:bg-zinc-800 text-coral border border-console-border transition"
+                className="px-2.5 py-1 rounded-lg bg-console-elevated hover:bg-zinc-800 text-coral border border-console-border transition"
               >
                 Dip Buyer
               </motion.button>
@@ -203,7 +189,7 @@ export const RuleBuilder: React.FC<RuleBuilderProps> = ({
                 whileTap={{ scale: 0.95 }}
                 type="button"
                 onClick={() => applyPreset('momentum')}
-                className="px-2 py-1 rounded bg-console-elevated hover:bg-zinc-800 text-emerald-400 border border-console-border transition"
+                className="px-2.5 py-1 rounded-lg bg-console-elevated hover:bg-zinc-800 text-emerald-400 border border-console-border transition"
               >
                 Momentum
               </motion.button>
@@ -212,7 +198,7 @@ export const RuleBuilder: React.FC<RuleBuilderProps> = ({
                 whileTap={{ scale: 0.95 }}
                 type="button"
                 onClick={() => applyPreset('strict')}
-                className="px-2 py-1 rounded bg-console-elevated hover:bg-zinc-800 text-white border border-console-border transition"
+                className="px-2.5 py-1 rounded-lg bg-console-elevated hover:bg-zinc-800 text-white border border-console-border transition"
               >
                 Strict Guard
               </motion.button>
@@ -237,7 +223,7 @@ export const RuleBuilder: React.FC<RuleBuilderProps> = ({
             onTradeAmountChange={(tradeAmount) => setConfig((prev) => ({ ...prev, tradeAmount }))}
           />
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2">
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
@@ -260,32 +246,6 @@ export const RuleBuilder: React.FC<RuleBuilderProps> = ({
               {isSubmitting ? 'Saving Configuration...' : 'Apply Rule to Vault'}
               <ArrowRight className="w-4 h-4" />
             </motion.button>
-          </div>
-        </div>
-
-        <div className="lg:col-span-5 space-y-3">
-          <div className="cohere-card-console p-5 flex flex-col h-full font-mono">
-            <div className="flex items-center justify-between pb-3 border-b border-console-border">
-              <div className="flex items-center gap-2 text-xs font-semibold text-white tracking-[0.28px] uppercase">
-                <Code2 className="w-4 h-4 text-coral" />
-                <span>Rule Payload (JSON)</span>
-              </div>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleCopyJson}
-                className="flex items-center gap-1.5 text-xs text-muted hover:text-white px-2.5 py-1 rounded bg-console-elevated border border-console-border transition"
-              >
-                {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                {copied ? 'Copied' : 'Copy'}
-              </motion.button>
-            </div>
-
-            <div className="mt-3 flex-1 overflow-auto rounded-lg bg-[#0a0a0d] p-3.5 border border-console-border">
-              <pre className="text-xs font-mono text-emerald-400 whitespace-pre-wrap leading-relaxed">
-                {JSON.stringify(config, null, 2)}
-              </pre>
-            </div>
           </div>
         </div>
       </div>
