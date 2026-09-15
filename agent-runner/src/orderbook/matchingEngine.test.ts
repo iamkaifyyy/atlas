@@ -31,7 +31,6 @@ function runTests() {
     throw new Error('Test failed: Partial fill expected');
   }
 
-  // Test 3: Market buy order consuming liquidity
   const marketBuy = engine.createOrder({
     userId: 'market-buyer',
     side: 'BUY',
